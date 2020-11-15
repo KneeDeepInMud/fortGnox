@@ -1,6 +1,7 @@
 package org.mockenhaupt.jgpg;
 
 import javax.swing.JCheckBox;
+import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -20,6 +21,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -83,6 +85,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
     private boolean prefOpenUrls = true;
     private boolean prefClipboardToolbarVisible = true;
     private boolean prefMaskFirstLine = true;
+    private int prefTextAreaFontSize = 14;
     private final AtomicReference<String> oldStatusText = new AtomicReference<>("");
     // stores the text position of search hits
     final private List<Integer> hitList = new ArrayList<>();
@@ -581,6 +584,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
         prefOpenUrls = JgpgPreferences.get().get(JgpgPreferences.PREF_OPEN_URLS, prefOpenUrls);
         prefClipboardToolbarVisible = JgpgPreferences.get().get(JgpgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR, prefClipboardToolbarVisible);
         prefMaskFirstLine = JgpgPreferences.get().get(JgpgPreferences.PREF_MASK_FIRST_LINE, prefMaskFirstLine);
+        prefTextAreaFontSize = JgpgPreferences.get().get(JgpgPreferences.PREF_TEXTAREA_FONT_SIZE, 14);
     }
 
 
@@ -738,7 +742,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
             sb.append("<body ");
             sb.append("style='");
             sb.append("font-family: monospace;");
-            sb.append("font-size: 14pt;");
+            sb.append("font-size: " + prefTextAreaFontSize + "pt;");
             sb.append("color:#eeeeee; ");
             sb.append("background-color: #3e3e3e;");
             sb.append("'");
@@ -1049,6 +1053,11 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
                 prefClipboardToolbarVisible = JgpgPreferences.get().get(JgpgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR, prefClipboardToolbarVisible);
                 SwingUtilities.invokeLater(() -> updateText());
                 break;
+            case JgpgPreferences.PREF_TEXTAREA_FONT_SIZE:
+                prefTextAreaFontSize = JgpgPreferences.get().get(JgpgPreferences.PREF_TEXTAREA_FONT_SIZE, prefTextAreaFontSize);
+                SwingUtilities.invokeLater(() -> updateText());
+                break;
+
         }
     }
 

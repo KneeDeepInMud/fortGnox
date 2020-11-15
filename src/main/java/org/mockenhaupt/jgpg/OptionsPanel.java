@@ -44,6 +44,7 @@ public class OptionsPanel extends javax.swing.JDialog
         this.jFormattedTextareaClearTimeout.setText(String.format("%d", pa.getInt(PREF_CLEAR_SECONDS)));
         this.jFormattedTextPassClearTimeout.setText(String.format("%d", pa.getInt(PREF_PASSWORD_SECONDS))); //mainFrame.getPASSWORD_SECONDS()));
         this.jFormattedTextareaClipTimeout.setText(String.format("%d", pa.getInt(PREF_CLIP_SECONDS)));
+        this.jFormattedTextTextAreaFontSize.setText(String.format("%d", pa.getInt(PREF_TEXTAREA_FONT_SIZE)));
         this.textFieldPassPatterns.setText(pa.get(PREF_PASSWORD_MASK_PATTERNS));
         this.comboBoxCharset.setSelectedItem(pa.get(PREF_CHARSET));
         this.textFieldUsernamePatterns.setText(pa.get(PREF_USERNAME_MASK_PATTERNS));
@@ -73,8 +74,9 @@ public class OptionsPanel extends javax.swing.JDialog
         jButtonClose = new javax.swing.JButton();
 
         jFormattedTextareaClipTimeout = new javax.swing.JFormattedTextField();
+        jFormattedTextTextAreaFontSize = new javax.swing.JFormattedTextField();
 
-        getContentPane().setLayout(new java.awt.GridLayout(16, 2, 10, 1));
+        getContentPane().setLayout(new java.awt.GridLayout(17, 2, 10, 1));
 
         jLabel1.setText("GPG Executable");
         getContentPane().add(jLabel1);
@@ -134,6 +136,13 @@ public class OptionsPanel extends javax.swing.JDialog
         getContentPane().add(labelCharset);
         getContentPane().add(comboBoxCharset);
 
+        JLabel jLabel8 = new JLabel("Font size (text area)");
+        getContentPane().add(jLabel8);
+        jFormattedTextTextAreaFontSize.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
+        getContentPane().add(jFormattedTextTextAreaFontSize);
+
+
+
         JLabel labelUsernamePatterns = new JLabel("Username patterns (\"|\" separated)");
         textFieldUsernamePatterns = new JTextField();
         getContentPane().add(labelUsernamePatterns);
@@ -192,6 +201,20 @@ public class OptionsPanel extends javax.swing.JDialog
         Integer clearTimeout;
         Integer clipTimeout;
         Integer passTimeout;
+        Integer textAreaFontSize;
+
+        try
+        {
+            textAreaFontSize = Integer.parseInt(jFormattedTextTextAreaFontSize.getText());
+            textAreaFontSize = Math.max(textAreaFontSize, 8);
+            textAreaFontSize = Math.min(textAreaFontSize, 60);
+            JgpgPreferences.get().put(PREF_TEXTAREA_FONT_SIZE, textAreaFontSize);
+        }
+        catch (NumberFormatException ex)
+        {
+            // live with invalid defaults
+        }
+
 
         try
         {
@@ -268,5 +291,6 @@ public class OptionsPanel extends javax.swing.JDialog
     private JTextField textFieldUsernamePatterns;
     private javax.swing.JTextField jTextGpgHome;
     private javax.swing.JTextField jTextSecretDirs;
+    private javax.swing.JFormattedTextField jFormattedTextTextAreaFontSize;
     // End of variables declaration
 }
