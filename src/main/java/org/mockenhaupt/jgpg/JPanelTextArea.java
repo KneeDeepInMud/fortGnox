@@ -60,6 +60,8 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
     private JTextArea textAreaError;
     private JTextField searchTextField;
     private MainFrame mainFrame;
+    private JToolBar buttonToolbar;
+
 
     private static List<String> DEFAULT_MASK_PATTERNS = new ArrayList(Arrays.asList(
             ".*pass", "puk", "tan", "secret", "kennwort", "root", ".*code", ".*pin"
@@ -378,7 +380,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
 
         add(searchAndTextPanel, BorderLayout.CENTER);
 
-        JToolBar buttonToolbar = new JToolBar();
+        buttonToolbar = new JToolBar();
         buttonToolbar.setRollover(true);
 
 
@@ -515,6 +517,12 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
         this.add(clipToolbar, BorderLayout.EAST);
         updateCheckboxSelectAll();
 
+    }
+
+
+    public void setButtonToolbarVisible (boolean mode)
+    {
+        buttonToolbar.setVisible(mode);
     }
 
 

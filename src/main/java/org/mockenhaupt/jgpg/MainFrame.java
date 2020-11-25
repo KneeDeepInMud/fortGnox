@@ -17,6 +17,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
@@ -512,6 +513,8 @@ public class MainFrame extends javax.swing.JFrame implements
                 startTimer();
             }
         });
+
+        setSize(880, 640);
     }
     private String[] secretList = new String[]
     {
@@ -605,8 +608,10 @@ public class MainFrame extends javax.swing.JFrame implements
         javax.swing.JToolBar.Separator jSeparator01 = new javax.swing.JToolBar.Separator();
         jSeparator1 = new javax.swing.JToolBar.Separator();
         JButton buttonExit = new JButton();
+        JToggleButton buttonOptions = new JToggleButton();
         JButton buttonAbout = new JButton();
         buttonExit.setMnemonic(KeyEvent.VK_X);
+        buttonOptions.setMnemonic(KeyEvent.VK_O);
         javax.swing.JToolBar.Separator jSeparator2 = new javax.swing.JToolBar.Separator();
         JButton jButtonSettings = new JButton();
         jButtonSettings.setMnemonic(KeyEvent.VK_S);
@@ -747,15 +752,33 @@ public class MainFrame extends javax.swing.JFrame implements
                 buttonExitActionPerformed(evt);
             }
         });
+
+        buttonOptions.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/toolbar.png"))); // NOI18N
+        buttonOptions.setText("Text Options");
+        buttonOptions.setBorderPainted(false);
+        buttonOptions.setFocusable(false);
+        buttonOptions.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonOptions.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        buttonOptions.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                buttonOptionsActionPerformed(evt);
+            }
+        });
+        jPanelTextArea.setButtonToolbarVisible(buttonOptions.isSelected());
+
         jToolBar1.add(jButtonSettings);
 
         jSeparator2.setRequestFocusEnabled(false);
         jSeparator2.setSeparatorSize(new java.awt.Dimension(30, 4));
         jToolBar1.add(jSeparator2);
+        jToolBar1.add(buttonOptions);
+        jToolBar1.add(jSeparator2);
         jToolBar1.add(buttonExit);
 
         jButtonSettings.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/Settings-icon.png"))); // NOI18N
-        jButtonSettings.setText("Settings");
+        jButtonSettings.setText("JGPG Settings");
         jButtonSettings.setFocusable(false);
         jButtonSettings.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jButtonSettings.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -842,6 +865,14 @@ public class MainFrame extends javax.swing.JFrame implements
         JGPGProcess.clearClipboardIfNotChanged();
         this.clipboard = false;
         System.exit(1);
+    }
+
+    private void buttonOptionsActionPerformed (java.awt.event.ActionEvent evt)
+    {
+        if (evt.getSource() instanceof JToggleButton)
+        {
+            jPanelTextArea.setButtonToolbarVisible(((JToggleButton)evt.getSource()).isSelected());
+        }
     }
 
     private void buttonClearPassActionPerformed(java.awt.event.ActionEvent evt) {
