@@ -1,7 +1,6 @@
 package org.mockenhaupt.jgpg;
 
 import javax.swing.JCheckBox;
-import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -10,6 +9,7 @@ import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
@@ -21,7 +21,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -42,6 +41,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_RESET_MASK_BUTTON_SECONDS;
+
 public class JPanelTextArea extends JPanel implements PropertyChangeListener
 {
     private JTextPane textPane;
@@ -61,6 +63,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
     private JTextField searchTextField;
     private MainFrame mainFrame;
     private JToolBar buttonToolbar;
+    private Timer resetMaskButtonTimer;
 
 
     private static List<String> DEFAULT_MASK_PATTERNS = new ArrayList(Arrays.asList(
@@ -383,7 +386,6 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
         buttonToolbar = new JToolBar();
         buttonToolbar.setRollover(true);
 
-
         // ---------------------------------------------------------------------
         maskToggleButton = new JToggleButton(TXT_MASK_ALL_PASSWORDS);
         maskToggleButton.addActionListener(new ActionListener()
@@ -391,6 +393,9 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
             @Override
             public void actionPerformed (ActionEvent actionEvent)
             {
+                if (!isMask()) {
+                    restoreMaskButtonStates();
+                }
                 updateCheckboxSelectAll();
                 updateText();
             }
@@ -419,10 +424,11 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
             @Override
             public void actionPerformed (ActionEvent actionEvent)
             {
-                setMask(((JCheckBox)actionEvent.getSource()).isSelected());
-                setCompressBlankLines(((JCheckBox)actionEvent.getSource()).isSelected());
-                setMaskFirstLine(((JCheckBox)actionEvent.getSource()).isSelected());
-                setDetectUrls(((JCheckBox)actionEvent.getSource()).isSelected());
+                boolean selected = ((JCheckBox)actionEvent.getSource()).isSelected();
+                setMask(selected);
+                setCompressBlankLines(selected);
+                setMaskFirstLine(selected);
+                setDetectUrls(selected);
                 openUrlButton.setEnabled(isDetectUrls());
 
                 updateText();
@@ -462,6 +468,9 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
             @Override
             public void actionPerformed (ActionEvent actionEvent)
             {
+                if (!isMaskFirstLine()) {
+                    restoreMaskButtonStates();
+                }
                 updateCheckboxSelectAll();
                 updateText();
             }
@@ -518,6 +527,34 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
         updateCheckboxSelectAll();
 
     }
+
+
+
+    private void restoreMaskButtonStates ()
+    {
+        if (resetMaskButtonTimer != null && resetMaskButtonTimer.isRunning()) {
+            resetMaskButtonTimer.stop();
+        }
+
+        int timeout =  JgpgPreferences.get().get(PREF_RESET_MASK_BUTTON_SECONDS, 5) * 1000;
+        if (timeout > 0)
+        {
+            resetMaskButtonTimer = new Timer(timeout, new ActionListener()
+            {
+                @Override
+                public void actionPerformed (ActionEvent e)
+                {
+                    maskToggleButton.setSelected(true);
+                    maskFirstLineToggleButton.setSelected(true);
+                    updateCheckboxSelectAll();
+                    updateText();
+                }
+            });
+            resetMaskButtonTimer.setRepeats(false);
+            resetMaskButtonTimer.start();
+        }
+    }
+
 
 
     public void setButtonToolbarVisible (boolean mode)
@@ -593,6 +630,8 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
         prefClipboardToolbarVisible = JgpgPreferences.get().get(JgpgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR, prefClipboardToolbarVisible);
         prefMaskFirstLine = JgpgPreferences.get().get(JgpgPreferences.PREF_MASK_FIRST_LINE, prefMaskFirstLine);
         prefTextAreaFontSize = JgpgPreferences.get().get(JgpgPreferences.PREF_TEXTAREA_FONT_SIZE, 14);
+        JgpgPreferences.get().get(PREF_RESET_MASK_BUTTON_SECONDS, 5);
+
     }
 
 
@@ -660,6 +699,9 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
     public void setMaskFirstLine (boolean maskFirstLine)
     {
         maskFirstLineToggleButton.setSelected(maskFirstLine);
+        if (!isMaskFirstLine()) {
+            restoreMaskButtonStates();
+        }
     }
 
     public boolean isMask ()
@@ -670,6 +712,9 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
     public void setMask (boolean mask)
     {
         maskToggleButton.setSelected(mask);
+        if (!isMask()) {
+            restoreMaskButtonStates();
+        }
     }
 
     public boolean isDetectUrls ()
@@ -1042,6 +1087,9 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
     {
         switch (propertyChangeEvent.getPropertyName())
         {
+            case PREF_RESET_MASK_BUTTON_SECONDS:
+                restoreMaskButtonStates();
+                break;
             case JgpgPreferences.PREF_PASSWORD_MASK_PATTERNS:
                 setMaskPasswordPatterns((String)propertyChangeEvent.getNewValue());
                 break;

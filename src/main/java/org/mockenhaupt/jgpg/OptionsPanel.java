@@ -44,6 +44,7 @@ public class OptionsPanel extends javax.swing.JDialog
         this.jFormattedTextareaClearTimeout.setText(String.format("%d", pa.getInt(PREF_CLEAR_SECONDS)));
         this.jFormattedTextPassClearTimeout.setText(String.format("%d", pa.getInt(PREF_PASSWORD_SECONDS))); //mainFrame.getPASSWORD_SECONDS()));
         this.jFormattedTextareaClipTimeout.setText(String.format("%d", pa.getInt(PREF_CLIP_SECONDS)));
+        this.jFormattedTextFieldResetMaskButton.setText(String.format("%d", pa.getInt(PREF_RESET_MASK_BUTTON_SECONDS)));
         this.jFormattedTextTextAreaFontSize.setText(String.format("%d", pa.getInt(PREF_TEXTAREA_FONT_SIZE)));
         this.textFieldPassPatterns.setText(pa.get(PREF_PASSWORD_MASK_PATTERNS));
         this.comboBoxCharset.setSelectedItem(pa.get(PREF_CHARSET));
@@ -74,9 +75,10 @@ public class OptionsPanel extends javax.swing.JDialog
         jButtonClose = new javax.swing.JButton();
 
         jFormattedTextareaClipTimeout = new javax.swing.JFormattedTextField();
+        jFormattedTextFieldResetMaskButton = new javax.swing.JFormattedTextField();
         jFormattedTextTextAreaFontSize = new javax.swing.JFormattedTextField();
 
-        getContentPane().setLayout(new java.awt.GridLayout(17, 2, 10, 1));
+        getContentPane().setLayout(new java.awt.GridLayout(18, 2, 10, 1));
 
         jLabel1.setText("GPG Executable");
         getContentPane().add(jLabel1);
@@ -107,21 +109,26 @@ public class OptionsPanel extends javax.swing.JDialog
         getContentPane().add(jLabel2);
         getContentPane().add(jTextSecretDirs);
 
-        jLabel5.setText("Password clear timeout");
+        jLabel5.setText("Password clear timeout [s]");
         getContentPane().add(jLabel5);
 
         jFormattedTextPassClearTimeout.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
         getContentPane().add(jFormattedTextPassClearTimeout);
 
-        jLabel6.setText("Textarea clear timeout");
+        jLabel6.setText("Textarea clear timeout [s]");
         getContentPane().add(jLabel6);
         jFormattedTextareaClearTimeout.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
         getContentPane().add(jFormattedTextareaClearTimeout);
 
-        JLabel jLabel7 = new JLabel("Clipboard flush timeout");
+        JLabel jLabel7 = new JLabel("Clipboard flush timeout [s]");
         getContentPane().add(jLabel7);
         jFormattedTextareaClipTimeout.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
         getContentPane().add(jFormattedTextareaClipTimeout);
+
+        JLabel jLabel9 = new JLabel("Restore mask password button timeout [s] (< 0 to disable)");
+        getContentPane().add(jLabel9);
+        jFormattedTextFieldResetMaskButton.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
+        getContentPane().add(jFormattedTextFieldResetMaskButton);
 
 
 
@@ -201,6 +208,7 @@ public class OptionsPanel extends javax.swing.JDialog
         Integer clearTimeout;
         Integer clipTimeout;
         Integer passTimeout;
+        Integer resetMaskButtonTimeout;
         Integer textAreaFontSize;
 
         try
@@ -220,6 +228,17 @@ public class OptionsPanel extends javax.swing.JDialog
         {
             clipTimeout = Integer.parseInt(jFormattedTextareaClipTimeout.getText());
             JgpgPreferences.get().put(PREF_CLIP_SECONDS, clipTimeout);
+        }
+        catch (NumberFormatException ex)
+        {
+            // live with invalid defaults
+        }
+
+
+        try
+        {
+            resetMaskButtonTimeout = Integer.parseInt(jFormattedTextFieldResetMaskButton.getText());
+            JgpgPreferences.get().put(PREF_RESET_MASK_BUTTON_SECONDS, resetMaskButtonTimeout);
         }
         catch (NumberFormatException ex)
         {
@@ -277,6 +296,7 @@ public class OptionsPanel extends javax.swing.JDialog
     private javax.swing.JFormattedTextField jFormattedTextPassClearTimeout;
     private javax.swing.JFormattedTextField jFormattedTextareaClearTimeout;
     private javax.swing.JFormattedTextField jFormattedTextareaClipTimeout;
+    private javax.swing.JFormattedTextField jFormattedTextFieldResetMaskButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
