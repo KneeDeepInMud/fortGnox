@@ -545,7 +545,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
                 public void actionPerformed (ActionEvent e)
                 {
                     maskToggleButton.setSelected(true);
-                    maskFirstLineToggleButton.setSelected(true);
+                    maskFirstLineToggleButton.setSelected(true && prefMaskFirstLine);
                     updateCheckboxSelectAll();
                     updateText();
                 }
@@ -1104,6 +1104,10 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
                 break;
             case JgpgPreferences.PREF_URL_OPEN_COMMAND:
                 prefOpenUrlCommand = JgpgPreferences.get().get(JgpgPreferences.PREF_URL_OPEN_COMMAND, prefOpenUrlCommand);
+                break;
+            case JgpgPreferences.PREF_MASK_FIRST_LINE:
+                prefMaskFirstLine = JgpgPreferences.get().get(JgpgPreferences.PREF_MASK_FIRST_LINE, prefMaskFirstLine);
+                restoreMaskButtonStates();
                 break;
             case JgpgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR:
                 prefClipboardToolbarVisible = JgpgPreferences.get().get(JgpgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR, prefClipboardToolbarVisible);
