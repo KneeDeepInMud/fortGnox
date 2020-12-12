@@ -18,6 +18,7 @@ public class JgpgPreferences
     public static final String PREF_TEXTAREA_FONT_SIZE = "textarea_font_size";
 
     public static final String PREF_CLIP_SECONDS = "clip_seconds";
+    public static final String PREF_USE_FAVORITES = "use_favorites";
     public static final String PREF_RESET_MASK_BUTTON_SECONDS = "reset_mask_button_seconds";
     public static final String PREF_CLEAR_SECONDS = "clear_seconds";
     public static final String PREF_PASSWORD_SECONDS = "password_seconds";

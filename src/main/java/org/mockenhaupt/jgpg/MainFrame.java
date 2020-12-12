@@ -17,6 +17,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -48,6 +49,7 @@ import java.util.regex.Pattern;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLEAR_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLIP_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_FAVORITES;
 
 /**
  *
@@ -76,6 +78,7 @@ public class MainFrame extends javax.swing.JFrame implements
     private final int PASSWORD_SECONDS_DEFAULT = 60 * 5;
     private final int MIN_TIMER_VALUE = 1;
     private String toDecode = "";
+    private JList lastActionList;
 
 
     public static final String VERSION_PROJECT = "project.version";
@@ -91,6 +94,7 @@ public class MainFrame extends javax.swing.JFrame implements
         CLEAR_SECONDS = preferences.get(PREF_CLEAR_SECONDS, CLEAR_SECONDS_DEFAULT);
         CLIP_SECONDS = preferences.get(PREF_CLIP_SECONDS, CLIP_SECONDS_DEFAULT);
         PASSWORD_SECONDS = preferences.get(PREF_PASSWORD_SECONDS, PASSWORD_SECONDS_DEFAULT);
+        setPrefUseFavorites(preferences.get(PREF_USE_FAVORITES, useFavoriteList));
     }
 
     private int getCLEAR_SECONDS()
@@ -129,6 +133,36 @@ public class MainFrame extends javax.swing.JFrame implements
         this.PASSWORD_SECONDS = passSec;
         progressPassTimer.setMaximum(PASSWORD_SECONDS);
         startTimer();
+    }
+
+    private void revalidateAllKids (Component component)
+    {
+        if (component instanceof  Container)
+        {
+            Container container = (Container) component;
+            for (int i = 0; i < container.getComponentCount(); ++i){
+               revalidateAllKids(container.getComponent(i));
+            }
+        }
+        component.invalidate();
+        component.repaint();
+    }
+
+    int lastInc = 1;
+    private void setPrefUseFavorites(boolean useFavorites)
+    {
+        this.useFavoriteList = useFavorites;
+        scrollPaneFavoriteSecrets.setVisible(useFavorites);
+
+        // Desperation actions to repaint the hierachy correctly
+        handleSecretList(secretList);
+        revalidateAllKids(this);
+        SwingUtilities.invokeLater(() -> {
+            MainFrame.this.setSize(MainFrame.this.getWidth() + lastInc, MainFrame.this.getHeight() + lastInc);
+            MainFrame.this.invalidate();
+            MainFrame.this.repaint();
+            lastInc *= -1;
+        });
     }
 
     public static void toClipboard (String clipBoardText, String whatInfo, boolean startTimer)
@@ -257,13 +291,22 @@ public class MainFrame extends javax.swing.JFrame implements
 
     private void decrypt ()
     {
+        this.decrypt(lastActionList == null ? jListSecrets : lastActionList);
+    }
+
+    private void decrypt (JList jList)
+    {
         JGPGProcess.clearClipboardIfNotChanged();
-        this.decrypt(false);
+        this.decrypt(false, jList);
         jPanelTextArea.requestFocus();
+    }
+    private void decrypt (boolean toClipboard)
+    {
+        this.decrypt(toClipboard, lastActionList == null ? jListSecrets : lastActionList);
     }
 
     private boolean clipboard = false;
-    private void decrypt (boolean toClipboard)
+    private void decrypt (boolean toClipboard, JList jList)
     {
         this.clipboard = toClipboard;
         boolean isPassDialog = gpgProcess.isPrefUsePasswordDialog();
@@ -274,14 +317,14 @@ public class MainFrame extends javax.swing.JFrame implements
         }
         if (!passDlg.getPassPhrase().isEmpty() || !isPassDialog)
         {
-            toDecode = (String) jListSecrets.getSelectedValue();
+            toDecode = (String) jList.getSelectedValue();
             if (toDecode == null || toDecode.isEmpty())
             {
                 setUserTextareaText("","Nothing selected to decode ...");
                 return;
             }
             setUserTextareaText("","Decoding " + toDecode + "...");
-            gpgProcess.decrypt((String) jListSecrets.getSelectedValue(),
+            gpgProcess.decrypt((String) jList.getSelectedValue(),
                         passDlg.getPassPhrase(), toClipboard, getCLIP_SECONDS());
             startTimer();
             setPassStatusText();
@@ -327,29 +370,9 @@ public class MainFrame extends javax.swing.JFrame implements
         JgpgPreferences.get().addPropertyChangeListener(this);
         initComponents();
 
-        jListSecrets.setCellRenderer(new DefaultListCellRenderer(){
+        initSecretListCellRenderer(jListSecrets);
+        initSecretListCellRenderer(jListFavoriteSecrets);
 
-            @Override
-            public Component getListCellRendererComponent (
-                                                           JList<?> list,
-                                                           Object value,
-                                                           int index,
-                                                           boolean isSelected,
-                                                           boolean cellHasFocus)
-
-            {
-                super.getListCellRendererComponent(list, value, index,
-                                                          isSelected,
-                                                          cellHasFocus); 
-
-                if (value instanceof String)
-                {
-                    setText(gpgProcess.fileMap.get(value));
-                }
-                return this;
-            }
-            
-        });
         URL url = this.getClass().getResource("kgpg_identity.png");
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 
@@ -371,8 +394,9 @@ public class MainFrame extends javax.swing.JFrame implements
                     if (info.getName().toLowerCase().contains("windows"))
                     {                        
                         setMinimumSize(new java.awt.Dimension(600, 400));
-                        setPreferredSize(new java.awt.Dimension(800, 525)); 
+                        setPreferredSize(new java.awt.Dimension(800, 525));
                         jListSecrets.setFont(new java.awt.Font("Times New Roman", Font.PLAIN, 14)); // NOI18N
+                        jListFavoriteSecrets.setFont(new java.awt.Font("Times New Roman", Font.PLAIN, 14)); // NOI18N
                     }
                     
                     UIManager.setLookAndFeel(info.getClassName());
@@ -429,7 +453,37 @@ public class MainFrame extends javax.swing.JFrame implements
                 gpgProcess.setFilter(textFilter.getText());
             }
         });
-        jListSecrets.addKeyListener(new KeyAdapter()
+
+        initSecretListEventHandling(jListSecrets);
+        initSecretListEventHandling(jListFavoriteSecrets);
+
+        gpgProcess = new JGPGProcess(this);
+        loadPreferences();
+
+        gpgProcess.addSecretListListener(this);
+        gpgProcess.addResultListener(this);
+        setUsePasswordDialog(gpgProcess.isPrefUsePasswordDialog());
+
+        optionsPanel = new OptionsPanel(this);
+
+
+
+        addMouseMotionListener(new MouseMotionAdapter()
+        {
+            @Override
+            public void mouseMoved (MouseEvent e)
+            {
+                super.mouseMoved(e);
+                startTimer();
+            }
+        });
+
+        setSize(880, 640);
+    }
+
+    private void initSecretListEventHandling (JList jList)
+    {
+        jList.addKeyListener(new KeyAdapter()
         {
             @Override
             public void keyReleased (KeyEvent e)
@@ -437,6 +491,7 @@ public class MainFrame extends javax.swing.JFrame implements
                 super.keyReleased(e);
                 if (e.getKeyCode() == KeyEvent.VK_ENTER)
                 {
+                    lastActionList = jList;
                     decrypt();
                 }
                 else if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
@@ -447,11 +502,12 @@ public class MainFrame extends javax.swing.JFrame implements
                 }
             }
         });
-        jListSecrets.addMouseListener(new MouseAdapter()
+        jList.addMouseListener(new MouseAdapter()
         {
             @Override
             public void mouseClicked (MouseEvent e)
             {
+                lastActionList = jList;
                 super.mouseClicked(e);
                 if (clearTimer.isRunning())
                 {
@@ -466,7 +522,7 @@ public class MainFrame extends javax.swing.JFrame implements
             }
         });
 
-        jListSecrets.addKeyListener(new KeyAdapter()
+        jList.addKeyListener(new KeyAdapter()
         {
             @Override
             public void keyReleased (KeyEvent e)
@@ -474,7 +530,7 @@ public class MainFrame extends javax.swing.JFrame implements
                 if (e.getKeyCode() == KeyEvent.VK_C && e.isControlDown())
                 {
                     e.consume();
-                    decrypt(true);
+                    decrypt(true, jList);
                 }
                 else
                 {
@@ -483,18 +539,7 @@ public class MainFrame extends javax.swing.JFrame implements
             }
         });
 
-
-        gpgProcess = new JGPGProcess(this);
-        loadPreferences();
-
-        gpgProcess.addSecretListListener(this);
-        gpgProcess.addResultListener(this);
-        setUsePasswordDialog(gpgProcess.isPrefUsePasswordDialog());
-
-        optionsPanel = new OptionsPanel(this);
-
-
-        jListSecrets.addMouseMotionListener(new MouseMotionAdapter()
+        jList.addMouseMotionListener(new MouseMotionAdapter()
         {
             @Override
             public void mouseMoved (MouseEvent e)
@@ -503,19 +548,35 @@ public class MainFrame extends javax.swing.JFrame implements
                 startTimer();
             }
         });
-        
-        addMouseMotionListener(new MouseMotionAdapter()
-        {
-            @Override
-            public void mouseMoved (MouseEvent e)
-            {
-                super.mouseMoved(e);
-                startTimer();
-            }
-        });
-
-        setSize(880, 640);
     }
+
+    private void initSecretListCellRenderer (JList list)
+    {
+        list.setCellRenderer(new DefaultListCellRenderer(){
+
+            @Override
+            public Component getListCellRendererComponent (
+                                                           JList<?> list,
+                                                           Object value,
+                                                           int index,
+                                                           boolean isSelected,
+                                                           boolean cellHasFocus)
+
+            {
+                super.getListCellRendererComponent(list, value, index,
+                                                          isSelected,
+                                                          cellHasFocus);
+
+                if (value instanceof String)
+                {
+                    setText(gpgProcess.fileMap.get(value));
+                }
+                return this;
+            }
+
+        });
+    }
+
     private String[] secretList = new String[]
     {
         ""
@@ -534,6 +595,19 @@ public class MainFrame extends javax.swing.JFrame implements
                 public int getSize ()
                 {
                     return secretList.length;
+                }
+
+                public Object getElementAt (int i)
+                {
+                    return secretList[i];
+                }
+            });
+            
+            jListFavoriteSecrets.setModel(new javax.swing.AbstractListModel()
+            {
+                public int getSize ()
+                {
+                    return Math.min(16, secretList.length);
                 }
 
                 public Object getElementAt (int i)
@@ -595,9 +669,15 @@ public class MainFrame extends javax.swing.JFrame implements
         javax.swing.JSplitPane jSplitPane1 = new javax.swing.JSplitPane();
         JPanel panelList = new JPanel();
         textFilter = new javax.swing.JTextField();
-        javax.swing.JScrollPane listSecrets = new javax.swing.JScrollPane();
+        scrollPaneFavoriteSecrets = new javax.swing.JScrollPane();
+        javax.swing.JScrollPane scrollPaneSecrets = new javax.swing.JScrollPane();
+
+        // gpg files and favorite gpg files
+        jSplitPaneSecrets = new javax.swing.JSplitPane();
+
         labelSecretInfo = new JLabel();
-        jListSecrets = new javax.swing.JList();
+        jListSecrets = new JList();
+        jListFavoriteSecrets = new JList();
 //        scrollPaneTextArea = new javax.swing.JScrollPane();
         JPanel jToolBarPanel = new JPanel(new BorderLayout());
         javax.swing.JToolBar jToolBar1 = new javax.swing.JToolBar();
@@ -658,10 +738,23 @@ public class MainFrame extends javax.swing.JFrame implements
 
         jListSecrets.setFont(new java.awt.Font("DejaVu Sans Mono", Font.PLAIN, 14)); // NOI18N
         jListSecrets.setToolTipText("Press CTRL+C to decode first line to clipboard");
-        listSecrets.setViewportView(jListSecrets);
+
+        jListFavoriteSecrets.setFont(new java.awt.Font("DejaVu Sans Mono", Font.PLAIN, 14));
+        jListFavoriteSecrets.setToolTipText("Press CTRL+C to decode first line to clipboard");
+        scrollPaneFavoriteSecrets.setMinimumSize(new java.awt.Dimension(100, 100));
+        scrollPaneFavoriteSecrets.setPreferredSize(new java.awt.Dimension(100, 800));
 
 
-        panelList.add(listSecrets, java.awt.BorderLayout.CENTER);
+        scrollPaneSecrets.setViewportView(jListSecrets);
+        scrollPaneFavoriteSecrets.setViewportView(jListFavoriteSecrets);
+//        listSecrets.setViewportView(jListFavoriteSecrets);
+
+        jSplitPaneSecrets.setTopComponent(scrollPaneFavoriteSecrets);
+        jSplitPaneSecrets.setBottomComponent(scrollPaneSecrets);
+        jSplitPaneSecrets.setOrientation(JSplitPane.VERTICAL_SPLIT);
+
+
+        panelList.add(jSplitPaneSecrets, java.awt.BorderLayout.CENTER);
         panelList.add(labelSecretInfo, BorderLayout.SOUTH);
         labelSecretInfo.setVisible(false);
 
@@ -985,14 +1078,18 @@ public class MainFrame extends javax.swing.JFrame implements
     // Variables declaration - do not modify
     private javax.swing.JButton buttonClearPass;
     private javax.swing.JButton buttonLAF;
-    private javax.swing.JList jListSecrets;
+    private JList jListSecrets;
+    private JList jListFavoriteSecrets;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JProgressBar progressClearTimer;
     private javax.swing.JProgressBar progressPassTimer;
     private javax.swing.JTextField textFilter;
+    javax.swing.JScrollPane scrollPaneFavoriteSecrets = new javax.swing.JScrollPane();
+    JSplitPane jSplitPaneSecrets;
     private JPanelTextArea jPanelTextArea;
     private JLabel labelSecretInfo;
 
+    private boolean useFavoriteList = true;
 
     public void actionPerformed (ActionEvent e)
     {
@@ -1033,6 +1130,9 @@ public class MainFrame extends javax.swing.JFrame implements
         {
             case PREF_CLIP_SECONDS:
                 setCLIP_SECONDS((Integer) propertyChangeEvent.getNewValue());
+                break;
+            case PREF_USE_FAVORITES:
+                setPrefUseFavorites((Boolean)propertyChangeEvent.getNewValue());
                 break;
             case PREF_CLEAR_SECONDS:
                 setCLEAR_SECONDS((Integer) propertyChangeEvent.getNewValue());
