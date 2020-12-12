@@ -253,7 +253,7 @@ public class JGPGProcess implements PropertyChangeListener
     }
 
     //    protected Preferences preferences;
-    private Component mainWindow;
+    private final Component mainWindow;
     public JGPGProcess (Component mainWindow)
     {
         this.mainWindow = mainWindow;
@@ -295,8 +295,7 @@ public class JGPGProcess implements PropertyChangeListener
 
     HashMap<String, String>  fileMap = new HashMap<String, String>();
 
-    Set<String> skipExtensions = new HashSet<>(Arrays.asList(new String[]{
-            "tgz",
+    Set<String> skipExtensions = new HashSet<>(Arrays.asList("tgz",
             "jpg",
             "gif",
             "doc",
@@ -304,7 +303,7 @@ public class JGPGProcess implements PropertyChangeListener
             "p12",
             "xls",
             "xlsx",
-            "zip"}));
+            "zip"));
 
     private void rebuildSecretList ()
     {
@@ -335,19 +334,11 @@ public class JGPGProcess implements PropertyChangeListener
                     }
 
 
-                    if (skipExtensions.stream().anyMatch(ext -> {
-                        String name2 = name.toLowerCase().replace(".asc", "").replace(".gpg", "");
-                        if (name2.endsWith("." + ext))
-                        {
-                            return true;
-                        }
-                        return false;
-                    }))
+                    return skipExtensions.stream().noneMatch(ext ->
                     {
-                        return false;
-                    }
-
-                    return true;
+                        String name2 = name.toLowerCase().replace(".asc", "").replace(".gpg", "");
+                        return name2.endsWith("." + ext);
+                    });
                 }
             });
 
@@ -548,7 +539,7 @@ public class JGPGProcess implements PropertyChangeListener
                         }
                         try
                         {
-                            Thread.currentThread().sleep(10, 10);
+                            Thread.sleep(10, 10);
                         }
                         catch (InterruptedException ex)
                         {
@@ -660,7 +651,7 @@ public class JGPGProcess implements PropertyChangeListener
                             String s = or.readLine();
                             output += s + LINE_SEP;
                         }
-                        Thread.currentThread().sleep(10, 10);
+                        Thread.sleep(10, 10);
                     }
                     handleGpgResult(error+output + "Successfully executed \"" + prefGpgConfCommand + " " + command + "\"", "",
                             gpgConnectAgentProcess.exitValue());

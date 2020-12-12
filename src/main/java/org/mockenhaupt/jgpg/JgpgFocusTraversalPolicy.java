@@ -6,7 +6,7 @@ import java.util.Vector;
 public class JgpgFocusTraversalPolicy extends FocusTraversalPolicy
 {
 
-    private Vector<Component> order;
+    private final Vector<Component> order;
 
     public JgpgFocusTraversalPolicy (Vector<Component> order)
     {

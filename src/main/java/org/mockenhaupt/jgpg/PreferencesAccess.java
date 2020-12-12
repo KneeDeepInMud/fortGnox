@@ -81,7 +81,7 @@ public class PreferencesAccess
             String got =  INSTANCE.preferences.get(name, (String)defaultValue);
             if (got.equals(defaultValue))
             {
-                 putPreference(name, (String)defaultValue);
+                 putPreference(name, defaultValue);
             }
             return (T) got;
         }
@@ -90,7 +90,7 @@ public class PreferencesAccess
             Integer got =  INSTANCE.preferences.getInt(name, (Integer)defaultValue);
             if (got.equals(defaultValue))
             {
-                putPreference(name, (Integer) defaultValue);
+                putPreference(name, defaultValue);
             }
             return (T) Integer.valueOf(INSTANCE.preferences.getInt(name, (Integer) defaultValue));
         }
@@ -99,7 +99,7 @@ public class PreferencesAccess
             Boolean got = INSTANCE.preferences.getBoolean(name, (Boolean) defaultValue);
             if (got.equals(defaultValue))
             {
-                putPreference(name, (Boolean) defaultValue);
+                putPreference(name, defaultValue);
             }
             return (T) Boolean.valueOf(INSTANCE.preferences.getBoolean(name, (Boolean) defaultValue));
         }

@@ -66,11 +66,11 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
     private Timer resetMaskButtonTimer;
 
 
-    private static List<String> DEFAULT_MASK_PATTERNS = new ArrayList(Arrays.asList(
+    private static final List<String> DEFAULT_MASK_PATTERNS = new ArrayList(Arrays.asList(
             ".*pass", "puk", "tan", "secret", "kennwort", "root", ".*code", ".*pin"
     ));
 
-    private static List<String> DEFAULT_USERNAME_PATTERNS = new ArrayList(Arrays.asList(
+    private static final List<String> DEFAULT_USERNAME_PATTERNS = new ArrayList(Arrays.asList(
             "account", "user", ".*id[:=]", "login", "Auftra", "benutzer", "Kunde", "telefon", ".*nummer", ".*kennung"
     ));
 
