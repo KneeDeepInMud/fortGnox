@@ -39,12 +39,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLEAR_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLIP_SECONDS;
@@ -80,6 +82,8 @@ public class MainFrame extends javax.swing.JFrame implements
     private String toDecode = "";
     private JList lastActionList;
 
+
+    private final LinkedHashMap<String, Integer> favorites = new LinkedHashMap<>();
 
     public static final String VERSION_PROJECT = "project.version";
     public static final String VERSION_BUILD = "buildNumber";
@@ -324,8 +328,10 @@ public class MainFrame extends javax.swing.JFrame implements
                 return;
             }
             setUserTextareaText("","Decoding " + toDecode + "...");
-            gpgProcess.decrypt((String) jList.getSelectedValue(),
-                        passDlg.getPassPhrase(), toClipboard, getCLIP_SECONDS());
+            String decryptEntry = (String) jList.getSelectedValue();
+            handleForFavorites(decryptEntry);
+
+            gpgProcess.decrypt(decryptEntry, passDlg.getPassPhrase(), toClipboard, getCLIP_SECONDS());
             startTimer();
             setPassStatusText();
         }
@@ -585,7 +591,23 @@ public class MainFrame extends javax.swing.JFrame implements
 
     private void handleForFavorites (String entry)
     {
+        Integer i = favorites.computeIfAbsent(entry, s -> 0);
+        favorites.put(entry, ++i);
+        jListFavoriteSecrets.setModel(new javax.swing.AbstractListModel()
+        {
+            public int getSize ()
+            {
+                return Math.min(16, favorites.keySet().size());
+            }
 
+            public Object getElementAt (int i)
+            {
+                return favorites.entrySet()
+                        .stream().sorted((t2, t1) -> t1.getValue() - t2.getValue())
+                        .map(stringIntegerEntry -> stringIntegerEntry.getKey())
+                        .collect(Collectors.toList()).get(i);
+            }
+        });
     }
 
     @Override
@@ -609,18 +631,6 @@ public class MainFrame extends javax.swing.JFrame implements
                 }
             });
             
-            jListFavoriteSecrets.setModel(new javax.swing.AbstractListModel()
-            {
-                public int getSize ()
-                {
-                    return Math.min(16, secretList.length);
-                }
-
-                public Object getElementAt (int i)
-                {
-                    return secretList[i];
-                }
-            });
 
             updateSecretListInfo("");
         }
