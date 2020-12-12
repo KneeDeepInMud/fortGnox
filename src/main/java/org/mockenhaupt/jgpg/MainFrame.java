@@ -582,6 +582,12 @@ public class MainFrame extends javax.swing.JFrame implements
         ""
     };
 
+
+    private void handleForFavorites (String entry)
+    {
+
+    }
+
     @Override
     public void handleSecretList (String[] list)
     {
