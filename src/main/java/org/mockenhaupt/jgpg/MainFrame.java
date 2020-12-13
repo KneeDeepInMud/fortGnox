@@ -14,19 +14,7 @@ package org.mockenhaupt.jgpg;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import javax.swing.JToggleButton;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -539,6 +527,35 @@ public class MainFrame extends javax.swing.JFrame implements
                     decrypt();
                 }
             }
+
+            public void mousePressed(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+
+            public void mouseReleased(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+
+            private void maybeShowPopup (MouseEvent e)
+            {
+                if (e.isPopupTrigger())
+                {
+                    if (jList.getSelectedValue() != null && favorites.containsKey(jList.getSelectedValue()))
+                    {
+                        JPopupMenu popupMenu = new JPopupMenu();
+                        JMenuItem mi = new JMenuItem("Remove from favorites");
+                        mi.addActionListener(actionEvent ->
+                        {
+                            favorites.remove(jList.getSelectedValue());
+                            refreshFavorites();
+                            jList.setSelectedIndex(-1);
+                        });
+                        popupMenu.add(mi);
+                        popupMenu.show(e.getComponent(), e.getX(), e.getY());
+                    }
+                }
+            }
+
         });
 
         jList.addKeyListener(new KeyAdapter()
@@ -584,7 +601,7 @@ public class MainFrame extends javax.swing.JFrame implements
             {
                 super.getListCellRendererComponent(list, value, index,
                                                           isSelected,
-                                                          cellHasFocus);
+                                                          false);
 
                 if (value instanceof String)
                 {
@@ -839,7 +856,7 @@ public class MainFrame extends javax.swing.JFrame implements
         jListSecrets.setToolTipText("Press CTRL+C to decode first line to clipboard");
 
         jListFavoriteSecrets.setFont(new java.awt.Font("DejaVu Sans Mono", Font.PLAIN, 14));
-        jListFavoriteSecrets.setBackground(new Color(230, 230, 230));
+        jListFavoriteSecrets.setBackground(new Color(240, 240, 240));
         jListFavoriteSecrets.setToolTipText("Press CTRL+C to decode first line to clipboard");
 
         scrollPaneFavoriteSecrets.setMinimumSize(new java.awt.Dimension(100, 20));

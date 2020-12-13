@@ -405,20 +405,20 @@ public class JGPGProcess implements PropertyChangeListener
 
                 String longName = shortName + " (" + m.group(1) + ")";
 
-                if (!abbrevCompleteFileMap.containsValue(shortName))
-                {
-                    abbrevCompleteFileMap.put(stringStringEntry.getKey(), shortName);
-                }
-                else
-                {
+//                if (!abbrevCompleteFileMap.containsValue(shortName))
+//                {
+//                    abbrevCompleteFileMap.put(stringStringEntry.getKey(), shortName);
+//                }
+//                else
+//                {
                     abbrevCompleteFileMap.put(stringStringEntry.getKey(), longName);
-                }
+//                }
             }
         });
 
         notifySecretListeners();
     }
-
+///home/fmoc/work/password;/home/fmoc/work/password/orthogon;/home/fmoc/work/password/secret
     private synchronized void handleGpgResult (String err, String out,
                                                int exCode)
     {
