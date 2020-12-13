@@ -67,7 +67,6 @@ public class OptionsPanel extends javax.swing.JDialog
         jFormattedTextPassClearTimeout = new javax.swing.JFormattedTextField();
         jLabel6 = new javax.swing.JLabel();
         jFormattedTextareaClearTimeout = new javax.swing.JFormattedTextField();
-        jLabel4 = new javax.swing.JLabel();
         jCheckBoxUsePassDialog = new javax.swing.JCheckBox();
         jCheckBoxPasswordShortcuts = new javax.swing.JCheckBox();
         jCheckboxReloadAgent = new javax.swing.JCheckBox();
@@ -80,7 +79,7 @@ public class OptionsPanel extends javax.swing.JDialog
         jFormattedTextFieldResetMaskButton = new javax.swing.JFormattedTextField();
         jFormattedTextTextAreaFontSize = new javax.swing.JFormattedTextField();
 
-        getContentPane().setLayout(new java.awt.GridLayout(19, 2, 10, 1));
+        getContentPane().setLayout(new java.awt.GridLayout(17, 2, 10, 1));
 
         jLabel1.setText("GPG Executable");
         getContentPane().add(jLabel1);
@@ -158,25 +157,26 @@ public class OptionsPanel extends javax.swing.JDialog
         getContentPane().add(textFieldUsernamePatterns);
 
 
-        getContentPane().add(jLabel4);
+//        getContentPane().add(new JLabel("0"));
         jCheckBoxUsePassDialog.setText("Show password dialog (might not be required with GPG agent)");
         getContentPane().add(jCheckBoxUsePassDialog);
 
-        getContentPane().add(new JLabel());
+//        getContentPane().add(new JLabel("1"));
         jCheckBoxPasswordShortcuts.setText("Show password shortcut bar");
         getContentPane().add(jCheckBoxPasswordShortcuts);
 
-        getContentPane().add(new JLabel());
+//        getContentPane().add(new JLabel("2"));
         jCheckboxReloadAgent.setText("Allow flushing password from GPG agent");
         getContentPane().add(jCheckboxReloadAgent);
 
-        getContentPane().add(new JLabel());
+//        getContentPane().add(new JLabel("3"));
         jCheckboxMastFirstLine.setText("Mask the first line on program start");
         getContentPane().add(jCheckboxMastFirstLine);
 
-        getContentPane().add(new JLabel());
-        jCheckBoxUseFavorites.setText("Use favorites list");
+        jCheckBoxUseFavorites.setText("Show list of favorites");
         getContentPane().add(jCheckBoxUseFavorites);
+        getContentPane().add(new JLabel("")); // empty space
+
 
         jButtonSave.setText("Save");
         jButtonSave.setMnemonic(KeyEvent.VK_S);
@@ -308,7 +308,6 @@ public class OptionsPanel extends javax.swing.JDialog
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JTextField jTextGpgExe;

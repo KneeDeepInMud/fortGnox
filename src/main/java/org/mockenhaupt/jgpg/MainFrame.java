@@ -27,13 +27,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -173,6 +167,7 @@ public class MainFrame extends javax.swing.JFrame implements
 
         // Desperation actions to repaint the hierachy correctly
         handleSecretList(secretList);
+        refreshFavorites();
         refreshGUI();
     }
 
@@ -394,8 +389,8 @@ public class MainFrame extends javax.swing.JFrame implements
         JgpgPreferences.get().addPropertyChangeListener(this);
         initComponents();
 
-        initSecretListCellRenderer(jListSecrets);
-        initSecretListCellRenderer(jListFavoriteSecrets);
+        initSecretListCellRenderer(jListSecrets, false);
+        initSecretListCellRenderer(jListFavoriteSecrets, true);
 
         URL url = this.getClass().getResource("kgpg_identity.png");
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
@@ -574,7 +569,7 @@ public class MainFrame extends javax.swing.JFrame implements
         });
     }
 
-    private void initSecretListCellRenderer (JList list)
+    private void initSecretListCellRenderer (JList list, boolean useAbbrevName)
     {
         list.setCellRenderer(new DefaultListCellRenderer(){
 
@@ -593,7 +588,7 @@ public class MainFrame extends javax.swing.JFrame implements
 
                 if (value instanceof String)
                 {
-                    setText(gpgProcess.fileMap.get(value));
+                    setText(gpgProcess.getShortFileName((String)value, useAbbrevName));
                 }
                 return this;
             }
@@ -693,7 +688,7 @@ public class MainFrame extends javax.swing.JFrame implements
         });
 
         int height = Math.min(200, 20 * favorites.size());
-        jListFavoriteSecrets.setPreferredSize(new Dimension(0, height));
+//        jListFavoriteSecrets.setPreferredSize(new Dimension(0, height));
         jSplitPaneSecrets.setDividerLocation(height);
     }
 
@@ -844,6 +839,7 @@ public class MainFrame extends javax.swing.JFrame implements
         jListSecrets.setToolTipText("Press CTRL+C to decode first line to clipboard");
 
         jListFavoriteSecrets.setFont(new java.awt.Font("DejaVu Sans Mono", Font.PLAIN, 14));
+        jListFavoriteSecrets.setBackground(new Color(230, 230, 230));
         jListFavoriteSecrets.setToolTipText("Press CTRL+C to decode first line to clipboard");
 
         scrollPaneFavoriteSecrets.setMinimumSize(new java.awt.Dimension(100, 20));
@@ -888,7 +884,7 @@ public class MainFrame extends javax.swing.JFrame implements
                 jButtonClipboardActionPerformed(evt);
             }
         });
-        jToolBar1.add(jButtonClipboard);
+//        jToolBar1.add(jButtonClipboard);
 
         jSeparator01.setRequestFocusEnabled(false);
         jSeparator01.setSeparatorSize(new java.awt.Dimension(30, 4));
@@ -930,7 +926,7 @@ public class MainFrame extends javax.swing.JFrame implements
         });
         jToolBar1.add(buttonClearPass);
         // ---------------------------------
-        buttonClearFavorites.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346509520_preferences-desktop-cryptography.png"))); // NOI18N
+        buttonClearFavorites.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/favs32.png"))); // NOI18N
         buttonClearFavorites.setText("Clear Favorites");
         buttonClearFavorites.setToolTipText("Clears the favorites list");
         buttonClearFavorites.setBorderPainted(false);

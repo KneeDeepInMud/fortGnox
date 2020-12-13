@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.mockenhaupt.jgpg.JgpgPreferences.*;
 
@@ -293,7 +295,15 @@ public class JGPGProcess implements PropertyChangeListener
         rebuildSecretList();
     }
 
-    HashMap<String, String>  fileMap = new HashMap<String, String>();
+    public String getShortFileName (String filename, boolean abbrev)
+    {
+        if (abbrev) return abbrevCompleteFileMap.get(filename);
+        return completeFileMap.get(filename);
+    }
+
+    private HashMap<String, String> fileMap = new HashMap<String, String>();
+    private HashMap<String, String> completeFileMap = new HashMap<String, String>();
+    private HashMap<String, String> abbrevCompleteFileMap = new HashMap<String, String>();
 
     Set<String> skipExtensions = new HashSet<>(Arrays.asList("tgz",
             "jpg",
@@ -360,7 +370,9 @@ public class JGPGProcess implements PropertyChangeListener
                     dir = fList[i].getParentFile().getName();
                     dir += "/";
                 }
-                fileMap.put(fList[i].getAbsolutePath(), dir + shortName);
+//                String ddir = dir.isEmpty() ? shortName : shortName + " (" + dir + ")";
+                String ddir = dir + shortName;
+                fileMap.put(fList[i].getAbsolutePath(), ddir);
                 folderToPathKeysMap.computeIfAbsent(dir, d ->  new ArrayList<>()).add(fList[i].getAbsolutePath());
             }
         }
@@ -380,6 +392,29 @@ public class JGPGProcess implements PropertyChangeListener
                     });
                 }
         );
+
+        completeFileMap.putAll(fileMap);
+        Pattern bnPattern = Pattern.compile("([^/]+)/([^/]+)$");
+        completeFileMap.entrySet().stream().forEach(stringStringEntry -> {
+            Matcher m = bnPattern.matcher(stringStringEntry.getKey());
+
+            while (m.find() && m.groupCount() == 2)
+            {
+                String shortName = m.group(2);
+                shortName = shortName.replace(".asc", "").replace(".gpg", "");
+
+                String longName = shortName + " (" + m.group(1) + ")";
+
+                if (!abbrevCompleteFileMap.containsValue(shortName))
+                {
+                    abbrevCompleteFileMap.put(stringStringEntry.getKey(), shortName);
+                }
+                else
+                {
+                    abbrevCompleteFileMap.put(stringStringEntry.getKey(), longName);
+                }
+            }
+        });
 
         notifySecretListeners();
     }
