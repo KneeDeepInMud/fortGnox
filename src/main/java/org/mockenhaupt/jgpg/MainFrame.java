@@ -30,7 +30,9 @@ import javax.swing.UnsupportedLookAndFeelException;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -167,9 +169,15 @@ public class MainFrame extends javax.swing.JFrame implements
     {
         this.useFavoriteList = useFavorites;
         scrollPaneFavoriteSecrets.setVisible(useFavorites);
+        buttonClearFavorites.setVisible(useFavorites);
 
         // Desperation actions to repaint the hierachy correctly
         handleSecretList(secretList);
+        refreshGUI();
+    }
+
+    private void refreshGUI ()
+    {
         revalidateAllKids(this);
         SwingUtilities.invokeLater(() -> {
             MainFrame.this.setSize(MainFrame.this.getWidth() + lastInc, MainFrame.this.getHeight() + lastInc);
@@ -339,7 +347,7 @@ public class MainFrame extends javax.swing.JFrame implements
             }
             setUserTextareaText("","Decoding " + toDecode + "...");
             String decryptEntry = (String) jList.getSelectedValue();
-            handleFavorites(decryptEntry);
+            handleForFavoritesList(decryptEntry);
 
             gpgProcess.decrypt(decryptEntry, passDlg.getPassPhrase(), toClipboard, getCLIP_SECONDS());
             startTimer();
@@ -644,32 +652,25 @@ public class MainFrame extends javax.swing.JFrame implements
         final LinkedHashMap<String, Integer> newFavorites = new LinkedHashMap<>(favorites);
 
         favorites.clear();
+
         newFavorites.entrySet()
                 .stream().sorted((t2, t1) -> t1.getValue() - t2.getValue())
                 .forEach(stringIntegerEntry -> {
                    favorites.put(stringIntegerEntry.getKey(), stringIntegerEntry.getValue());
                 });
 
-        PreferencesAccess preferences = JgpgPreferences.get();
-        preferences.put(PREF_FAVORITES, favoritesAsJson());
+        JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
     }
 
-    private void dump()
-    {
-        System.out.println("");
-        favorites.entrySet().stream().forEach(stringIntegerEntry -> {
-            System.out.println("stringIntegerEntry = " + stringIntegerEntry);
-        });
-    }
-    private void handleFavorites (String entry)
+
+    private void handleForFavoritesList (String entry)
     {
         Integer i = favorites.computeIfAbsent(entry, s -> 0);
-        System.out.println("==============");
-        dump();
+
         favorites.put(entry, ++i);
         sortFavorites();
-        dump();
         refreshFavorites();
+
     }
 
     private void refreshFavorites ()
@@ -685,11 +686,15 @@ public class MainFrame extends javax.swing.JFrame implements
             {
                 return favorites.entrySet()
                         .stream()
-//                        .sorted((t2, t1) -> t1.getValue() - t2.getValue())
+                        // .sorted((t2, t1) -> t1.getValue() - t2.getValue())
                         .map(stringIntegerEntry -> stringIntegerEntry.getKey())
                         .collect(Collectors.toList()).get(i);
             }
         });
+
+        int height = Math.min(200, 20 * favorites.size());
+        jListFavoriteSecrets.setPreferredSize(new Dimension(0, height));
+        jSplitPaneSecrets.setDividerLocation(height);
     }
 
     @Override
@@ -780,6 +785,7 @@ public class MainFrame extends javax.swing.JFrame implements
         JPanel jToolBarPanel = new JPanel(new BorderLayout());
         javax.swing.JToolBar jToolBar1 = new javax.swing.JToolBar();
         buttonClearPass = new javax.swing.JButton();
+        buttonClearFavorites = new javax.swing.JButton();
         buttonClearPass.setMnemonic(KeyEvent.VK_P);
         JButton buttonClearTextarea = new JButton();
         buttonClearTextarea.setMnemonic(KeyEvent.VK_L);
@@ -839,8 +845,9 @@ public class MainFrame extends javax.swing.JFrame implements
 
         jListFavoriteSecrets.setFont(new java.awt.Font("DejaVu Sans Mono", Font.PLAIN, 14));
         jListFavoriteSecrets.setToolTipText("Press CTRL+C to decode first line to clipboard");
-        scrollPaneFavoriteSecrets.setMinimumSize(new java.awt.Dimension(100, 100));
-        scrollPaneFavoriteSecrets.setPreferredSize(new java.awt.Dimension(100, 800));
+
+        scrollPaneFavoriteSecrets.setMinimumSize(new java.awt.Dimension(100, 20));
+//        scrollPaneFavoriteSecrets.setPreferredSize(new java.awt.Dimension(100, 800));
 
 
         scrollPaneSecrets.setViewportView(jListSecrets);
@@ -922,6 +929,24 @@ public class MainFrame extends javax.swing.JFrame implements
             }
         });
         jToolBar1.add(buttonClearPass);
+        // ---------------------------------
+        buttonClearFavorites.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346509520_preferences-desktop-cryptography.png"))); // NOI18N
+        buttonClearFavorites.setText("Clear Favorites");
+        buttonClearFavorites.setToolTipText("Clears the favorites list");
+        buttonClearFavorites.setBorderPainted(false);
+        buttonClearFavorites.setFocusable(false);
+        buttonClearFavorites.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonClearFavorites.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        buttonClearFavorites.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                favorites.clear();
+                JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
+                refreshFavorites();
+            }
+        });
+        jToolBar1.add(buttonClearFavorites);
 
         // ---------------------------------
 
@@ -1042,7 +1067,6 @@ public class MainFrame extends javax.swing.JFrame implements
         focusComponentVector.add(jPanelTextArea.getFocusComponent());
         JgpgFocusTraversalPolicy jgpgFocusTraversalPolicy = new JgpgFocusTraversalPolicy(focusComponentVector);
         this.setFocusTraversalPolicy(jgpgFocusTraversalPolicy);
-
 
         pack();
     }
@@ -1175,6 +1199,7 @@ public class MainFrame extends javax.swing.JFrame implements
 
     // Variables declaration - do not modify
     private javax.swing.JButton buttonClearPass;
+    private javax.swing.JButton buttonClearFavorites;
     private javax.swing.JButton buttonLAF;
     private JList jListSecrets;
     private JList jListFavoriteSecrets;
