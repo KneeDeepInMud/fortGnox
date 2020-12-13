@@ -10,6 +10,10 @@
  */
 package org.mockenhaupt.jgpg;
 
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -23,7 +27,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -50,6 +58,7 @@ import java.util.stream.Collectors;
 
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLEAR_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLIP_SECONDS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_FAVORITES;
 
@@ -99,6 +108,7 @@ public class MainFrame extends javax.swing.JFrame implements
         CLIP_SECONDS = preferences.get(PREF_CLIP_SECONDS, CLIP_SECONDS_DEFAULT);
         PASSWORD_SECONDS = preferences.get(PREF_PASSWORD_SECONDS, PASSWORD_SECONDS_DEFAULT);
         setPrefUseFavorites(preferences.get(PREF_USE_FAVORITES, useFavoriteList));
+        favoritesParseFromJson(preferences.get(PREF_FAVORITES, "{}"));
     }
 
     private int getCLEAR_SECONDS()
@@ -329,7 +339,7 @@ public class MainFrame extends javax.swing.JFrame implements
             }
             setUserTextareaText("","Decoding " + toDecode + "...");
             String decryptEntry = (String) jList.getSelectedValue();
-            handleForFavorites(decryptEntry);
+            handleFavorites(decryptEntry);
 
             gpgProcess.decrypt(decryptEntry, passDlg.getPassPhrase(), toClipboard, getCLIP_SECONDS());
             startTimer();
@@ -589,10 +599,81 @@ public class MainFrame extends javax.swing.JFrame implements
     };
 
 
-    private void handleForFavorites (String entry)
+    private String favoritesParseFromJson (String json)
+    {
+        try
+        {
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Integer> result = objectMapper.readValue(json, LinkedHashMap.class);
+            result.entrySet().stream().forEach(stringIntegerEntry ->
+                    {
+                        String fname = stringIntegerEntry.getKey();
+                        if (new File(fname).isFile())
+                        {
+                            favorites.put(fname, stringIntegerEntry.getValue());
+                        }
+                    }
+            );
+            refreshFavorites();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        return json;
+    }
+    private String favoritesAsJson ()
+    {
+        String json = "";
+        try
+        {
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            json = objectMapper.writeValueAsString(favorites);
+
+        }
+        catch (JsonProcessingException e)
+        {
+            e.printStackTrace();
+        }
+        return json;
+    }
+
+    private void sortFavorites ()
+    {
+        final LinkedHashMap<String, Integer> newFavorites = new LinkedHashMap<>(favorites);
+
+        favorites.clear();
+        newFavorites.entrySet()
+                .stream().sorted((t2, t1) -> t1.getValue() - t2.getValue())
+                .forEach(stringIntegerEntry -> {
+                   favorites.put(stringIntegerEntry.getKey(), stringIntegerEntry.getValue());
+                });
+
+        PreferencesAccess preferences = JgpgPreferences.get();
+        preferences.put(PREF_FAVORITES, favoritesAsJson());
+    }
+
+    private void dump()
+    {
+        System.out.println("");
+        favorites.entrySet().stream().forEach(stringIntegerEntry -> {
+            System.out.println("stringIntegerEntry = " + stringIntegerEntry);
+        });
+    }
+    private void handleFavorites (String entry)
     {
         Integer i = favorites.computeIfAbsent(entry, s -> 0);
+        System.out.println("==============");
+        dump();
         favorites.put(entry, ++i);
+        sortFavorites();
+        dump();
+        refreshFavorites();
+    }
+
+    private void refreshFavorites ()
+    {
         jListFavoriteSecrets.setModel(new javax.swing.AbstractListModel()
         {
             public int getSize ()
@@ -603,7 +684,8 @@ public class MainFrame extends javax.swing.JFrame implements
             public Object getElementAt (int i)
             {
                 return favorites.entrySet()
-                        .stream().sorted((t2, t1) -> t1.getValue() - t2.getValue())
+                        .stream()
+//                        .sorted((t2, t1) -> t1.getValue() - t2.getValue())
                         .map(stringIntegerEntry -> stringIntegerEntry.getKey())
                         .collect(Collectors.toList()).get(i);
             }
