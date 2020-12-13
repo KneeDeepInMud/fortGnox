@@ -87,26 +87,34 @@
 
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
-
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addDefaultImplementationEntries>false</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>false</addDefaultSpecificationEntries>
-                            <addClasspath>false</addClasspath>
-                            <mainClass>org.mockenhaupt.jgpg.MainFrame</mainClass>
-                        </manifest>
-                        <manifestEntries>
-                            <implementation-version>${project.version}</implementation-version>
-                            <implementation-build>${buildNumber}</implementation-build>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>org.mockenhaupt.jgpg.MainFrame</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
+
+
+
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
