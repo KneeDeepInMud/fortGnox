@@ -40,6 +40,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
+import static javax.swing.JOptionPane.OK_OPTION;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLEAR_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLIP_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES;
@@ -952,11 +954,14 @@ public class MainFrame extends javax.swing.JFrame implements
         buttonClearFavorites.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         buttonClearFavorites.addActionListener(new java.awt.event.ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            public void actionPerformed (java.awt.event.ActionEvent evt)
             {
-                favorites.clear();
-                JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
-                refreshFavorites();
+                if (OK_OPTION == JOptionPane.showConfirmDialog(MainFrame.this, "Really delete all favorites?", "JGPG Delete Favorites", OK_CANCEL_OPTION))
+                {
+                    favorites.clear();
+                    JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
+                    refreshFavorites();
+                }
             }
         });
         jToolBar1.add(buttonClearFavorites);
