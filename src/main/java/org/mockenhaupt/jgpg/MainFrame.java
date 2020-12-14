@@ -858,7 +858,7 @@ public class MainFrame extends javax.swing.JFrame implements
         jListSecrets.setToolTipText("Press CTRL+C to decode first line to clipboard");
 
         jListFavoriteSecrets.setFont(new java.awt.Font("DejaVu Sans Mono", Font.PLAIN, 14));
-        jListFavoriteSecrets.setBackground(new Color(240, 240, 240));
+//        jListFavoriteSecrets.setBackground(new Color(240, 240, 240));
         jListFavoriteSecrets.setToolTipText("Press CTRL+C to decode first line to clipboard");
 
         scrollPaneFavoriteSecrets.setMinimumSize(new java.awt.Dimension(100, 20));
