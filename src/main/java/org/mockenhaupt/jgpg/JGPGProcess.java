@@ -394,7 +394,9 @@ public class JGPGProcess implements PropertyChangeListener
         );
 
         completeFileMap.putAll(fileMap);
-        Pattern bnPattern = Pattern.compile("([^/]+)/([^/]+)$");
+
+        final String sepChar = Pattern.quote(File.separator);
+        final Pattern bnPattern = Pattern.compile("([^"+ sepChar + "]+)" + sepChar +  "([^" + sepChar + "]+)$");
         completeFileMap.entrySet().stream().forEach(stringStringEntry -> {
             Matcher m = bnPattern.matcher(stringStringEntry.getKey());
 

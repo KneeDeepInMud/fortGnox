@@ -1082,6 +1082,7 @@ public class MainFrame extends javax.swing.JFrame implements
         Vector<Component> focusComponentVector = new Vector<>();
         focusComponentVector.add(textFilter);
         focusComponentVector.add(jListSecrets);
+        focusComponentVector.add(jListFavoriteSecrets);
         focusComponentVector.add(jPanelTextArea.getFocusComponent());
         JgpgFocusTraversalPolicy jgpgFocusTraversalPolicy = new JgpgFocusTraversalPolicy(focusComponentVector);
         this.setFocusTraversalPolicy(jgpgFocusTraversalPolicy);
