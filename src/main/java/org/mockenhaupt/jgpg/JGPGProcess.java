@@ -297,8 +297,21 @@ public class JGPGProcess implements PropertyChangeListener
 
     public String getShortFileName (String filename, boolean abbrev)
     {
-        if (abbrev) return abbrevCompleteFileMap.get(filename);
-        return completeFileMap.get(filename);
+        String ret;
+        if (abbrev)
+        {
+            ret = abbrevCompleteFileMap.get(filename);
+        }
+        else
+        {
+            ret = completeFileMap.get(filename);
+        }
+
+        if (ret == null || ret.isEmpty())
+        {
+            ret = filename;
+        }
+        return ret;
     }
 
     private HashMap<String, String> fileMap = new HashMap<String, String>();

@@ -14,8 +14,26 @@ package org.mockenhaupt.jgpg;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
+import javax.swing.JToggleButton;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -30,6 +48,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -79,6 +98,7 @@ public class MainFrame extends javax.swing.JFrame implements
 
 
     private final LinkedHashMap<String, Integer> favorites = new LinkedHashMap<>();
+    private final java.util.List<String> favoritesList = new ArrayList<>();
 
     public static final String VERSION_PROJECT = "project.version";
     public static final String VERSION_BUILD = "buildNumber";
@@ -93,7 +113,7 @@ public class MainFrame extends javax.swing.JFrame implements
         CLEAR_SECONDS = preferences.get(PREF_CLEAR_SECONDS, CLEAR_SECONDS_DEFAULT);
         CLIP_SECONDS = preferences.get(PREF_CLIP_SECONDS, CLIP_SECONDS_DEFAULT);
         PASSWORD_SECONDS = preferences.get(PREF_PASSWORD_SECONDS, PASSWORD_SECONDS_DEFAULT);
-        setPrefUseFavorites(preferences.get(PREF_USE_FAVORITES, useFavoriteList));
+        setPrefUseFavorites(preferences.get(PREF_USE_FAVORITES, prefUseFavoriteList));
         favoritesParseFromJson(preferences.get(PREF_FAVORITES, "{}"));
     }
 
@@ -137,7 +157,7 @@ public class MainFrame extends javax.swing.JFrame implements
 
     private void revalidateAllKids (Component component)
     {
-        if (component instanceof  Container)
+        if (component instanceof Container)
         {
             Container container = (Container) component;
             for (int i = 0; i < container.getComponentCount(); ++i){
@@ -151,7 +171,7 @@ public class MainFrame extends javax.swing.JFrame implements
     int lastInc = 1;
     private void setPrefUseFavorites(boolean useFavorites)
     {
-        this.useFavoriteList = useFavorites;
+        this.prefUseFavoriteList = useFavorites;
         scrollPaneFavoriteSecrets.setVisible(useFavorites);
         buttonClearFavorites.setVisible(useFavorites);
 
@@ -324,19 +344,22 @@ public class MainFrame extends javax.swing.JFrame implements
         }
         if (!passDlg.getPassPhrase().isEmpty() || !isPassDialog)
         {
-            toDecode = (String) jList.getSelectedValue();
-            if (toDecode == null || toDecode.isEmpty())
+            if (jList.getSelectedValue() instanceof String)
             {
-                setUserTextareaText("","Nothing selected to decode ...");
-                return;
-            }
-            setUserTextareaText("","Decoding " + toDecode + "...");
-            String decryptEntry = (String) jList.getSelectedValue();
-            handleForFavoritesList(decryptEntry);
+                toDecode = (String) jList.getSelectedValue();
+                if (toDecode == null || toDecode.isEmpty())
+                {
+                    setUserTextareaText("","Nothing selected to decode ...");
+                    return;
+                }
+                setUserTextareaText("","Decoding " + toDecode + "...");
+                String decryptEntry = (String) jList.getSelectedValue();
+                handleForFavoritesList(decryptEntry);
 
-            gpgProcess.decrypt(decryptEntry, passDlg.getPassPhrase(), toClipboard, getCLIP_SECONDS());
-            startTimer();
-            setPassStatusText();
+                gpgProcess.decrypt(decryptEntry, passDlg.getPassPhrase(), toClipboard, getCLIP_SECONDS());
+                startTimer();
+                setPassStatusText();
+            }
         }
     }
     
@@ -379,8 +402,7 @@ public class MainFrame extends javax.swing.JFrame implements
         JgpgPreferences.get().addPropertyChangeListener(this);
         initComponents();
 
-        initSecretListCellRenderer(jListSecrets, false);
-        initSecretListCellRenderer(jListFavoriteSecrets, true);
+        initSecretListCellRenderer(jListSecrets);
 
         URL url = this.getClass().getResource("kgpg_identity.png");
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
@@ -405,7 +427,7 @@ public class MainFrame extends javax.swing.JFrame implements
                         setMinimumSize(new java.awt.Dimension(600, 400));
                         setPreferredSize(new java.awt.Dimension(800, 525));
                         jListSecrets.setFont(new java.awt.Font("Times New Roman", Font.PLAIN, 14)); // NOI18N
-                        jListFavoriteSecrets.setFont(new java.awt.Font("Times New Roman", Font.PLAIN, 14)); // NOI18N
+//                        jListFavoriteSecrets.setFont(new java.awt.Font("Times New Roman", Font.PLAIN, 14)); // NOI18N
                     }
                     
                     UIManager.setLookAndFeel(info.getClassName());
@@ -464,7 +486,6 @@ public class MainFrame extends javax.swing.JFrame implements
         });
 
         initSecretListEventHandling(jListSecrets);
-        initSecretListEventHandling(jListFavoriteSecrets);
 
         gpgProcess = new JGPGProcess(this);
         loadPreferences();
@@ -588,7 +609,7 @@ public class MainFrame extends javax.swing.JFrame implements
         });
     }
 
-    private void initSecretListCellRenderer (JList list, boolean useAbbrevName)
+    private void initSecretListCellRenderer (JList list)
     {
         list.setCellRenderer(new DefaultListCellRenderer(){
 
@@ -601,13 +622,25 @@ public class MainFrame extends javax.swing.JFrame implements
                                                            boolean cellHasFocus)
 
             {
-                super.getListCellRendererComponent(list, value, index,
+                 Component c = super.getListCellRendererComponent(list, value, index,
                                                           isSelected,
                                                           false);
 
                 if (value instanceof String)
                 {
-                    setText(gpgProcess.getShortFileName((String)value, useAbbrevName));
+                    if (favorites.containsKey(value) && index < favorites.size())
+                    {
+                        setText(gpgProcess.getShortFileName((String)value, true));
+                    }
+                    else
+                        setText(gpgProcess.getShortFileName((String)value, false));
+                }
+                else if ( value instanceof JSeparator){
+                    return (Component)value;
+                }
+                if (favorites.containsKey(value) && prefUseFavoriteList)
+                {
+                    c.setFont(c.getFont().deriveFont(Font.BOLD));
                 }
                 return this;
             }
@@ -684,31 +717,13 @@ public class MainFrame extends javax.swing.JFrame implements
         favorites.put(entry, ++i);
         sortFavorites();
         refreshFavorites();
-
     }
 
     private void refreshFavorites ()
     {
-        jListFavoriteSecrets.setModel(new javax.swing.AbstractListModel()
-        {
-            public int getSize ()
-            {
-                return Math.min(16, favorites.keySet().size());
-            }
-
-            public Object getElementAt (int i)
-            {
-                return favorites.entrySet()
-                        .stream()
-                        // .sorted((t2, t1) -> t1.getValue() - t2.getValue())
-                        .map(stringIntegerEntry -> stringIntegerEntry.getKey())
-                        .collect(Collectors.toList()).get(i);
-            }
-        });
-
-        int height = Math.min(200, 20 * favorites.size());
-//        jListFavoriteSecrets.setPreferredSize(new Dimension(0, height));
-        jSplitPaneSecrets.setDividerLocation(height);
+        favoritesList.clear();
+        favoritesList.addAll(favorites.keySet().stream().collect(Collectors.toList()));
+        handleSecretList(secretList);
     }
 
     @Override
@@ -723,12 +738,38 @@ public class MainFrame extends javax.swing.JFrame implements
             {
                 public int getSize ()
                 {
-                    return secretList.length;
+                    if (prefUseFavoriteList)
+                    {
+                        return secretList.length + (favoritesList.size() > 0 ? favoritesList.size() + 1 : favoritesList.size());
+                    }
+                    else return secretList.length;
                 }
 
                 public Object getElementAt (int i)
                 {
-                    return secretList[i];
+                    Object val;
+                    if (prefUseFavoriteList)
+                    {
+                        int favSize = favoritesList.size();
+
+                        if (i < favoritesList.size())
+                        {
+                            val = favoritesList.get(i);
+                        }
+                        else if (i == favSize && favSize > 0)
+                        {
+                            val = new JSeparator(JSeparator.HORIZONTAL);
+                        }
+                        else
+                        {
+                            val = secretList[i - ((favSize > 0) ? favSize + 1 : 0)];
+                        }
+                        return val;
+                    }
+                    else {
+                        val = secretList[i];
+                    }
+                    return val;
                 }
             });
             
@@ -790,12 +831,9 @@ public class MainFrame extends javax.swing.JFrame implements
         javax.swing.JScrollPane scrollPaneSecrets = new javax.swing.JScrollPane();
 
         // gpg files and favorite gpg files
-        jSplitPaneSecrets = new javax.swing.JSplitPane();
 
         labelSecretInfo = new JLabel();
         jListSecrets = new JList();
-        jListFavoriteSecrets = new JList();
-//        scrollPaneTextArea = new javax.swing.JScrollPane();
         JPanel jToolBarPanel = new JPanel(new BorderLayout());
         javax.swing.JToolBar jToolBar1 = new javax.swing.JToolBar();
         buttonClearPass = new javax.swing.JButton();
@@ -857,24 +895,12 @@ public class MainFrame extends javax.swing.JFrame implements
         jListSecrets.setFont(new java.awt.Font("DejaVu Sans Mono", Font.PLAIN, 14)); // NOI18N
         jListSecrets.setToolTipText("Press CTRL+C to decode first line to clipboard");
 
-        jListFavoriteSecrets.setFont(new java.awt.Font("DejaVu Sans Mono", Font.PLAIN, 14));
-//        jListFavoriteSecrets.setBackground(new Color(240, 240, 240));
-        jListFavoriteSecrets.setToolTipText("Press CTRL+C to decode first line to clipboard");
 
         scrollPaneFavoriteSecrets.setMinimumSize(new java.awt.Dimension(100, 20));
-//        scrollPaneFavoriteSecrets.setPreferredSize(new java.awt.Dimension(100, 800));
 
 
         scrollPaneSecrets.setViewportView(jListSecrets);
-        scrollPaneFavoriteSecrets.setViewportView(jListFavoriteSecrets);
-//        listSecrets.setViewportView(jListFavoriteSecrets);
-
-        jSplitPaneSecrets.setTopComponent(scrollPaneFavoriteSecrets);
-        jSplitPaneSecrets.setBottomComponent(scrollPaneSecrets);
-        jSplitPaneSecrets.setOrientation(JSplitPane.VERTICAL_SPLIT);
-
-
-        panelList.add(jSplitPaneSecrets, java.awt.BorderLayout.CENTER);
+        panelList.add(scrollPaneSecrets, java.awt.BorderLayout.CENTER);
         panelList.add(labelSecretInfo, BorderLayout.SOUTH);
         labelSecretInfo.setVisible(false);
 
@@ -1082,7 +1108,6 @@ public class MainFrame extends javax.swing.JFrame implements
         Vector<Component> focusComponentVector = new Vector<>();
         focusComponentVector.add(textFilter);
         focusComponentVector.add(jListSecrets);
-        focusComponentVector.add(jListFavoriteSecrets);
         focusComponentVector.add(jPanelTextArea.getFocusComponent());
         JgpgFocusTraversalPolicy jgpgFocusTraversalPolicy = new JgpgFocusTraversalPolicy(focusComponentVector);
         this.setFocusTraversalPolicy(jgpgFocusTraversalPolicy);
@@ -1221,17 +1246,15 @@ public class MainFrame extends javax.swing.JFrame implements
     private javax.swing.JButton buttonClearFavorites;
     private javax.swing.JButton buttonLAF;
     private JList jListSecrets;
-    private JList jListFavoriteSecrets;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JProgressBar progressClearTimer;
     private javax.swing.JProgressBar progressPassTimer;
     private javax.swing.JTextField textFilter;
     javax.swing.JScrollPane scrollPaneFavoriteSecrets = new javax.swing.JScrollPane();
-    JSplitPane jSplitPaneSecrets;
     private JPanelTextArea jPanelTextArea;
     private JLabel labelSecretInfo;
 
-    private boolean useFavoriteList = true;
+    private boolean prefUseFavoriteList = true;
 
     public void actionPerformed (ActionEvent e)
     {
