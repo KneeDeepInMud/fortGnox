@@ -287,13 +287,6 @@ public class JGPGProcess implements PropertyChangeListener
     String[] secretList;
     private String errorState = "";
 
-    String filter = "";
-
-    public void setFilter (String filter)
-    {
-        this.filter = filter;
-        rebuildSecretList();
-    }
 
     public String getShortFileName (String filename, boolean abbrev)
     {
@@ -346,16 +339,6 @@ public class JGPGProcess implements PropertyChangeListener
                     {
                         return false;
                     }
-                    if (!filter.isEmpty())
-                    {
-                        String name2 = name.toLowerCase().replace(".asc", "");
-                        name2 = name2.toLowerCase().replace(".gpg", "");
-                        if (!name2.contains(filter.toLowerCase()))
-                        {
-                            return false;
-                        }
-                    }
-
 
                     return skipExtensions.stream().noneMatch(ext ->
                     {

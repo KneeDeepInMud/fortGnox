@@ -49,8 +49,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Level;
@@ -99,6 +101,7 @@ public class MainFrame extends javax.swing.JFrame implements
 
     private final LinkedHashMap<String, Integer> favorites = new LinkedHashMap<>();
     private final java.util.List<String> favoritesList = new ArrayList<>();
+    final private List<String> filteredFavorites = new ArrayList<>();
 
     public static final String VERSION_PROJECT = "project.version";
     public static final String VERSION_BUILD = "buildNumber";
@@ -176,7 +179,7 @@ public class MainFrame extends javax.swing.JFrame implements
         buttonClearFavorites.setVisible(useFavorites);
 
         // Desperation actions to repaint the hierachy correctly
-        handleSecretList(secretList);
+        refreshSecretList();
         refreshFavorites();
         refreshGUI();
     }
@@ -481,7 +484,9 @@ public class MainFrame extends javax.swing.JFrame implements
                 {
                     textFilter.setText("");
                 }
-                gpgProcess.setFilter(textFilter.getText());
+                refreshSecretList();
+
+//                gpgProcess.setFilter(textFilter.getText());
             }
         });
 
@@ -527,7 +532,8 @@ public class MainFrame extends javax.swing.JFrame implements
                 else if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
                 {
                     textFilter.setText("");
-                    gpgProcess.setFilter(textFilter.getText());
+//                    gpgProcess.setFilter(textFilter.getText());
+                    refreshSecretList();
                     textFilter.requestFocus();
                 }
             }
@@ -628,12 +634,14 @@ public class MainFrame extends javax.swing.JFrame implements
 
                 if (value instanceof String)
                 {
-                    if (favorites.containsKey(value) && index < favorites.size())
+                    if (favorites.containsKey(value) && index < filteredFavorites.size())
                     {
                         setText(gpgProcess.getShortFileName((String)value, true));
                     }
                     else
-                        setText(gpgProcess.getShortFileName((String)value, false));
+                    {
+                        setText(gpgProcess.getShortFileName((String) value, false));
+                    }
                 }
                 else if ( value instanceof JSeparator){
                     return (Component)value;
@@ -648,10 +656,8 @@ public class MainFrame extends javax.swing.JFrame implements
         });
     }
 
-    private String[] secretList = new String[]
-    {
-        ""
-    };
+    private String[] allSecretFiles = new String[]{""};
+    private final List<String> secretListModel = new ArrayList<>();
 
 
     private String favoritesParseFromJson (String json)
@@ -723,59 +729,105 @@ public class MainFrame extends javax.swing.JFrame implements
     {
         favoritesList.clear();
         favoritesList.addAll(favorites.keySet().stream().collect(Collectors.toList()));
-        handleSecretList(secretList);
+        refreshSecretList();
+    }
+
+    public void refreshSecretList ()
+    {
+        handleSecretList(this.allSecretFiles);
+    }
+
+
+    final String sepChar = Pattern.quote(File.separator);
+    private Pattern pattern = Pattern.compile("^.*[^"+ sepChar+ "]+" + sepChar + "(.*$)");
+    private boolean filterFile (String fileName)
+    {
+        if (textFilter.getText() == null || textFilter.getText().isEmpty())
+        {
+            return true;
+        }
+        Matcher m = pattern.matcher(fileName);
+        if (m.matches())
+        {
+            String baseName = m.group(1);
+            String filter = textFilter.getText();
+            String name2 = baseName.toLowerCase().replace(".asc", "");
+            name2 = name2.toLowerCase().replace(".gpg", "");
+            boolean ret = name2.contains(filter.toLowerCase());
+            return ret;
+        }
+        return false;
     }
 
     @Override
     public void handleSecretList (String[] list)
     {
-        secretList = list;
+        this.allSecretFiles = list;
+
+        filteredFavorites.clear();
+        filteredFavorites.addAll(favoritesList.stream().filter(s -> filterFile(s)).collect(Collectors.toList()));
+
+        secretListModel.clear();
+        secretListModel.addAll(Arrays.asList(list).stream().filter(s -> filterFile(s)).collect(Collectors.toList()));
+
         String secretListInfo = "";
-        if (secretList != null)
+        if (secretListModel != null)
         {
-            secretListInfo = " " + secretList.length + " entries";
+            secretListInfo = " " + secretListModel.size() + " entries";
             jListSecrets.setModel(new javax.swing.AbstractListModel()
             {
                 public int getSize ()
                 {
                     if (prefUseFavoriteList)
                     {
-                        return secretList.length + (favoritesList.size() > 0 ? favoritesList.size() + 1 : favoritesList.size());
+                        return secretListModel.size() + (filteredFavorites.size() > 0 ? 1 : 0);
                     }
-                    else return secretList.length;
+                    else
+                    {
+                        return secretListModel.size();
+                    }
                 }
 
                 public Object getElementAt (int i)
                 {
+
                     Object val;
                     if (prefUseFavoriteList)
                     {
-                        int favSize = favoritesList.size();
+                        int favSize = filteredFavorites.size();
 
-                        if (i < favoritesList.size())
+                        if (favSize > 0)
                         {
-                            val = favoritesList.get(i);
-                        }
-                        else if (i == favSize && favSize > 0)
-                        {
-                            val = new JSeparator(JSeparator.HORIZONTAL);
+                            if (i == favSize)
+                            {
+                                return new JSeparator(JSeparator.HORIZONTAL);
+                            }
+                            else if (i < favSize)
+                            {
+                                return filteredFavorites.get(i);
+                            }
+                            else
+                            {
+                                return secretListModel.get(i - favSize);
+                            }
                         }
                         else
                         {
-                            val = secretList[i - ((favSize > 0) ? favSize + 1 : 0)];
+                            return secretListModel.get(i);
                         }
-                        return val;
                     }
-                    else {
-                        val = secretList[i];
+                    else
+                    {
+                        val = secretListModel.get(i);
                     }
                     return val;
+
                 }
             });
-            
 
             updateSecretListInfo("");
         }
+
         updateSecretListInfo(secretListInfo);
     }
 
@@ -1208,7 +1260,8 @@ public class MainFrame extends javax.swing.JFrame implements
     private void cleanButtonActionPerformed (ActionEvent evt)
     {
         textFilter.setText("");
-        gpgProcess.setFilter(textFilter.getText());
+//        gpgProcess.setFilter(textFilter.getText());
+        refreshSecretList();
         textFilter.requestFocus();
     }
 
