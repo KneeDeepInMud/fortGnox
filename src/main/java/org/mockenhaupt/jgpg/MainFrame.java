@@ -55,6 +55,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -66,6 +67,7 @@ import static javax.swing.JOptionPane.OK_OPTION;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLEAR_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLIP_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_NUMBER_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_FAVORITES;
 
@@ -97,7 +99,10 @@ public class MainFrame extends javax.swing.JFrame implements
     private final int MIN_TIMER_VALUE = 1;
     private String toDecode = "";
     private JList lastActionList;
+    private int NUMBER_FAVORITES = 8;
 
+    private String[] allSecretFiles = new String[]{""};
+    private final List<String> secretListModel = new ArrayList<>();
 
     private final LinkedHashMap<String, Integer> favorites = new LinkedHashMap<>();
     private final java.util.List<String> favoritesList = new ArrayList<>();
@@ -116,6 +121,7 @@ public class MainFrame extends javax.swing.JFrame implements
         CLEAR_SECONDS = preferences.get(PREF_CLEAR_SECONDS, CLEAR_SECONDS_DEFAULT);
         CLIP_SECONDS = preferences.get(PREF_CLIP_SECONDS, CLIP_SECONDS_DEFAULT);
         PASSWORD_SECONDS = preferences.get(PREF_PASSWORD_SECONDS, PASSWORD_SECONDS_DEFAULT);
+        NUMBER_FAVORITES = preferences.get(PREF_NUMBER_FAVORITES, NUMBER_FAVORITES);
         setPrefUseFavorites(preferences.get(PREF_USE_FAVORITES, prefUseFavoriteList));
         favoritesParseFromJson(preferences.get(PREF_FAVORITES, "{}"));
     }
@@ -643,10 +649,11 @@ public class MainFrame extends javax.swing.JFrame implements
                         setText(gpgProcess.getShortFileName((String) value, false));
                     }
                 }
-                else if ( value instanceof JSeparator){
+                else if ( value instanceof JSeparator)
+                {
                     return (Component)value;
                 }
-                if (favorites.containsKey(value) && prefUseFavoriteList)
+                if (filteredFavorites.contains(value) && prefUseFavoriteList)
                 {
                     c.setFont(c.getFont().deriveFont(Font.BOLD));
                 }
@@ -656,8 +663,6 @@ public class MainFrame extends javax.swing.JFrame implements
         });
     }
 
-    private String[] allSecretFiles = new String[]{""};
-    private final List<String> secretListModel = new ArrayList<>();
 
 
     private String favoritesParseFromJson (String json)
@@ -709,7 +714,7 @@ public class MainFrame extends javax.swing.JFrame implements
         newFavorites.entrySet()
                 .stream().sorted((t2, t1) -> t1.getValue() - t2.getValue())
                 .forEach(stringIntegerEntry -> {
-                   favorites.put(stringIntegerEntry.getKey(), stringIntegerEntry.getValue());
+                    favorites.put(stringIntegerEntry.getKey(), stringIntegerEntry.getValue());
                 });
 
         JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
@@ -759,13 +764,29 @@ public class MainFrame extends javax.swing.JFrame implements
         return false;
     }
 
+
+    private List<String> getConfiguredNumberFavorites ()
+    {
+        if (NUMBER_FAVORITES <= 0)
+        {
+            return favoritesList;
+        }
+        else {
+            return favoritesList.subList(0, Math.min(favoritesList.size(), NUMBER_FAVORITES));
+        }
+    }
+
     @Override
     public void handleSecretList (String[] list)
     {
         this.allSecretFiles = list;
 
         filteredFavorites.clear();
-        filteredFavorites.addAll(favoritesList.stream().filter(s -> filterFile(s)).collect(Collectors.toList()));
+        filteredFavorites.addAll(
+                getConfiguredNumberFavorites()
+                .stream()
+                .filter(s -> filterFile(s))
+                .collect(Collectors.toList()));
 
         secretListModel.clear();
         secretListModel.addAll(Arrays.asList(list).stream().filter(s -> filterFile(s)).collect(Collectors.toList()));
@@ -1357,6 +1378,10 @@ public class MainFrame extends javax.swing.JFrame implements
                 break;
             case PREF_PASSWORD_SECONDS:
                 setPASSWORD_SECONDS((Integer) propertyChangeEvent.getNewValue());
+                break;
+            case PREF_NUMBER_FAVORITES:
+                NUMBER_FAVORITES = (Integer) propertyChangeEvent.getNewValue();
+                refreshFavorites();
                 break;
         }
         SwingUtilities.invokeLater(() -> updateClearPassVisibility());

@@ -46,6 +46,7 @@ public class OptionsPanel extends javax.swing.JDialog
         this.jFormattedTextPassClearTimeout.setText(String.format("%d", pa.getInt(PREF_PASSWORD_SECONDS))); //mainFrame.getPASSWORD_SECONDS()));
         this.jFormattedTextareaClipTimeout.setText(String.format("%d", pa.getInt(PREF_CLIP_SECONDS)));
         this.jFormattedTextFieldResetMaskButton.setText(String.format("%d", pa.getInt(PREF_RESET_MASK_BUTTON_SECONDS)));
+        this.jFormattedTextFieldNumberFavorites.setText(String.format("%d", pa.getInt(PREF_NUMBER_FAVORITES)));
         this.jFormattedTextTextAreaFontSize.setText(String.format("%d", pa.getInt(PREF_TEXTAREA_FONT_SIZE)));
         this.textFieldPassPatterns.setText(pa.get(PREF_PASSWORD_MASK_PATTERNS));
         this.comboBoxCharset.setSelectedItem(pa.get(PREF_CHARSET));
@@ -77,9 +78,10 @@ public class OptionsPanel extends javax.swing.JDialog
 
         jFormattedTextareaClipTimeout = new javax.swing.JFormattedTextField();
         jFormattedTextFieldResetMaskButton = new javax.swing.JFormattedTextField();
+        jFormattedTextFieldNumberFavorites = new javax.swing.JFormattedTextField();
         jFormattedTextTextAreaFontSize = new javax.swing.JFormattedTextField();
 
-        getContentPane().setLayout(new java.awt.GridLayout(17, 2, 10, 1));
+        getContentPane().setLayout(new java.awt.GridLayout(18, 2, 10, 1));
 
         jLabel1.setText("GPG Executable");
         getContentPane().add(jLabel1);
@@ -130,6 +132,12 @@ public class OptionsPanel extends javax.swing.JDialog
         getContentPane().add(jLabel9);
         jFormattedTextFieldResetMaskButton.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
         getContentPane().add(jFormattedTextFieldResetMaskButton);
+
+
+        JLabel jLabel91 = new JLabel("Number favorites (< 0 unlimited)");
+        getContentPane().add(jLabel91);
+        jFormattedTextFieldNumberFavorites.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
+        getContentPane().add(jFormattedTextFieldNumberFavorites);
 
 
 
@@ -215,6 +223,7 @@ public class OptionsPanel extends javax.swing.JDialog
         Integer clipTimeout;
         Integer passTimeout;
         Integer resetMaskButtonTimeout;
+        Integer numberFavorites;
         Integer textAreaFontSize;
 
         try
@@ -245,6 +254,16 @@ public class OptionsPanel extends javax.swing.JDialog
         {
             resetMaskButtonTimeout = Integer.parseInt(jFormattedTextFieldResetMaskButton.getText());
             JgpgPreferences.get().put(PREF_RESET_MASK_BUTTON_SECONDS, resetMaskButtonTimeout);
+        }
+        catch (NumberFormatException ex)
+        {
+            // live with invalid defaults
+        }
+
+        try
+        {
+            numberFavorites = Integer.parseInt(jFormattedTextFieldNumberFavorites.getText());
+            JgpgPreferences.get().put(PREF_NUMBER_FAVORITES, numberFavorites);
         }
         catch (NumberFormatException ex)
         {
@@ -305,6 +324,7 @@ public class OptionsPanel extends javax.swing.JDialog
     private javax.swing.JFormattedTextField jFormattedTextareaClearTimeout;
     private javax.swing.JFormattedTextField jFormattedTextareaClipTimeout;
     private javax.swing.JFormattedTextField jFormattedTextFieldResetMaskButton;
+    private javax.swing.JFormattedTextField jFormattedTextFieldNumberFavorites;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
