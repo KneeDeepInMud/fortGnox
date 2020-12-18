@@ -11,9 +11,6 @@
 package org.mockenhaupt.jgpg;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -51,11 +48,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -665,45 +662,78 @@ public class MainFrame extends javax.swing.JFrame implements
 
 
 
+//    private String favoritesParseFromJsonX (String json)
+//    {
+//        try
+//        {
+//            ObjectMapper objectMapper = new ObjectMapper();
+//            Map<String, Integer> result = objectMapper.readValue(json, LinkedHashMap.class);
+//            result.entrySet().stream().forEach(stringIntegerEntry ->
+//                    {
+//                        String fname = stringIntegerEntry.getKey();
+//                        if (new File(fname).isFile())
+//                        {
+//                            favorites.put(fname, stringIntegerEntry.getValue());
+//                        }
+//                    }
+//            );
+//            refreshFavorites();
+//        }
+//        catch (IOException e)
+//        {
+//            e.printStackTrace();
+//        }
+//        return json;
+//    }
+
     private String favoritesParseFromJson (String json)
     {
-        try
-        {
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Integer> result = objectMapper.readValue(json, LinkedHashMap.class);
-            result.entrySet().stream().forEach(stringIntegerEntry ->
-                    {
-                        String fname = stringIntegerEntry.getKey();
-                        if (new File(fname).isFile())
-                        {
-                            favorites.put(fname, stringIntegerEntry.getValue());
-                        }
-                    }
-            );
-            refreshFavorites();
+        Pattern p = Pattern.compile("\"([^\"]+)\":([^,}]*)[,}]");
+        Matcher m = p.matcher(json);
+        while (m.find()) {
+            favorites.put(m.group(1), Integer.parseInt(m.group(2)));
         }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
+        refreshFavorites();
+
         return json;
     }
+
     private String favoritesAsJson ()
     {
-        String json = "";
-        try
-        {
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            json = objectMapper.writeValueAsString(favorites);
-
+        StringBuilder jsonBuilder = new StringBuilder();
+        Iterator<Map.Entry<String, Integer>> iter = favorites.entrySet().iterator();
+        jsonBuilder.append("{");
+        while (iter.hasNext()){
+            Map.Entry<String, Integer> entry = iter.next();
+            jsonBuilder.append('"');
+            jsonBuilder.append(entry.getKey());
+            jsonBuilder.append('"');
+            jsonBuilder.append(':');
+            jsonBuilder.append(entry.getValue());
+            if (iter.hasNext()) {
+                jsonBuilder.append(',');
+            }
         }
-        catch (JsonProcessingException e)
-        {
-            e.printStackTrace();
-        }
-        return json;
+        jsonBuilder.append("}");
+        return jsonBuilder.toString();
     }
+
+//    private String favoritesAsJsonX ()
+//    {
+//        String json = "";
+//        try
+//        {
+//            ObjectMapper objectMapper = new ObjectMapper();
+//
+//            json = objectMapper.writeValueAsString(favorites);
+//
+//        }
+//        catch (JsonProcessingException e)
+//        {
+//            e.printStackTrace();
+//        }
+//        return json;
+//    }
 
     private void sortFavorites ()
     {
