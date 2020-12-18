@@ -64,6 +64,7 @@ import static javax.swing.JOptionPane.OK_OPTION;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLEAR_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLIP_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES_SHOW_COUNT;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_NUMBER_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_FAVORITES;
@@ -97,6 +98,7 @@ public class MainFrame extends javax.swing.JFrame implements
     private String toDecode = "";
     private JList lastActionList;
     private int NUMBER_FAVORITES = 8;
+    private boolean prefShowFavoritesCount = false;
 
     private String[] allSecretFiles = new String[]{""};
     private final List<String> secretListModel = new ArrayList<>();
@@ -119,6 +121,7 @@ public class MainFrame extends javax.swing.JFrame implements
         CLIP_SECONDS = preferences.get(PREF_CLIP_SECONDS, CLIP_SECONDS_DEFAULT);
         PASSWORD_SECONDS = preferences.get(PREF_PASSWORD_SECONDS, PASSWORD_SECONDS_DEFAULT);
         NUMBER_FAVORITES = preferences.get(PREF_NUMBER_FAVORITES, NUMBER_FAVORITES);
+        prefShowFavoritesCount = preferences.get(PREF_FAVORITES_SHOW_COUNT, prefShowFavoritesCount);
         setPrefUseFavorites(preferences.get(PREF_USE_FAVORITES, prefUseFavoriteList));
         favoritesParseFromJson(preferences.get(PREF_FAVORITES, "{}"));
     }
@@ -639,7 +642,8 @@ public class MainFrame extends javax.swing.JFrame implements
                 {
                     if (favorites.containsKey(value) && index < filteredFavorites.size())
                     {
-                        setText(gpgProcess.getShortFileName((String)value, true));
+                        String info = (prefShowFavoritesCount ? "" + favorites.get(value) : null);
+                        setText(gpgProcess.getShortFileName((String)value, info, true));
                     }
                     else
                     {
@@ -1411,6 +1415,10 @@ public class MainFrame extends javax.swing.JFrame implements
                 break;
             case PREF_NUMBER_FAVORITES:
                 NUMBER_FAVORITES = (Integer) propertyChangeEvent.getNewValue();
+                refreshFavorites();
+                break;
+            case PREF_FAVORITES_SHOW_COUNT:
+                prefShowFavoritesCount = (Boolean) propertyChangeEvent.getNewValue();
                 refreshFavorites();
                 break;
         }

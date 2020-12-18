@@ -42,6 +42,7 @@ public class OptionsPanel extends javax.swing.JDialog
         this.jCheckboxReloadAgent.setSelected(pa.getBoolean(PREF_USE_GPG_AGENT));//jgpgProcess.isPrefConnectToGpgAgent());
         this.jCheckboxMastFirstLine.setSelected(pa.getBoolean(PREF_MASK_FIRST_LINE));//jgpgProcess.isPrefConnectToGpgAgent());
         this.jCheckBoxUseFavorites.setSelected(pa.getBoolean(PREF_USE_FAVORITES));//jgpgProcess.isPrefConnectToGpgAgent());
+        this.jCheckBoxShowFavoritesCount.setSelected(pa.getBoolean(PREF_FAVORITES_SHOW_COUNT));//jgpgProcess.isPrefConnectToGpgAgent());
         this.jFormattedTextareaClearTimeout.setText(String.format("%d", pa.getInt(PREF_CLEAR_SECONDS)));
         this.jFormattedTextPassClearTimeout.setText(String.format("%d", pa.getInt(PREF_PASSWORD_SECONDS))); //mainFrame.getPASSWORD_SECONDS()));
         this.jFormattedTextareaClipTimeout.setText(String.format("%d", pa.getInt(PREF_CLIP_SECONDS)));
@@ -73,6 +74,7 @@ public class OptionsPanel extends javax.swing.JDialog
         jCheckboxReloadAgent = new javax.swing.JCheckBox();
         jCheckboxMastFirstLine = new javax.swing.JCheckBox();
         jCheckBoxUseFavorites = new javax.swing.JCheckBox();
+        jCheckBoxShowFavoritesCount = new javax.swing.JCheckBox();
         jButtonSave = new javax.swing.JButton();
         jButtonClose = new javax.swing.JButton();
 
@@ -183,7 +185,10 @@ public class OptionsPanel extends javax.swing.JDialog
 
         jCheckBoxUseFavorites.setText("Show list of favorites");
         getContentPane().add(jCheckBoxUseFavorites);
-        getContentPane().add(new JLabel("")); // empty space
+
+        jCheckBoxShowFavoritesCount.setText("Show count of individual favorite");
+        getContentPane().add(jCheckBoxShowFavoritesCount);
+//        getContentPane().add(new JLabel("")); // empty space
 
 
         jButtonSave.setText("Save");
@@ -301,6 +306,7 @@ public class OptionsPanel extends javax.swing.JDialog
         JgpgPreferences.get().put(JgpgPreferences.PREF_USE_GPG_AGENT, jCheckboxReloadAgent.isSelected());
         JgpgPreferences.get().put(PREF_MASK_FIRST_LINE, jCheckboxMastFirstLine.isSelected());
         JgpgPreferences.get().put(PREF_USE_FAVORITES, jCheckBoxUseFavorites.isSelected());
+        JgpgPreferences.get().put(PREF_FAVORITES_SHOW_COUNT, jCheckBoxShowFavoritesCount.isSelected());
         JgpgPreferences.get().put(PREF_CHARSET, comboBoxCharset.getSelectedItem());
         setVisible(false);
     }
@@ -320,6 +326,7 @@ public class OptionsPanel extends javax.swing.JDialog
     private javax.swing.JCheckBox jCheckboxReloadAgent;
     private javax.swing.JCheckBox jCheckboxMastFirstLine;
     private javax.swing.JCheckBox jCheckBoxUseFavorites;
+    private javax.swing.JCheckBox jCheckBoxShowFavoritesCount;
     private javax.swing.JFormattedTextField jFormattedTextPassClearTimeout;
     private javax.swing.JFormattedTextField jFormattedTextareaClearTimeout;
     private javax.swing.JFormattedTextField jFormattedTextareaClipTimeout;
