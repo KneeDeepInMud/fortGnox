@@ -7,12 +7,17 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
+import javax.swing.text.DefaultCaret;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.ZonedDateTime;
+
+import static javax.swing.text.DefaultCaret.ALWAYS_UPDATE;
 
 public class DebugWindow
 {
@@ -20,12 +25,14 @@ public class DebugWindow
     public static int CAT_GPG = 1<<1;
     public static int CAT_FAVORITES = 1<<2;
     public static int CAT_LIST = 1<<3;
+    public static int CAT_DIR = 1<<4;
 
     enum Category {
         FILTER(CAT_FILTER),
         GPG(CAT_GPG),
         FAV(CAT_FAVORITES),
-        LIST(CAT_LIST)
+        LIST(CAT_LIST),
+        DIR(CAT_DIR)
         ;
 
         private final int value;
@@ -60,12 +67,12 @@ public class DebugWindow
         {
             if (isSelected())
             {
-                DebugWindow.get().enableDebugCategory(category.getValue());
+                DebugWindow.get().enableDebugCategory(category);
                 debug("DBG: Enabled category " + category);
             }
             else
             {
-                DebugWindow.get().disableDebugCategory(category.getValue());
+                DebugWindow.get().disableDebugCategory(category);
                 debug("DBG: Disabled category " + category);
             }
         }
@@ -78,13 +85,13 @@ public class DebugWindow
     private JTextArea debugTextArea;
     private JFrame debugFrame;
 
-    public void enableDebugCategory (int cat)
+    public void enableDebugCategory (Category cat)
     {
-        debugMask |= cat;
+        debugMask |= cat.getValue();
     }
-    public void disableDebugCategory (int cat)
+    public void disableDebugCategory (Category cat)
     {
-        debugMask &= ~cat;
+        debugMask &= ~cat.getValue();
     }
 
     public boolean isEnabled (int category)
@@ -118,6 +125,9 @@ public class DebugWindow
         {
             debugFrame = new JFrame("JGPG Debug");
             debugTextArea = new JTextArea();
+            DefaultCaret caret = (DefaultCaret) debugTextArea.getCaret();
+            caret.setUpdatePolicy(ALWAYS_UPDATE);
+
             debugFrame.setLayout(new BorderLayout());
             debugTextArea.setFont(new Font("monospaced", Font.PLAIN, 12));
             JScrollPane debugScrollPane = new JScrollPane(debugTextArea);
@@ -128,6 +138,7 @@ public class DebugWindow
             JButton debugClear = new JButton("Clear");
             debugClear.addActionListener(e -> debugTextArea.setText(""));
             debugToolbar.add(debugClear);
+
 
             JPanel categoryPanel = new JPanel(new FlowLayout());
 
@@ -155,7 +166,6 @@ public class DebugWindow
         }
     }
 
-    long debugCount = 0;
 
     public boolean isActive ()
     {
@@ -177,9 +187,12 @@ public class DebugWindow
     {
         if (!isActive()) return;
 
-        debugTextArea.append(String.format("%-9d", debugCount++));
-        debugTextArea.append(text);
-        debugTextArea.append("\n");
+        SwingUtilities.invokeLater(() ->
+        {
+            debugTextArea.append(String.format("%tT - ", ZonedDateTime.now()));
+            debugTextArea.append(text);
+            debugTextArea.append("\n");
+        });
     }
 
 

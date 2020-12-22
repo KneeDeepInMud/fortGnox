@@ -6,6 +6,7 @@ package org.mockenhaupt.jgpg;
 
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -23,6 +24,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
+import java.nio.file.WatchEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -42,7 +44,7 @@ import static org.mockenhaupt.jgpg.JgpgPreferences.*;
  *
  * @author fmoc
  */
-public class JGPGProcess implements PropertyChangeListener
+public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHandler
 {
     private final static Logger LOGGER = Logger.getLogger(JGPGProcess.class.getName());
 
@@ -145,6 +147,7 @@ public class JGPGProcess implements PropertyChangeListener
     private String prefGpgHome = "";
     private String prefSecretDirsString = "";
     protected List<String> secretdirs = new ArrayList<String>();
+    protected Map<String, DirectoryWatcher> directoryWatchers = new HashMap<>();
     boolean isWindows;
     HashSet<SecretListListener> secretListeners = new HashSet<SecretListListener>();
     HashSet<ResultListListener> resultListeners = new HashSet<ResultListListener>();
@@ -213,6 +216,8 @@ public class JGPGProcess implements PropertyChangeListener
         PreferencesAccess preferences = JgpgPreferences.get();
         File f = new File(prefSecretDirsString);
         secretdirs.clear();
+        directoryWatchers.values().stream().forEach(s -> s.stop());
+        directoryWatchers.clear();
 
         if (prefSecretDirsString.isEmpty())
         {
@@ -250,6 +255,14 @@ public class JGPGProcess implements PropertyChangeListener
                 secretdirs.add(f.getAbsolutePath());
             }
         }
+
+        secretdirs.stream().forEach(sd -> {
+            directoryWatchers.computeIfAbsent(sd, s -> {
+                DirectoryWatcher dw = new DirectoryWatcher(JGPGProcess.this);
+                dw.init(s);
+                return dw;
+            });
+        });
 
         rebuildSecretList();
     }
@@ -733,6 +746,14 @@ public class JGPGProcess implements PropertyChangeListener
         }
     }
 
+    public List<String> getSecretdirs ()
+    {
+        return secretdirs;
+    }
 
-
+    @Override
+    public void handleDirContentChanged (String directory, String entry, WatchEvent.Kind<?> kind)
+    {
+        SwingUtilities.invokeLater(() -> rebuildSecretList());
+    }
 }

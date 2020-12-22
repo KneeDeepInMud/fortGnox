@@ -4,6 +4,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import static org.mockenhaupt.jgpg.DebugWindow.Category.FAV;
+import static org.mockenhaupt.jgpg.DebugWindow.Category.FILTER;
+import static org.mockenhaupt.jgpg.DebugWindow.Category.GPG;
+
 class DebugWindowTest
 {
 
@@ -21,38 +25,38 @@ class DebugWindowTest
     {
         instance.setDebugMask(0);
 
-        instance.enableDebugCategory(DebugWindow.CAT_FILTER);
+        instance.enableDebugCategory(FILTER);
         instance.isEnabled(DebugWindow.CAT_FILTER);
         Assertions.assertEquals(true, instance.isEnabled(DebugWindow.CAT_FILTER));
         Assertions.assertEquals(false, instance.isEnabled(DebugWindow.CAT_GPG));
         Assertions.assertEquals(false, instance.isEnabled(DebugWindow.CAT_FAVORITES));
 
-        instance.enableDebugCategory(DebugWindow.CAT_GPG);
+        instance.enableDebugCategory(GPG);
         Assertions.assertEquals(true, instance.isEnabled(DebugWindow.CAT_FILTER));
         Assertions.assertEquals(true, instance.isEnabled(DebugWindow.CAT_GPG));
         Assertions.assertEquals(false, instance.isEnabled(DebugWindow.CAT_FAVORITES));
 
-        instance.disableDebugCategory(DebugWindow.CAT_FILTER);
+        instance.disableDebugCategory(FILTER);
         Assertions.assertEquals(false, instance.isEnabled(DebugWindow.CAT_FILTER));
         Assertions.assertEquals(true, instance.isEnabled(DebugWindow.CAT_GPG));
         Assertions.assertEquals(false, instance.isEnabled(DebugWindow.CAT_FAVORITES));
 
-        instance.disableDebugCategory(DebugWindow.CAT_FILTER);
+        instance.disableDebugCategory(FILTER);
         Assertions.assertEquals(false, instance.isEnabled(DebugWindow.CAT_FILTER));
         Assertions.assertEquals(true, instance.isEnabled(DebugWindow.CAT_GPG));
         Assertions.assertEquals(false, instance.isEnabled(DebugWindow.CAT_FAVORITES));
 
-        instance.enableDebugCategory(DebugWindow.CAT_FAVORITES);
+        instance.enableDebugCategory(FAV);
         Assertions.assertEquals(false, instance.isEnabled(DebugWindow.CAT_FILTER));
         Assertions.assertEquals(true, instance.isEnabled(DebugWindow.CAT_GPG));
         Assertions.assertEquals(true, instance.isEnabled(DebugWindow.CAT_FAVORITES));
 
-        instance.disableDebugCategory(DebugWindow.CAT_FAVORITES);
+        instance.disableDebugCategory(FAV);
         Assertions.assertEquals(false, instance.isEnabled(DebugWindow.CAT_FILTER));
         Assertions.assertEquals(true, instance.isEnabled(DebugWindow.CAT_GPG));
         Assertions.assertEquals(false, instance.isEnabled(DebugWindow.CAT_FAVORITES));
 
-        instance.disableDebugCategory(DebugWindow.CAT_GPG);
+        instance.disableDebugCategory(GPG);
         Assertions.assertEquals(false, instance.isEnabled(DebugWindow.CAT_FILTER));
         Assertions.assertEquals(false, instance.isEnabled(DebugWindow.CAT_GPG));
         Assertions.assertEquals(false, instance.isEnabled(DebugWindow.CAT_FAVORITES));

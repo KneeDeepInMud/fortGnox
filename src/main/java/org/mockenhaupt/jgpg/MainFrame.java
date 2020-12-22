@@ -66,6 +66,8 @@ import java.util.stream.Collectors;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.OK_OPTION;
+import static org.mockenhaupt.jgpg.DebugWindow.Category.DIR;
+import static org.mockenhaupt.jgpg.DebugWindow.Category.FAV;
 import static org.mockenhaupt.jgpg.DebugWindow.Category.FILTER;
 import static org.mockenhaupt.jgpg.DebugWindow.Category.LIST;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLEAR_SECONDS;
@@ -74,6 +76,7 @@ import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES_SHOW_COUNT;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_NUMBER_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_FAVORITES;
 
 /**
@@ -128,7 +131,60 @@ public class MainFrame extends javax.swing.JFrame implements
             {
                 INSTANCE = new MainFrame();
                 INSTANCE.setVisible(true);
-                DebugWindow.get().setWindowVisible(true);
+
+                boolean showDebug = false;
+                for (int i = 0; i < args.length; ++i)
+                {
+                    String thisArg = args[i];
+
+                    if (thisArg.startsWith("-d") || thisArg.startsWith("--d"))
+                    {
+                        showDebug = true;
+                        if (i >= args.length)
+                        {
+                            System.err.println("--debug requires an argument");
+                            System.exit(1);
+                        }
+                        String nextArg = null;
+                        ++i;
+                        nextArg = args[i];
+
+                        if (nextArg.toUpperCase().startsWith("DIR"))
+                        {
+                            DebugWindow.get().enableDebugCategory(DIR);
+                        }
+                        else if (nextArg.toUpperCase().startsWith("FAV"))
+                        {
+                            DebugWindow.get().enableDebugCategory(FAV);
+                        }
+                        else if (nextArg.toUpperCase().startsWith("FIL"))
+                        {
+                            DebugWindow.get().enableDebugCategory(FILTER);
+                        }
+                        else if (nextArg.toUpperCase().startsWith("LI"))
+                        {
+                            DebugWindow.get().enableDebugCategory(LIST);
+                        }
+                        else
+                        {
+                            try
+                            {
+                                int val = Integer.parseInt(nextArg);
+                                DebugWindow.get().setDebugMask(val);
+                            }
+                            catch (Exception ex)
+                            {
+                                System.err.println("Invalid argument");
+                                System.exit(1);
+                            }
+                        }
+                    }
+                }
+
+                if (showDebug)
+                {
+                   DebugWindow.get().setWindowVisible(true);
+                }
             }
         });
     }
@@ -672,7 +728,7 @@ public class MainFrame extends javax.swing.JFrame implements
 
                 if (value instanceof String)
                 {
-                    if (favorites.containsKey(value) && index < filteredFavorites.size())
+                    if (prefUseFavoriteList && favorites.containsKey(value) && index < filteredFavorites.size())
                     {
                         String info = (prefShowFavoritesCount ? "" + favorites.get(value) : null);
                         setText(gpgProcess.getShortFileName((String)value, info, true));
@@ -731,6 +787,10 @@ public class MainFrame extends javax.swing.JFrame implements
             if (new File(fname).isFile())
             {
                 favorites.put(fname, Integer.parseInt(m.group(2)));
+            }
+            else
+            {
+                dbg(FAV, "Removed favorite " + fname + ", file does not exist");
             }
         }
 
@@ -800,6 +860,9 @@ public class MainFrame extends javax.swing.JFrame implements
         Integer i = favorites.computeIfAbsent(entry, s -> 0);
 
         favorites.put(entry, ++i);
+
+        dbg(FAV, entry + " weight:" + i);
+
         sortFavorites();
         refreshFavorites();
     }
@@ -807,7 +870,13 @@ public class MainFrame extends javax.swing.JFrame implements
     private void refreshFavorites ()
     {
         favoritesList.clear();
-        favoritesList.addAll(favorites.keySet().stream().collect(Collectors.toList()));
+        favoritesList.addAll(favorites.keySet()
+                .stream()
+                .filter(s -> {
+                    return gpgProcess.getSecretdirs().stream().filter(s1 -> s.startsWith(s1)).findFirst().isPresent();
+                })
+                .collect(Collectors.toList())
+        );
         refreshSecretList();
     }
 
@@ -833,13 +902,18 @@ public class MainFrame extends javax.swing.JFrame implements
             String name2 = baseName.toLowerCase().replace(".asc", "");
             name2 = name2.toLowerCase().replace(".gpg", "");
             boolean ret = name2.contains(filter.toLowerCase());
-            DebugWindow.get().debug(FILTER, textFilter.getText() + (ret?" match   ":" nomatch ")  + fileName);
+            dbg(FILTER, textFilter.getText() + (ret?" match   ":" nomatch ")  + fileName);
             return ret;
         }
         else {
-            DebugWindow.get().debug(FILTER, "matcher matches() failed " + fileName);
+            dbg(FILTER, "matcher matches() failed " + fileName);
         }
         return false;
+    }
+
+    private void dbg(DebugWindow.Category cat, String text)
+    {
+         DebugWindow.get().debug(cat, text);
     }
 
     private List<String> getConfiguredNumberFavorites ()
@@ -886,7 +960,7 @@ public class MainFrame extends javax.swing.JFrame implements
                         size = secretListModel.size();
                     }
 
-                    DebugWindow.get().debug(LIST,"model size secret list: " + size);
+                    dbg(LIST,"model size secret list: " + size);
                     return size;
                 }
 
@@ -928,7 +1002,7 @@ public class MainFrame extends javax.swing.JFrame implements
                     {
                         return "ix:" + i + " " + e.getMessage();
                     }
-                    DebugWindow.get().debug(LIST, "list ix: " + i + " value: " + val);
+                    dbg(LIST, "list ix: " + i + " value: " + val);
                     return val;
 
                 }
@@ -1466,7 +1540,10 @@ public class MainFrame extends javax.swing.JFrame implements
                 break;
             case PREF_NUMBER_FAVORITES:
                 NUMBER_FAVORITES = (Integer) propertyChangeEvent.getNewValue();
-                refreshFavorites();
+                SwingUtilities.invokeLater(() -> refreshFavorites());
+                break;
+            case PREF_SECRETDIRS:
+                SwingUtilities.invokeLater(() -> refreshFavorites());
                 break;
             case PREF_FAVORITES_SHOW_COUNT:
                 prefShowFavoritesCount = (Boolean) propertyChangeEvent.getNewValue();
