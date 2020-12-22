@@ -299,7 +299,7 @@ public class JGPGProcess implements PropertyChangeListener
         if (abbrev)
         {
             ret = abbrevCompleteFileMap.get(filename);
-            if (info != null && !info.isEmpty())
+            if (info != null && !info.isEmpty() && ret != null)
             {
                 ret = ret.replace(")", " - " + info + ")");
             }
@@ -307,7 +307,7 @@ public class JGPGProcess implements PropertyChangeListener
         else
         {
             ret = completeFileMap.get(filename);
-            if (info != null && !info.isEmpty())
+            if (info != null && !info.isEmpty() && ret != null)
             {
                 ret = ret + " - " + info;
             }
@@ -430,7 +430,8 @@ public class JGPGProcess implements PropertyChangeListener
 
         notifySecretListeners();
     }
-///home/fmoc/work/password;/home/fmoc/work/password/orthogon;/home/fmoc/work/password/secret
+
+
     private synchronized void handleGpgResult (String err, String out,
                                                int exCode)
     {

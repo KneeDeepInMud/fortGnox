@@ -14,14 +14,18 @@ package org.mockenhaupt.jgpg;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
@@ -29,6 +33,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -61,6 +66,8 @@ import java.util.stream.Collectors;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.OK_OPTION;
+import static org.mockenhaupt.jgpg.DebugWindow.Category.FILTER;
+import static org.mockenhaupt.jgpg.DebugWindow.Category.LIST;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLEAR_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLIP_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES;
@@ -109,6 +116,31 @@ public class MainFrame extends javax.swing.JFrame implements
 
     public static final String VERSION_PROJECT = "project.version";
     public static final String VERSION_BUILD = "buildNumber";
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main (String[] args)
+    {
+        java.awt.EventQueue.invokeLater(new Runnable()
+        {
+            public void run ()
+            {
+                INSTANCE = new MainFrame();
+                INSTANCE.setVisible(true);
+                DebugWindow.get().setWindowVisible(true);
+            }
+        });
+    }
+
+
+    static private MainFrame INSTANCE;
+    private static MainFrame getInstance()
+    {
+        return INSTANCE;
+    }
+
+
 
     private void loadPreferences ()
     {
@@ -695,8 +727,16 @@ public class MainFrame extends javax.swing.JFrame implements
         Pattern p = Pattern.compile("\"([^\"]+)\":([^,}]*)[,}]");
         Matcher m = p.matcher(json);
         while (m.find()) {
-            favorites.put(m.group(1), Integer.parseInt(m.group(2)));
+            String fname = m.group(1);
+            if (new File(fname).isFile())
+            {
+                favorites.put(fname, Integer.parseInt(m.group(2)));
+            }
         }
+
+        // rewrite loaded and filtered (missing files) favorites back to disk
+        JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
+
         refreshFavorites();
 
         return json;
@@ -793,11 +833,14 @@ public class MainFrame extends javax.swing.JFrame implements
             String name2 = baseName.toLowerCase().replace(".asc", "");
             name2 = name2.toLowerCase().replace(".gpg", "");
             boolean ret = name2.contains(filter.toLowerCase());
+            DebugWindow.get().debug(FILTER, textFilter.getText() + (ret?" match   ":" nomatch ")  + fileName);
             return ret;
+        }
+        else {
+            DebugWindow.get().debug(FILTER, "matcher matches() failed " + fileName);
         }
         return false;
     }
-
 
     private List<String> getConfiguredNumberFavorites ()
     {
@@ -833,48 +876,59 @@ public class MainFrame extends javax.swing.JFrame implements
             {
                 public int getSize ()
                 {
+                    int size;
                     if (prefUseFavoriteList)
                     {
-                        return secretListModel.size() + (filteredFavorites.size() > 0 ? 1 : 0);
+                        size = secretListModel.size() + filteredFavorites.size() + (filteredFavorites.size() > 0 ? 1 : 0);
                     }
                     else
                     {
-                        return secretListModel.size();
+                        size = secretListModel.size();
                     }
+
+                    DebugWindow.get().debug(LIST,"model size secret list: " + size);
+                    return size;
                 }
 
                 public Object getElementAt (int i)
                 {
-
                     Object val;
-                    if (prefUseFavoriteList)
+                    try
                     {
-                        int favSize = filteredFavorites.size();
-
-                        if (favSize > 0)
+                        if (prefUseFavoriteList)
                         {
-                            if (i == favSize)
+                            int favSize = filteredFavorites.size();
+
+                            if (favSize > 0)
                             {
-                                return new JSeparator(JSeparator.HORIZONTAL);
-                            }
-                            else if (i < favSize)
-                            {
-                                return filteredFavorites.get(i);
+                                if (i == favSize)
+                                {
+                                    val = new JSeparator(JSeparator.HORIZONTAL);
+                                }
+                                else if (i < favSize)
+                                {
+                                    val = filteredFavorites.get(i);
+                                }
+                                else
+                                {
+                                    val = secretListModel.get(i - favSize - 1);
+                                }
                             }
                             else
                             {
-                                return secretListModel.get(i - favSize);
+                                val = secretListModel.get(i);
                             }
                         }
                         else
                         {
-                            return secretListModel.get(i);
+                            val = secretListModel.get(i);
                         }
                     }
-                    else
+                    catch (Exception e)
                     {
-                        val = secretListModel.get(i);
+                        return "ix:" + i + " " + e.getMessage();
                     }
+                    DebugWindow.get().debug(LIST, "list ix: " + i + " value: " + val);
                     return val;
 
                 }
@@ -931,6 +985,7 @@ public class MainFrame extends javax.swing.JFrame implements
      */
     private void initComponents()
     {
+
         javax.swing.JSplitPane jSplitPane1 = new javax.swing.JSplitPane();
         JPanel panelList = new JPanel();
         textFilter = new javax.swing.JTextField();
@@ -1222,6 +1277,24 @@ public class MainFrame extends javax.swing.JFrame implements
         pack();
     }
 
+//    JTextArea debugTextArea = new JTextArea();
+//    private void initDebugWindow ()
+//    {
+//        JFrame debugFrame = new JFrame();
+//        debugFrame.setLayout(new BorderLayout());
+//        debugTextArea.setFont(new Font("monospaced", Font.PLAIN, 12));
+//        JScrollPane debugScrollPane = new JScrollPane(debugTextArea);
+//        debugScrollPane.setPreferredSize(new Dimension(600, 600));
+//        debugFrame.getContentPane().add(debugScrollPane, BorderLayout.CENTER);
+//        JToolBar debugToolbar;
+//        debugFrame.getContentPane().add(debugToolbar = new JToolBar(), BorderLayout.NORTH);
+//        JButton debugClear = new JButton("Clear");
+//        debugClear.addActionListener(e -> debugTextArea.setText(""));
+//        debugToolbar.add(debugClear);
+//        debugFrame.pack();
+//        debugFrame.setVisible(true);
+//    }
+
     private void buttonClearTextareaActionPerformed(java.awt.event.ActionEvent evt) {
         jPanelTextArea.clear("Cleared");
         stopClearTimer();
@@ -1315,7 +1388,6 @@ public class MainFrame extends javax.swing.JFrame implements
     private void cleanButtonActionPerformed (ActionEvent evt)
     {
         textFilter.setText("");
-//        gpgProcess.setFilter(textFilter.getText());
         refreshSecretList();
         textFilter.requestFocus();
     }
@@ -1326,27 +1398,6 @@ public class MainFrame extends javax.swing.JFrame implements
         decrypt(true);
     }
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main (String[] args)
-    {
-
-
-        java.awt.EventQueue.invokeLater(new Runnable()
-        {
-            public void run ()
-            {
-                INSTANCE = new MainFrame();
-                INSTANCE.setVisible(true);
-            }
-        });
-    }
-    static private MainFrame INSTANCE;
-    private static MainFrame getInstance()
-    {
-        return INSTANCE;
-    }
 
 
     // Variables declaration - do not modify
