@@ -586,7 +586,7 @@ public class MainFrame extends javax.swing.JFrame implements
 
         initSecretListEventHandling(jListSecrets);
 
-        gpgProcess = new JGPGProcess(this);
+        gpgProcess = new JGPGProcess();
         loadPreferences();
 
         gpgProcess.addSecretListListener(this);

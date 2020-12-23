@@ -256,8 +256,10 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
             }
         }
 
-        secretdirs.stream().forEach(sd -> {
-            directoryWatchers.computeIfAbsent(sd, s -> {
+        secretdirs.stream().forEach(sd ->
+        {
+            directoryWatchers.computeIfAbsent(sd, s ->
+            {
                 DirectoryWatcher dw = new DirectoryWatcher(JGPGProcess.this);
                 dw.init(s);
                 return dw;
@@ -268,10 +270,8 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
     }
 
     //    protected Preferences preferences;
-    private final Component mainWindow;
-    public JGPGProcess (Component mainWindow)
+    public JGPGProcess ()
     {
-        this.mainWindow = mainWindow;
 
         PreferencesAccess preferences = JgpgPreferences.get();
         preferences.addPropertyChangeListener(this);
