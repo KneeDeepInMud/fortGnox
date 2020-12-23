@@ -13,8 +13,14 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.net.URL;
 import java.time.ZonedDateTime;
 
 import static javax.swing.text.DefaultCaret.ALWAYS_UPDATE;
@@ -79,6 +85,7 @@ public class DebugWindow
     }
 
     private int debugMask = 0;
+    public static final String PROP_VISIBLE = "PROP_VISIBLE";
 
     private static DebugWindow instance;
 
@@ -109,6 +116,12 @@ public class DebugWindow
         this.debugMask = debugMask;
     }
 
+    private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+
+    public void addPropertyChangeListener (PropertyChangeListener listener)
+    {
+        propertyChangeSupport.addPropertyChangeListener(listener);
+    }
     public static DebugWindow get ()
     {
         if (instance == null)
@@ -123,6 +136,9 @@ public class DebugWindow
         if (debugFrame == null)
         {
             debugFrame = new JFrame("JGPG Debug");
+            URL url = this.getClass().getResource("kgpg_identity.png");
+            debugFrame.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
+
             debugTextArea = new JTextArea();
             DefaultCaret caret = (DefaultCaret) debugTextArea.getCaret();
             caret.setUpdatePolicy(ALWAYS_UPDATE);
@@ -150,6 +166,21 @@ public class DebugWindow
             debugToolbar.add(categoryPanel);
 
             debugFrame.pack();
+
+            debugFrame.addComponentListener(new ComponentAdapter()
+            {
+                @Override
+                public void componentShown (ComponentEvent e)
+                {
+                    propertyChangeSupport.firePropertyChange(PROP_VISIBLE, false, true);
+                }
+
+                @Override
+                public void componentHidden (ComponentEvent e)
+                {
+                    propertyChangeSupport.firePropertyChange(PROP_VISIBLE, true, false);
+                }
+            });
         }
     }
 
@@ -168,7 +199,7 @@ public class DebugWindow
 
     public boolean isActive ()
     {
-        return debugFrame != null;
+        return debugFrame != null && debugFrame.isVisible();
     }
 
     public static void dbg (Category cat, String text)

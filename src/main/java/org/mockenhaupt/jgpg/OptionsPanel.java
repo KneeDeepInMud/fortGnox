@@ -6,11 +6,17 @@
 
 package org.mockenhaupt.jgpg;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import static org.mockenhaupt.jgpg.JgpgPreferences.*;
 
@@ -83,7 +89,7 @@ public class OptionsPanel extends javax.swing.JDialog
         jFormattedTextFieldNumberFavorites = new javax.swing.JFormattedTextField();
         jFormattedTextTextAreaFontSize = new javax.swing.JFormattedTextField();
 
-        getContentPane().setLayout(new java.awt.GridLayout(18, 2, 10, 1));
+        getContentPane().setLayout(new java.awt.GridLayout(19, 2, 10, 1));
 
         jLabel1.setText("GPG Executable");
         getContentPane().add(jLabel1);
@@ -188,7 +194,31 @@ public class OptionsPanel extends javax.swing.JDialog
 
         jCheckBoxShowFavoritesCount.setText("Show count of individual favorite");
         getContentPane().add(jCheckBoxShowFavoritesCount);
-//        getContentPane().add(new JLabel("")); // empty space
+
+        getContentPane().add(new JLabel("")); // empty space
+
+        // show/hide debug window
+        getContentPane().add(jCheckBoxShowDebugWindow = new JCheckBox("Show debug window"));
+        DebugWindow.get().addPropertyChangeListener(new PropertyChangeListener()
+        {
+            @Override
+            public void propertyChange (PropertyChangeEvent evt)
+            {
+                if (DebugWindow.PROP_VISIBLE.equals(evt.getPropertyName()))
+                {
+                    jCheckBoxShowDebugWindow.setSelected((Boolean) evt.getNewValue());
+                }
+            }
+        });
+        jCheckBoxShowDebugWindow.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed (ActionEvent e)
+            {
+                DebugWindow.get().setWindowVisible(jCheckBoxShowDebugWindow.isSelected());
+
+            }
+        });
 
 
         jButtonSave.setText("Save");
@@ -327,6 +357,7 @@ public class OptionsPanel extends javax.swing.JDialog
     private javax.swing.JCheckBox jCheckboxMastFirstLine;
     private javax.swing.JCheckBox jCheckBoxUseFavorites;
     private javax.swing.JCheckBox jCheckBoxShowFavoritesCount;
+    private javax.swing.JCheckBox jCheckBoxShowDebugWindow;
     private javax.swing.JFormattedTextField jFormattedTextPassClearTimeout;
     private javax.swing.JFormattedTextField jFormattedTextareaClearTimeout;
     private javax.swing.JFormattedTextField jFormattedTextareaClipTimeout;
