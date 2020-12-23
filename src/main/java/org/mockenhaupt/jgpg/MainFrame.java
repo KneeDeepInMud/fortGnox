@@ -129,8 +129,6 @@ public class MainFrame extends javax.swing.JFrame implements
         {
             public void run ()
             {
-                INSTANCE = new MainFrame();
-                INSTANCE.setVisible(true);
 
                 boolean showDebug = false;
                 for (int i = 0; i < args.length; ++i)
@@ -140,42 +138,44 @@ public class MainFrame extends javax.swing.JFrame implements
                     if (thisArg.startsWith("-d") || thisArg.startsWith("--d"))
                     {
                         showDebug = true;
-                        if (i >= args.length)
+                        if (i + 1 >= args.length)
                         {
-                            System.err.println("--debug requires an argument");
-                            System.exit(1);
-                        }
-                        String nextArg = null;
-                        ++i;
-                        nextArg = args[i];
-
-                        if (nextArg.toUpperCase().startsWith("DIR"))
-                        {
-                            DebugWindow.get().enableDebugCategory(DIR);
-                        }
-                        else if (nextArg.toUpperCase().startsWith("FAV"))
-                        {
-                            DebugWindow.get().enableDebugCategory(FAV);
-                        }
-                        else if (nextArg.toUpperCase().startsWith("FIL"))
-                        {
-                            DebugWindow.get().enableDebugCategory(FILTER);
-                        }
-                        else if (nextArg.toUpperCase().startsWith("LI"))
-                        {
-                            DebugWindow.get().enableDebugCategory(LIST);
+                            DebugWindow.get().setDebugMask(Integer.MAX_VALUE);
                         }
                         else
                         {
-                            try
+                            String nextArg = null;
+                            ++i;
+                            nextArg = args[i];
+
+                            if (nextArg.toUpperCase().startsWith("DIR"))
                             {
-                                int val = Integer.parseInt(nextArg);
-                                DebugWindow.get().setDebugMask(val);
+                                DebugWindow.get().enableDebugCategory(DIR);
                             }
-                            catch (Exception ex)
+                            else if (nextArg.toUpperCase().startsWith("FAV"))
                             {
-                                System.err.println("Invalid argument");
-                                System.exit(1);
+                                DebugWindow.get().enableDebugCategory(FAV);
+                            }
+                            else if (nextArg.toUpperCase().startsWith("FIL"))
+                            {
+                                DebugWindow.get().enableDebugCategory(FILTER);
+                            }
+                            else if (nextArg.toUpperCase().startsWith("LI"))
+                            {
+                                DebugWindow.get().enableDebugCategory(LIST);
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    int val = Integer.parseInt(nextArg);
+                                    DebugWindow.get().setDebugMask(val);
+                                }
+                                catch (Exception ex)
+                                {
+                                    System.err.println("Invalid argument");
+                                    System.exit(1);
+                                }
                             }
                         }
                     }
@@ -185,6 +185,10 @@ public class MainFrame extends javax.swing.JFrame implements
                 {
                    DebugWindow.get().setWindowVisible(true);
                 }
+
+                INSTANCE = new MainFrame();
+                INSTANCE.setVisible(true);
+
             }
         });
     }

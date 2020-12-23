@@ -118,7 +118,6 @@ public class DebugWindow
         return instance;
     }
 
-
     private void initDebugWindow ()
     {
         if (debugFrame == null)
@@ -172,6 +171,10 @@ public class DebugWindow
         return debugFrame != null;
     }
 
+    public static void dbg (Category cat, String text)
+    {
+        get().debug(cat, text);
+    }
 
     public void debug (Category cat, String text)
     {

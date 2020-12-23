@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
@@ -39,15 +40,17 @@ public class DirectoryWatcher
                     ENTRY_DELETE);
             startWatcherThread(watcher);
         }
-        catch (IOException e)
+        catch (Exception e)
         {
+            dbg("Error in init: " + e.toString());
+            Arrays.stream(e.getStackTrace()).sequential().forEach(stackTraceElement -> dbg(stackTraceElement.toString()));
             e.printStackTrace();
         }
     }
 
     public void stop ()
     {
-        DebugWindow.get().debug(DIR, "Stopping watcher thread " + directory);
+        dbg("Stopping watcher thread " + directory);
         if (thread != null)
         {
             thread.interrupt();
@@ -55,11 +58,18 @@ public class DirectoryWatcher
         }
     }
 
+    private void dbg (String text)
+    {
+        DebugWindow.get().debug(DIR, text + " (" + directory + ")");
+    }
+
 
     private void startWatcherThread (WatchService watcher)
     {
+
         thread = new Thread(() ->
         {
+            dbg("watcher thread: Starting thread loop");
             while (active.get())
             {
                 try
@@ -68,12 +78,12 @@ public class DirectoryWatcher
                     for (WatchEvent<?> event : key.pollEvents())
                     {
                         WatchEvent.Kind<?> kind = event.kind();
+                        dbg("watcher thread: " + kind.name() + " " + event.context());
                         if (kind == OVERFLOW)
                         {
                             continue;
                         }
 
-                        DebugWindow.get().debug(DIR, kind.name() + " " + event.context() + " in " + directory);
                         if (handler != null)
                         {
                             handler.handleDirContentChanged(directory, event.context().toString(), kind);
@@ -84,18 +94,18 @@ public class DirectoryWatcher
                             break;
                         }
                     }
-
                 }
                 catch (InterruptedException e)
                 {
+                    dbg("watcher thread interrupted, stopping");
                     active.set(false);
                 }
             }
-            DebugWindow.get().debug(DIR, "terminated watcher = " + watcher);
+            dbg("regularly terminated watcher ");
 
         }, "DIR-" + directory);
 
-        DebugWindow.get().debug(DIR, "Starting watcher thread " + thread);
+        dbg("Starting watcher thread " + thread);
         thread.start();
     }
 
