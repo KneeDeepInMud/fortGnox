@@ -661,6 +661,10 @@ public class MainFrame extends javax.swing.JFrame implements
 
             public void mouseReleased(MouseEvent e) {
                 maybeShowPopup(e);
+//                if (e.getButton() == 2)
+//                {
+//                    System.out.println("e = " + jList.getSelectedValue());
+//                }
             }
 
             private void maybeShowPopup (MouseEvent e)
@@ -1032,9 +1036,18 @@ public class MainFrame extends javax.swing.JFrame implements
     public void setUserTextareaText (String out, String err)
     {
         jPanelTextArea.setText(out, err);
-//        if (out != null && !out.isEmpty())
         {
             startTimer();
+        }
+    }
+
+    @Override
+    public void setUserTextareaText (String out, String err, String filename)
+    {
+        setUserTextareaText(out, err);
+        if (filename != null && !filename.isEmpty())
+        {
+            jListSecrets.setSelectedValue(filename, true);
         }
     }
 

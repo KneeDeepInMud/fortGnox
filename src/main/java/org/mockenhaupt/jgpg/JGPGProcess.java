@@ -99,6 +99,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
     interface ResultListListener
     {
         void setUserTextareaText (String out, String err);
+        void setUserTextareaText (String out, String err, String filename);
     }
 
 
@@ -198,16 +199,12 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         }
     }
 
-    private void notifyResultListeners (String out)
-    {
-        notifyResultListeners(out, "");
-    }
-    private void notifyResultListeners (String out, String err)
+    private void notifyResultListeners (String out, String err, String filename)
     {
         Iterator<ResultListListener> iter = resultListeners.iterator();
         while (iter.hasNext())
         {
-            iter.next().setUserTextareaText(out, err);
+            iter.next().setUserTextareaText(out, err, filename);
         }
     }
 
@@ -444,18 +441,27 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         notifySecretListeners();
     }
 
+    private synchronized void handleGpgResult (String err,
+                                               String out,
+                                               int exCode)
+    {
+        handleGpgResult(err, out, null, exCode);
+    }
 
-    private synchronized void handleGpgResult (String err, String out,
+
+    private synchronized void handleGpgResult (String err,
+                                               String out,
+                                               String filename,
                                                int exCode)
     {
         if (exCode == 0)
         {
-            notifyResultListeners(out, err);
+            notifyResultListeners(out, err, filename);
         }
         else
         {
             err = "Exitcode: " + exCode + LINE_SEP + err;
-            notifyResultListeners("", err);
+            notifyResultListeners("", err, filename);
         }
     }
 
@@ -642,7 +648,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                     String linesText = LINE_SEP + lines + " lines";
                     linesText = ""; // TODO: make this configurable
 
-                    handleGpgResult(this.getFilename() + LINE_SEP + error + linesText, output, exitValue);
+                    handleGpgResult(this.getFilename() + LINE_SEP + error + linesText, output, this.getFilename(), exitValue);
                 }
             }
         });
