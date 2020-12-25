@@ -19,6 +19,7 @@ public class JgpgPreferences
 
     public static final String PREF_CLIP_SECONDS = "clip_seconds";
     public static final String PREF_USE_FAVORITES = "use_favorites";
+    public static final String PREF_FILTER_FAVORITES = "filter_favorites";
     public static final String PREF_FAVORITES_SHOW_COUNT = "show_favorites_count";
     public static final String PREF_FAVORITES = "favorites";
     public static final String PREF_RESET_MASK_BUTTON_SECONDS = "reset_mask_button_seconds";

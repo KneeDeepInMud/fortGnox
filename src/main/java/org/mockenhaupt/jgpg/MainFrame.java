@@ -74,6 +74,7 @@ import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLEAR_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLIP_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES_SHOW_COUNT;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FILTER_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_NUMBER_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
@@ -214,6 +215,7 @@ public class MainFrame extends javax.swing.JFrame implements
         PASSWORD_SECONDS = preferences.get(PREF_PASSWORD_SECONDS, PASSWORD_SECONDS_DEFAULT);
         NUMBER_FAVORITES = preferences.get(PREF_NUMBER_FAVORITES, NUMBER_FAVORITES);
         prefShowFavoritesCount = preferences.get(PREF_FAVORITES_SHOW_COUNT, prefShowFavoritesCount);
+        prefFilterFavoriteList = preferences.get(PREF_FILTER_FAVORITES, prefFilterFavoriteList);
         setPrefUseFavorites(preferences.get(PREF_USE_FAVORITES, prefUseFavoriteList));
         favoritesParseFromJson(preferences.get(PREF_FAVORITES, "{}"));
     }
@@ -273,25 +275,13 @@ public class MainFrame extends javax.swing.JFrame implements
     private void setPrefUseFavorites(boolean useFavorites)
     {
         this.prefUseFavoriteList = useFavorites;
-        scrollPaneFavoriteSecrets.setVisible(useFavorites);
         buttonClearFavorites.setVisible(useFavorites);
 
         // Desperation actions to repaint the hierachy correctly
         refreshSecretList();
         refreshFavorites();
-        refreshGUI();
     }
 
-    private void refreshGUI ()
-    {
-        revalidateAllKids(this);
-        SwingUtilities.invokeLater(() -> {
-            MainFrame.this.setSize(MainFrame.this.getWidth() + lastInc, MainFrame.this.getHeight() + lastInc);
-            MainFrame.this.invalidate();
-            MainFrame.this.repaint();
-            lastInc *= -1;
-        });
-    }
 
     public static void toClipboard (String clipBoardText, String whatInfo, boolean startTimer)
     {
@@ -944,7 +934,7 @@ public class MainFrame extends javax.swing.JFrame implements
         filteredFavorites.addAll(
                 getConfiguredNumberFavorites()
                 .stream()
-                .filter(s -> filterFile(s))
+                .filter(s -> !prefFilterFavoriteList || filterFile(s))
                 .collect(Collectors.toList()));
 
         secretListModel.clear();
@@ -1080,7 +1070,6 @@ public class MainFrame extends javax.swing.JFrame implements
         javax.swing.JSplitPane jSplitPane1 = new javax.swing.JSplitPane();
         JPanel panelList = new JPanel();
         textFilter = new javax.swing.JTextField();
-        scrollPaneFavoriteSecrets = new javax.swing.JScrollPane();
         javax.swing.JScrollPane scrollPaneSecrets = new javax.swing.JScrollPane();
 
         // gpg files and favorite gpg files
@@ -1147,9 +1136,6 @@ public class MainFrame extends javax.swing.JFrame implements
 
         jListSecrets.setFont(new java.awt.Font("DejaVu Sans Mono", Font.PLAIN, 14)); // NOI18N
         jListSecrets.setToolTipText("Press CTRL+C to decode first line to clipboard");
-
-
-        scrollPaneFavoriteSecrets.setMinimumSize(new java.awt.Dimension(100, 20));
 
 
         scrollPaneSecrets.setViewportView(jListSecrets);
@@ -1500,11 +1486,11 @@ public class MainFrame extends javax.swing.JFrame implements
     private javax.swing.JProgressBar progressClearTimer;
     private javax.swing.JProgressBar progressPassTimer;
     private javax.swing.JTextField textFilter;
-    javax.swing.JScrollPane scrollPaneFavoriteSecrets = new javax.swing.JScrollPane();
     private JPanelTextArea jPanelTextArea;
     private JLabel labelSecretInfo;
 
     private boolean prefUseFavoriteList = true;
+    private boolean prefFilterFavoriteList = true;
 
     public void actionPerformed (ActionEvent e)
     {
@@ -1548,6 +1534,10 @@ public class MainFrame extends javax.swing.JFrame implements
                 break;
             case PREF_USE_FAVORITES:
                 setPrefUseFavorites((Boolean)propertyChangeEvent.getNewValue());
+                break;
+            case PREF_FILTER_FAVORITES:
+                prefFilterFavoriteList = (boolean) propertyChangeEvent.getNewValue();
+                refreshFavorites();
                 break;
             case PREF_CLEAR_SECONDS:
                 setCLEAR_SECONDS((Integer) propertyChangeEvent.getNewValue());
