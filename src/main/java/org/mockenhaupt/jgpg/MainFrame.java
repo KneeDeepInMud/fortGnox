@@ -14,18 +14,14 @@ package org.mockenhaupt.jgpg;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
@@ -33,7 +29,6 @@ import javax.swing.UnsupportedLookAndFeelException;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -93,6 +88,7 @@ public class MainFrame extends javax.swing.JFrame implements
 
     private final boolean DEBUG = false;
     private JGPGProcess gpgProcess;
+    private EditWindow editWindow;
 //    private PassphraseDialog passDlg;
     private PassphraseDialog passDlg;
     final private Timer clearTimer;
@@ -120,6 +116,8 @@ public class MainFrame extends javax.swing.JFrame implements
 
     public static final String VERSION_PROJECT = "project.version";
     public static final String VERSION_BUILD = "buildNumber";
+
+    public static final String CLIENTDATA_EDIT = "editGpg";
 
     /**
      * @param args the command line arguments
@@ -415,16 +413,21 @@ public class MainFrame extends javax.swing.JFrame implements
     private void decrypt (JList jList)
     {
         JGPGProcess.clearClipboardIfNotChanged();
-        this.decrypt(false, jList);
+        this.decrypt(false, jList, null);
         jPanelTextArea.requestFocus();
     }
     private void decrypt (boolean toClipboard)
     {
-        this.decrypt(toClipboard, lastActionList == null ? jListSecrets : lastActionList);
+        this.decrypt(toClipboard, lastActionList == null ? jListSecrets : lastActionList, null);
+    }
+
+    private void decrypt (Object clientData)
+    {
+        this.decrypt(false, lastActionList == null ? jListSecrets : lastActionList, clientData);
     }
 
     private boolean clipboard = false;
-    private void decrypt (boolean toClipboard, JList jList)
+    private void decrypt (boolean toClipboard, JList jList, Object clientData)
     {
         this.clipboard = toClipboard;
         boolean isPassDialog = gpgProcess.isPrefUsePasswordDialog();
@@ -440,14 +443,15 @@ public class MainFrame extends javax.swing.JFrame implements
                 toDecode = (String) jList.getSelectedValue();
                 if (toDecode == null || toDecode.isEmpty())
                 {
-                    setUserTextareaText("","Nothing selected to decode ...");
+                    handleGpgResult("","Nothing selected to decode ...");
                     return;
                 }
-                setUserTextareaText("","Decoding " + toDecode + "...");
+                handleGpgResult("","Decoding " + toDecode + "...");
                 String decryptEntry = (String) jList.getSelectedValue();
                 handleForFavoritesList(decryptEntry);
 
-                gpgProcess.decrypt(decryptEntry, passDlg.getPassPhrase(), toClipboard, getCLIP_SECONDS());
+                gpgProcess.decrypt(decryptEntry, passDlg.getPassPhrase(),
+                        toClipboard, getCLIP_SECONDS(), clientData);
                 startTimer();
                 setPassStatusText();
             }
@@ -583,6 +587,8 @@ public class MainFrame extends javax.swing.JFrame implements
         gpgProcess = new JGPGProcess();
         loadPreferences();
 
+        editWindow = new EditWindow(this, gpgProcess);
+
         gpgProcess.addSecretListListener(this);
         gpgProcess.addResultListener(this);
         setUsePasswordDialog(gpgProcess.isPrefUsePasswordDialog());
@@ -661,17 +667,9 @@ public class MainFrame extends javax.swing.JFrame implements
             {
                 if (e.isPopupTrigger())
                 {
-                    if (jList.getSelectedValue() != null && favorites.containsKey(jList.getSelectedValue()))
+                    if (jList.getSelectedValue() != null)
                     {
-                        JPopupMenu popupMenu = new JPopupMenu();
-                        JMenuItem mi = new JMenuItem("Remove from favorites");
-                        mi.addActionListener(actionEvent ->
-                        {
-                            favorites.remove(jList.getSelectedValue());
-                            refreshFavorites();
-                            jList.setSelectedIndex(-1);
-                        });
-                        popupMenu.add(mi);
+                        JPopupMenu popupMenu = getSecretsPopupMenu(jList);
                         popupMenu.show(e.getComponent(), e.getX(), e.getY());
                     }
                 }
@@ -687,7 +685,7 @@ public class MainFrame extends javax.swing.JFrame implements
                 if (e.getKeyCode() == KeyEvent.VK_C && e.isControlDown())
                 {
                     e.consume();
-                    decrypt(true, jList);
+                    decrypt(true, jList, null);
                 }
                 else
                 {
@@ -705,6 +703,42 @@ public class MainFrame extends javax.swing.JFrame implements
                 startTimer();
             }
         });
+    }
+
+    private JPopupMenu getSecretsPopupMenu (JList jList)
+    {
+        JPopupMenu popupMenu = new JPopupMenu();
+
+        if (favorites.containsKey(jList.getSelectedValue()))
+        {
+            JMenuItem miRemoveFavorites = new JMenuItem("Remove from favorites");
+            miRemoveFavorites.addActionListener(actionEvent ->
+            {
+                favorites.remove(jList.getSelectedValue());
+                refreshFavorites();
+                jList.setSelectedIndex(-1);
+            });
+            popupMenu.add(miRemoveFavorites);
+
+
+            JMenuItem miEdit = new JMenuItem("Remove from favorites");
+            miRemoveFavorites.addActionListener(actionEvent ->
+            {
+                favorites.remove(jList.getSelectedValue());
+                refreshFavorites();
+                jList.setSelectedIndex(-1);
+            });
+            popupMenu.add(miRemoveFavorites);
+        }
+
+        JMenuItem miEdit = new JMenuItem("Edit");
+        miEdit.addActionListener(actionEvent ->
+        {
+            decrypt(CLIENTDATA_EDIT);
+        });
+        popupMenu.add(miEdit);
+
+        return popupMenu;
     }
 
     private void initSecretListCellRenderer (JList list)
@@ -1023,7 +1057,7 @@ public class MainFrame extends javax.swing.JFrame implements
         jPanelTextArea.clear(err);
     }
 
-    public void setUserTextareaText (String out, String err)
+    public void handleGpgResult (String out, String err)
     {
         jPanelTextArea.setText(out, err);
         {
@@ -1032,12 +1066,18 @@ public class MainFrame extends javax.swing.JFrame implements
     }
 
     @Override
-    public void setUserTextareaText (String out, String err, String filename)
+    public void handleGpgResult (String out, String err, String filename, Object clientData)
     {
-        setUserTextareaText(out, err);
+        handleGpgResult(out, err);
         if (filename != null && !filename.isEmpty())
         {
             jListSecrets.setSelectedValue(filename, true);
+
+            if (CLIENTDATA_EDIT.equals(clientData))
+            {
+                editWindow.setText(out);
+                editWindow.show();
+            }
         }
     }
 
@@ -1471,7 +1511,6 @@ public class MainFrame extends javax.swing.JFrame implements
 
     private void jButtonClipboardActionPerformed(java.awt.event.ActionEvent evt)
     {
-
         decrypt(true);
     }
 

@@ -5,9 +5,7 @@
 package org.mockenhaupt.jgpg;
 
 
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -98,8 +96,8 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
 
     interface ResultListListener
     {
-        void setUserTextareaText (String out, String err);
-        void setUserTextareaText (String out, String err, String filename);
+        void handleGpgResult (String out, String err);
+        void handleGpgResult (String out, String err, String filename, Object clientData);
     }
 
 
@@ -109,12 +107,14 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         private String password;
         private String filename;
         private String command;
+        private Object clientData;
 
-        public GpgRunnable (boolean toClipboard, String password, String filename)
+        public GpgRunnable (boolean toClipboard, String password, String filename, Object clientData)
         {
             this.toClipboard = toClipboard;
             this.password = password;
             this.filename = filename;
+            this.clientData = clientData;
         }
 
         public GpgRunnable (String command)
@@ -140,6 +140,16 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         public String getFilename ()
         {
             return filename;
+        }
+
+        public Object getClientData ()
+        {
+            return clientData;
+        }
+
+        public void setClientData (Object clientData)
+        {
+            this.clientData = clientData;
         }
     }
 
@@ -187,7 +197,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
     void addResultListener (ResultListListener listener)
     {
         resultListeners.add(listener);
-        listener.setUserTextareaText("", "");
+        listener.handleGpgResult("", "");
     }
 
     private void notifySecretListeners ()
@@ -199,12 +209,12 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         }
     }
 
-    private void notifyResultListeners (String out, String err, String filename)
+    private void notifyResultListeners (String out, String err, String filename, Object clientData)
     {
         Iterator<ResultListListener> iter = resultListeners.iterator();
         while (iter.hasNext())
         {
-            iter.next().setUserTextareaText(out, err, filename);
+            iter.next().handleGpgResult(out, err, filename, clientData);
         }
     }
 
@@ -375,7 +385,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
             if (fList == null)
             {
                 errorState = "Invalid secret directory in preferences " + secretdirs;
-                handleGpgResult(errorState, "", 1);
+                handleGpgResult(errorState, "", 1, null);
                 break;
             }
 
@@ -445,23 +455,31 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                                                String out,
                                                int exCode)
     {
-        handleGpgResult(err, out, null, exCode);
+        handleGpgResult(err, out, null, exCode, null);
+    }
+    private synchronized void handleGpgResult (String err,
+                                               String out,
+                                               int exCode,
+                                               Object clientData)
+    {
+        handleGpgResult(err, out, null, exCode, clientData);
     }
 
 
     private synchronized void handleGpgResult (String err,
                                                String out,
                                                String filename,
-                                               int exCode)
+                                               int exCode,
+                                               Object clientData)
     {
         if (exCode == 0)
         {
-            notifyResultListeners(out, err, filename);
+            notifyResultListeners(out, err, filename, clientData);
         }
         else
         {
             err = "Exitcode: " + exCode + LINE_SEP + err;
-            notifyResultListeners("", err, filename);
+            notifyResultListeners("", err, filename, clientData);
         }
     }
 
@@ -503,9 +521,9 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
     }
 
 
-    public void decrypt (String fname, String passphrase, boolean _toClipboard, int clipSeconds)
+    public void decrypt (String fname, String passphrase, boolean _toClipboard, int clipSeconds, Object clientData)
     {
-        Thread t = new Thread(new GpgRunnable(_toClipboard, passphrase, fname)
+        Thread t = new Thread(new GpgRunnable(_toClipboard, passphrase, fname, clientData)
         {
             public void run ()
             {
@@ -640,7 +658,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                     {
                         clip(clipboardText);
                         handleGpgResult("Copied first line of " + this.getFilename() +
-                                "password to clipboard for " + clipSeconds + " seconds", "", 0);
+                                "password to clipboard for " + clipSeconds + " seconds", "", 0, getClientData());
                     }
                 }
                 else
@@ -648,7 +666,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                     String linesText = LINE_SEP + lines + " lines";
                     linesText = ""; // TODO: make this configurable
 
-                    handleGpgResult(this.getFilename() + LINE_SEP + error + linesText, output, this.getFilename(), exitValue);
+                    handleGpgResult(this.getFilename() + LINE_SEP + error + linesText, output, this.getFilename(), exitValue, getClientData());
                 }
             }
         });
@@ -659,7 +677,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         }
         catch (Exception ex)
         {
-            handleGpgResult(ex.getMessage(), "Internal error occurred starting decrytion thread", 333);
+            handleGpgResult(ex.getMessage(), "Internal error occurred starting decrytion thread", 333, null);
         }
     }
 
