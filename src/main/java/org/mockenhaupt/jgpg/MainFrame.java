@@ -553,7 +553,7 @@ public class MainFrame extends javax.swing.JFrame implements
                                                             ex);
         }
 
-        buttonLAF.setVisible(false);
+//        buttonLAF.setVisible(false);
         buttonLAF.setMnemonic('L');
         
         progressClearTimer.setMaximum(CLEAR_SECONDS);
@@ -1085,7 +1085,7 @@ public class MainFrame extends javax.swing.JFrame implements
 
             if (CLIENTDATA_EDIT.equals(clientData))
             {
-                editWindow.setText(out, filename);
+                editWindow.setText(out, "Loaded for editing " + filename, filename);
                 editWindow.show();
             }
         }
