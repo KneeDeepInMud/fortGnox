@@ -57,7 +57,7 @@ public class EditWindow
         return directories;
     }
 
-    public void setText (String text)
+    public void setText (String text, String filename)
     {
         if (editorPane == null)
         {
@@ -79,7 +79,7 @@ public class EditWindow
             editWindow.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 
             editorPane = new JEditorPane();
-            editorPane.setPreferredSize(new Dimension(400, 600));
+            editorPane.setPreferredSize(new Dimension(600, 600));
 
             editWindow.setLayout(new BorderLayout());
             editWindow.add(editorPane, BorderLayout.CENTER);
@@ -116,12 +116,11 @@ public class EditWindow
         JButton saveButton = new JButton("Save/Encrypt");
         saveButton.addActionListener(actionEvent ->
         {
-            EditWindow.this.setText("XXX\nasdfasdf\nLKJNLKJNLKJNLKJNL");
+            EditWindow.this.setText("XXX\nasdfasdf\nLKJNLKJNLKJNLKJNL", null);
         });
 
 
         comboBoxDirectories = new JComboBox<>();
-
 
         jToolBar.add(saveButton);
         jToolBar.add(cancelButton);

@@ -652,6 +652,16 @@ public class MainFrame extends javax.swing.JFrame implements
             }
 
             public void mousePressed(MouseEvent e) {
+                if (SwingUtilities.isRightMouseButton(e))
+                {
+                    JList list = (JList) e.getSource();
+                    int row = list.locationToIndex(e.getPoint());
+                    if (list.getModel().getElementAt(row) instanceof String)
+                    {
+                        list.setSelectedIndex(row);
+                    }
+                }
+
                 maybeShowPopup(e);
             }
 
@@ -731,7 +741,7 @@ public class MainFrame extends javax.swing.JFrame implements
             popupMenu.add(miRemoveFavorites);
         }
 
-        JMenuItem miEdit = new JMenuItem("Edit");
+        JMenuItem miEdit = new JMenuItem("Edit " + jList.getSelectedValue());
         miEdit.addActionListener(actionEvent ->
         {
             decrypt(CLIENTDATA_EDIT);
@@ -1075,7 +1085,7 @@ public class MainFrame extends javax.swing.JFrame implements
 
             if (CLIENTDATA_EDIT.equals(clientData))
             {
-                editWindow.setText(out);
+                editWindow.setText(out, filename);
                 editWindow.show();
             }
         }
