@@ -278,12 +278,14 @@ public class EditWindow implements JGPGProcess.EncrypionListener
             String rid = "";
             if (clientData instanceof EditWindow)
             {
-                rid = " with recipient ID " + ((EditWindow) clientData).recipientId;
+                rid = "\nwith recipient ID " + ((EditWindow) clientData).recipientId;
             }
             if (err == null || err.isEmpty())
             {
-                textAreaStatus.setText("Successfully encrypted " + filename + rid);
-                setModified(false);
+                String status = "Successfully encrypted " + filename + rid;
+                setText("", "", filename);
+                editWindow.dispose();
+                JOptionPane.showMessageDialog(editWindow, status, "JGPG INFO", JOptionPane.INFORMATION_MESSAGE);
             }
             else
             {

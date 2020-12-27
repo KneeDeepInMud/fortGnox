@@ -813,6 +813,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
 
                 List<String> cmdArgList = new ArrayList<>();
                 cmdArgList.add(prefGpgExeLocation);
+                cmdArgList.add("--batch");
                 cmdArgList.add("--yes");
                 cmdArgList.add("--homedir");
                 cmdArgList.add(prefGpgHome);
@@ -880,7 +881,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
 
                 try
                 {
-                    while ( er.ready() || or.ready())
+                    while (stillActive(gpgProcess) || er.ready() || or.ready())
                     {
                         while (er.ready())
                         {
