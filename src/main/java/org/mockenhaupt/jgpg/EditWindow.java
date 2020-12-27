@@ -7,6 +7,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -19,6 +20,7 @@ import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.io.File;
@@ -38,6 +40,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener
     private JTextArea textAreaStatus;
     private JComboBox<String> comboBoxDirectories;
     private JTextField textFieldFilename;
+    private JTextField textFieldRID;
     final private JGPGProcess jgpgProcess;
     private boolean modified = false;
     private JButton cancelButton;
@@ -94,6 +97,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener
         editorPane.setText(text);
         setModified(false);
         textFieldFilename.setText(filename);
+        textFieldRID.setText(getRecipient(new File(filename)));
         textAreaStatus.setText(status);
     }
 
@@ -105,6 +109,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener
     public void setModified (boolean modified)
     {
         this.saveButton.setEnabled(modified);
+        this.saveButton.setVisible(modified);
         this.modified = modified;
     }
 
@@ -122,7 +127,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener
             JScrollPane editorScrollPane = new JScrollPane(editorPane);
             editorPane.setBorder(BorderFactory.createLineBorder(Color.BLUE));
 
-            editorPane.setPreferredSize(new Dimension(600, 600));
+            editorPane.setPreferredSize(new Dimension(800, 600));
             editorPane.getDocument()
                     .addDocumentListener(new DocumentListener()
                     {
@@ -196,13 +201,20 @@ public class EditWindow implements JGPGProcess.EncrypionListener
         textFieldFilename = new JTextField();
         textFieldFilename.setEnabled(false);
 
+        textFieldRID = new JTextField();
+        textFieldRID.setMinimumSize(new Dimension(200,30));
+        textFieldRID.setPreferredSize(new Dimension(200,30));
+
         comboBoxDirectories = new JComboBox<>();
         comboBoxDirectories.setVisible(false);
 
-        jToolBar.add(saveButton);
         jToolBar.add(cancelButton);
+        jToolBar.add(saveButton);
         jToolBar.add(comboBoxDirectories);
         jToolBar.add(textFieldFilename);
+
+        jToolBar.add(new JLabel("RID:"));
+        jToolBar.add(textFieldRID);
 
         return jToolBar;
     }
@@ -246,7 +258,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener
             return;
         }
 
-        String rid = getRecipient(file);
+        String rid = textFieldRID.getText();
 
         if (rid == null || rid.isEmpty())
         {
