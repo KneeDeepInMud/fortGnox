@@ -9,10 +9,12 @@ import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
@@ -22,7 +24,9 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.Toolkit;
+import java.awt.event.ComponentAdapter;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -32,6 +36,7 @@ import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.OK_OPTION;
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_DEFAULT_RID;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
 
 public class EditWindow implements JGPGProcess.EncrypionListener
 {
@@ -174,6 +179,109 @@ public class EditWindow implements JGPGProcess.EncrypionListener
         editWindow.setVisible(true);
     }
 
+    public void showNew ()
+    {
+        JDialog directoryChooser = new JDialog(parentWindow, "JGPG Select directory", true);
+        directoryChooser.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        directoryChooser.setLayout(new BorderLayout());
+
+        int row = 10;
+        int col = 2;
+
+        JPanel directoryChooserPanel = new JPanel(new GridLayout(row,col, 5, 5));
+        directoryChooser.add(directoryChooserPanel, BorderLayout.CENTER);
+
+        directoryChooser.setPreferredSize(new Dimension(800, row * 30 + 40));
+        directoryChooser.setMinimumSize(directoryChooser.getPreferredSize());
+
+        directoryChooserPanel.add(new  JLabel(" "));
+        directoryChooserPanel.add(new  JLabel(" "));
+
+        GpgFileUtils.ParsedDirectories parsedDirectories =
+                GpgFileUtils.splitDirectoryString(JgpgPreferences.get().get(PREF_SECRETDIRS));
+        JComboBox<String> comboBoxDirectories = new JComboBox<>();
+        comboBoxDirectories.setModel(new DefaultComboBoxModel<String>(){
+            @Override
+            public int getSize ()
+            {
+                return parsedDirectories.directoryList.size();
+            }
+
+            @Override
+            public String getElementAt (int index)
+            {
+                return parsedDirectories.directoryList.get(index);
+            }
+        });
+        if (comboBoxDirectories.getModel().getSize() > 0) {
+            comboBoxDirectories.setSelectedIndex(0);
+        }
+
+        directoryChooserPanel.add(new JLabel("Directory", SwingConstants.RIGHT));
+        directoryChooserPanel.add(comboBoxDirectories);
+        directoryChooserPanel.add(new JLabel("New filename:", SwingConstants.RIGHT));
+        JTextField fileName;
+        directoryChooserPanel.add(fileName = new JTextField());
+        JButton buttonCreate;
+        JButton buttonCancel;
+
+        JPanel buttonPanel = new JPanel();
+        directoryChooser.add(buttonPanel, BorderLayout.SOUTH);
+        buttonPanel.add(buttonCreate = new JButton("Create"));
+        buttonPanel.add(buttonCancel = new JButton("Cancel"));
+
+        buttonCancel.addActionListener(actionEvent -> directoryChooser.dispose());
+        buttonCreate.addActionListener(actionEvent ->
+        {
+            String file = getNewFilename(comboBoxDirectories, fileName);
+            setText("", "Enter new file " + file, file);
+            directoryChooser.dispose();
+            show();
+        });
+
+        fileName.getDocument().addDocumentListener(new DocumentListener()
+        {
+            @Override
+            public void insertUpdate (DocumentEvent documentEvent)
+            {
+             handleChange();
+            }
+
+            @Override
+            public void removeUpdate (DocumentEvent documentEvent)
+            {
+             handleChange();
+            }
+
+            @Override
+            public void changedUpdate (DocumentEvent documentEvent)
+            {
+             handleChange();
+            }
+
+            void handleChange ()
+            {
+                String ftest = getNewFilename(comboBoxDirectories, fileName);
+                File ftestFile = new File(ftest);
+                buttonCreate.setEnabled(!ftestFile.exists());
+            }
+        });
+
+        buttonCreate.setEnabled(false);
+
+        for (int i = directoryChooserPanel.getComponentCount(); i < row * col; i++) {
+            JLabel l = new JLabel(" " );
+//            l.setBorder(BorderFactory.createLineBorder(Color.red));
+            directoryChooserPanel.add(l);
+        }
+        directoryChooser.setVisible(true);
+    }
+
+    private String getNewFilename (JComboBox<String> comboBoxDirectories, JTextField fileName)
+    {
+        return comboBoxDirectories.getSelectedItem() + File.separator + fileName.getText() + ".gpg";
+    }
+
 
     private JToolBar commandToolbar ()
     {
@@ -252,11 +360,11 @@ public class EditWindow implements JGPGProcess.EncrypionListener
     private void doEncrypt ()
     {
         File file = new File(textFieldFilename.getText());
-        if (!file.exists())
-        {
-            JOptionPane.showMessageDialog(editWindow, "file does not exist", "JGPG WARNING", WARNING_MESSAGE);
-            return;
-        }
+//        if (!file.exists())
+//        {
+//            JOptionPane.showMessageDialog(editWindow, "file does not exist", "JGPG WARNING", WARNING_MESSAGE);
+//            return;
+//        }
 
         String rid = textFieldRID.getText();
 

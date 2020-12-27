@@ -553,8 +553,8 @@ public class MainFrame extends javax.swing.JFrame implements
                                                             ex);
         }
 
-//        buttonLAF.setVisible(false);
-        buttonLAF.setMnemonic('L');
+        buttonLAF.setVisible(false);
+//        buttonLAF.setMnemonic('L');
         
         progressClearTimer.setMaximum(CLEAR_SECONDS);
         progressPassTimer.setMaximum(PASSWORD_SECONDS);
@@ -1154,6 +1154,7 @@ public class MainFrame extends javax.swing.JFrame implements
         jButtonClipboard.setMnemonic(KeyEvent.VK_C);
         javax.swing.JToolBar.Separator jSeparator3 = new javax.swing.JToolBar.Separator();
         buttonLAF = new javax.swing.JButton();
+        buttonNew = new javax.swing.JButton();
         JPanel statusBarPanel = new JPanel();
         progressClearTimer = new javax.swing.JProgressBar();
         progressPassTimer = new javax.swing.JProgressBar();
@@ -1209,6 +1210,23 @@ public class MainFrame extends javax.swing.JFrame implements
         getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
         jToolBar1.setRollover(true);
+
+
+
+        buttonNew.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/new32.png")));
+        buttonNew.setText("New");
+        buttonNew.setToolTipText("Insert new password");
+        buttonNew.setFocusable(false);
+        buttonNew.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        buttonNew.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        buttonNew.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                editWindow.showNew();
+            }
+        });
+        jToolBar1.add(buttonNew);
 
 
 
@@ -1537,6 +1555,7 @@ public class MainFrame extends javax.swing.JFrame implements
     private javax.swing.JButton buttonClearPass;
     private javax.swing.JButton buttonClearFavorites;
     private javax.swing.JButton buttonLAF;
+    private javax.swing.JButton buttonNew;
     private JList jListSecrets;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JProgressBar progressClearTimer;

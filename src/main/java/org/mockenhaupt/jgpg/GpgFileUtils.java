@@ -87,6 +87,11 @@ public class GpgFileUtils
             revisedProp = revisedProp.replaceAll(";$", "");
             ret.revisedList = revisedProp;
         }
+        else
+        {
+            ret.directoryList.add(concatDirs);
+            ret.revisedList = concatDirs;
+        }
         return ret;
     }
 
