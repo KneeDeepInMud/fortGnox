@@ -5,7 +5,7 @@
     <groupId>org.mockenhaupt</groupId>
     <artifactId>jgpg</artifactId>
     <name>Java GPG Client</name>
-    <version>1.4.5
+    <version>2.0.0-snapshot
     </version>
     <packaging>jar</packaging>
     <scm>
@@ -59,35 +59,35 @@
 <!--        <finalName>${project.artifactId}-${project.version}-${buildNumber}</finalName>-->
         <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
-<!--            <plugin>-->
-<!--                <groupId>org.codehaus.mojo</groupId>-->
-<!--                <artifactId>buildnumber-maven-plugin</artifactId>-->
-<!--                <version>1.4</version>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <phase>generate-resources</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>create</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--                <configuration>-->
-<!--                    <shortRevisionLength>5</shortRevisionLength>-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <shortRevisionLength>5</shortRevisionLength>
 
-<!--                    &lt;!&ndash;<format>At {1,time} on {1,date}, there was {2} on planet {0,number,integer}.</format>&ndash;&gt;-->
-<!--                    &lt;!&ndash; format>{0}-{1,date,yyyyMMddHHmmss}</format &ndash;&gt;-->
-<!--                    <format>{1,date,yyyy-MM-dd-HHmmss}-{0}</format>-->
-<!--                    <items>-->
-<!--                        <item>scmVersion</item>-->
-<!--                        <item>timestamp</item>-->
-<!--                    </items>-->
+                    <!--<format>At {1,time} on {1,date}, there was {2} on planet {0,number,integer}.</format>-->
+                    <!-- format>{0}-{1,date,yyyyMMddHHmmss}</format -->
+                    <format>{1,date,yyyy-MM-dd-HHmmss}-{0}</format>
+                    <items>
+                        <item>scmVersion</item>
+                        <item>timestamp</item>
+                    </items>
 
-<!--                    <doCheck>false</doCheck>-->
-<!--                    <doUpdate>false</doUpdate>-->
-<!--                    <revisionOnScmFailure>true</revisionOnScmFailure>-->
+                    <doCheck>false</doCheck>
+                    <doUpdate>false</doUpdate>
+                    <revisionOnScmFailure>true</revisionOnScmFailure>
 
-<!--                </configuration>-->
-<!--            </plugin>-->
+                </configuration>
+            </plugin>
 
 
             <plugin>

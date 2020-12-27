@@ -31,6 +31,9 @@ public class JgpgPreferences
     public static final String PREF_SQUEEZE_LINES = "squeeze_lines";
     public static final String PREF_OPEN_URLS = "open_urls";
 
+    public static final String PREF_GPG_RID_FILE = "gpg_rid_file";
+    public static final String PREF_GPG_DEFAULT_RID = "gpg_default_rid";
+
 
     public static PreferencesAccess get ()
     {

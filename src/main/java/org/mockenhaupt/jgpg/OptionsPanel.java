@@ -6,19 +6,46 @@
 
 package org.mockenhaupt.jgpg;
 
+
+import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-import static org.mockenhaupt.jgpg.JgpgPreferences.*;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CHARSET;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLEAR_SECONDS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLIP_SECONDS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES_SHOW_COUNT;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FILTER_FAVORITES;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPGCONF_COMMAND;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_COMMAND;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_DEFAULT_RID;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_HOMEDIR;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_RID_FILE;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_MASK_FIRST_LINE;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_NUMBER_FAVORITES;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_MASK_PATTERNS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_RESET_MASK_BUTTON_SECONDS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_TEXTAREA_FONT_SIZE;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_URL_OPEN_COMMAND;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USERNAME_MASK_PATTERNS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_FAVORITES;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_GPG_AGENT;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_PASS_DIALOG;
 
 /**
  *
@@ -26,13 +53,59 @@ import static org.mockenhaupt.jgpg.JgpgPreferences.*;
  */
 public class OptionsPanel extends javax.swing.JDialog
 {
-    /**
-     * Creates new form OptionsPanel
-     */
+
+    private JTabbedPane jTabbedPane = new JTabbedPane();
+    private JPanel optionsPanel;
+    private JPanel buttonPanel;
+    private JPanel gpgPanel;
+
+
+    private javax.swing.JButton jButtonClose;
+    private javax.swing.JButton jButtonSave;
+    private javax.swing.JCheckBox jCheckBoxUsePassDialog;
+    private javax.swing.JCheckBox jCheckBoxPasswordShortcuts;
+    private javax.swing.JCheckBox jCheckboxReloadAgent;
+    private javax.swing.JCheckBox jCheckboxMastFirstLine;
+    private javax.swing.JCheckBox jCheckBoxUseFavorites;
+    private javax.swing.JCheckBox jCheckBoxFilterFavorites;
+    private javax.swing.JCheckBox jCheckBoxShowFavoritesCount;
+    private javax.swing.JCheckBox jCheckBoxShowDebugWindow;
+    private javax.swing.JFormattedTextField jFormattedTextPassClearTimeout;
+    private javax.swing.JFormattedTextField jFormattedTextareaClearTimeout;
+    private javax.swing.JFormattedTextField jFormattedTextareaClipTimeout;
+    private javax.swing.JFormattedTextField jFormattedTextFieldResetMaskButton;
+    private javax.swing.JFormattedTextField jFormattedTextFieldNumberFavorites;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JTextField jTextGpgExe;
+    private JTextField jTexfFieldGpgConf;
+    private JTextField jTexfFieldBrowserOpen;
+    private JTextField jTexfFieldGpgRIDFile;
+    private JTextField jTexfFieldGpgDefaultRID;
+    private JTextField textFieldPassPatterns;
+    private JComboBox<String> comboBoxCharset;
+    private JTextField textFieldUsernamePatterns;
+    private javax.swing.JTextField jTextGpgHome;
+    private javax.swing.JTextField jTextSecretDirs;
+    private javax.swing.JFormattedTextField jFormattedTextTextAreaFontSize;
+    // End of variables declaration
+
+
     public OptionsPanel (MainFrame parent)
     {
         super(parent, "JGPG Settings", true);
+        optionsPanel = new JPanel();
+        buttonPanel = new JPanel(new FlowLayout());
+        jTabbedPane.add("General", optionsPanel);
+        jTabbedPane.add("GPG", gpgPanel = new JPanel());
+        
+        getContentPane().setLayout(new BorderLayout());
+        getContentPane().add(jTabbedPane, BorderLayout.CENTER);
+        getContentPane().add(buttonPanel, BorderLayout.SOUTH);
         initComponents();
+        initGpgSettings();
     }
 
     void initPreferences ()
@@ -59,14 +132,53 @@ public class OptionsPanel extends javax.swing.JDialog
         this.textFieldPassPatterns.setText(pa.get(PREF_PASSWORD_MASK_PATTERNS));
         this.comboBoxCharset.setSelectedItem(pa.get(PREF_CHARSET));
         this.textFieldUsernamePatterns.setText(pa.get(PREF_USERNAME_MASK_PATTERNS));
+        this.jTexfFieldGpgRIDFile.setText(pa.get(PREF_GPG_RID_FILE, ".gpg-id"));
+        this.jTexfFieldGpgDefaultRID.setText(pa.get(PREF_GPG_DEFAULT_RID, ""));
+    }
+
+
+    private void initGpgSettings ()
+    {
+        int col = 2;
+        int row = 20;
+        gpgPanel.setLayout(new java.awt.GridLayout(row, col, 4, 1));
+
+        gpgPanel.add(new JLabel("GPG Executable"));
+        gpgPanel.add(jTextGpgExe);
+
+        JLabel jLabelGpgConf = new JLabel("GPGCONF Executable");
+        gpgPanel.add(jLabelGpgConf);
+        jTexfFieldGpgConf = new JTextField();
+        gpgPanel.add(jTexfFieldGpgConf);
+
+        jLabel3.setText("GPG Home");
+        gpgPanel.add(jLabel3);
+        gpgPanel.add(jTextGpgHome);
+
+        jLabel2.setText("Data directories (separate with \";\")");
+        gpgPanel.add(jLabel2);
+        gpgPanel.add(jTextSecretDirs);
+
+
+        gpgPanel.add(new JLabel("Recipient ID hint file"));
+        jTexfFieldGpgRIDFile = new JTextField();
+        gpgPanel.add(jTexfFieldGpgRIDFile);
+
+        gpgPanel.add(new JLabel("Default recipient ID for password encryption"));
+        jTexfFieldGpgDefaultRID = new JTextField();
+        gpgPanel.add(jTexfFieldGpgDefaultRID);
+
+        for (int i = gpgPanel.getComponentCount(); i < row * col; i++) {
+            JLabel l = new JLabel(" ");
+//            l.setBorder(BorderFactory.createLineBorder(Color.red));
+            gpgPanel.add(l);
+        }
     }
 
 
 
     private void initComponents()
     {
-
-        jLabel1 = new javax.swing.JLabel();
         jTextGpgExe = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         jTextGpgHome = new javax.swing.JTextField();
@@ -91,119 +203,95 @@ public class OptionsPanel extends javax.swing.JDialog
         jFormattedTextFieldNumberFavorites = new javax.swing.JFormattedTextField();
         jFormattedTextTextAreaFontSize = new javax.swing.JFormattedTextField();
 
-        getContentPane().setLayout(new java.awt.GridLayout(19, 2, 10, 1));
-
-        jLabel1.setText("GPG Executable");
-        getContentPane().add(jLabel1);
-        jTextGpgExe.setMinimumSize(new java.awt.Dimension(300, 20));
-        jTextGpgExe.setPreferredSize(new java.awt.Dimension(300, 20));
-        getContentPane().add(jTextGpgExe);
-
-        JLabel jLabelGpgConf = new JLabel("GPGCONF Executable");
-        getContentPane().add(jLabelGpgConf);
-        jTexfFieldGpgConf = new JTextField();
-        jTexfFieldGpgConf.setMinimumSize(new java.awt.Dimension(300, 20));
-        jTexfFieldGpgConf.setPreferredSize(new java.awt.Dimension(300, 20));
-        getContentPane().add(jTexfFieldGpgConf);
+        int row = 19;
+        int col = 2;
+        optionsPanel.setLayout(new java.awt.GridLayout(row, col, 10, 1));
 
         JLabel jLabelOpenBrowserCommand = new JLabel("Browser launch command");
-        getContentPane().add(jLabelOpenBrowserCommand);
+        optionsPanel.add(jLabelOpenBrowserCommand);
         jTexfFieldBrowserOpen = new JTextField();
-        jTexfFieldBrowserOpen.setMinimumSize(new java.awt.Dimension(300, 20));
-        jTexfFieldBrowserOpen.setPreferredSize(new java.awt.Dimension(300, 20));
-        getContentPane().add(jTexfFieldBrowserOpen);
+        jTexfFieldBrowserOpen.setMinimumSize(new java.awt.Dimension(500, 20));
+        jTexfFieldBrowserOpen.setPreferredSize(new java.awt.Dimension(500, 20));
+        optionsPanel.add(jTexfFieldBrowserOpen);
 
-
-        jLabel3.setText("GPG Home");
-        getContentPane().add(jLabel3);
-        getContentPane().add(jTextGpgHome);
-
-        jLabel2.setText("Data directories (separate with \";\")");
-        getContentPane().add(jLabel2);
-        getContentPane().add(jTextSecretDirs);
 
         jLabel5.setText("Password clear timeout [s]");
-        getContentPane().add(jLabel5);
+        optionsPanel.add(jLabel5);
 
         jFormattedTextPassClearTimeout.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-        getContentPane().add(jFormattedTextPassClearTimeout);
+        optionsPanel.add(jFormattedTextPassClearTimeout);
 
         jLabel6.setText("Textarea clear timeout [s]");
-        getContentPane().add(jLabel6);
+        optionsPanel.add(jLabel6);
         jFormattedTextareaClearTimeout.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-        getContentPane().add(jFormattedTextareaClearTimeout);
+        optionsPanel.add(jFormattedTextareaClearTimeout);
 
         JLabel jLabel7 = new JLabel("Clipboard flush timeout [s]");
-        getContentPane().add(jLabel7);
+        optionsPanel.add(jLabel7);
         jFormattedTextareaClipTimeout.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-        getContentPane().add(jFormattedTextareaClipTimeout);
+        optionsPanel.add(jFormattedTextareaClipTimeout);
 
         JLabel jLabel9 = new JLabel("Restore mask password button timeout [s] (< 0 to disable)");
-        getContentPane().add(jLabel9);
+        optionsPanel.add(jLabel9);
         jFormattedTextFieldResetMaskButton.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-        getContentPane().add(jFormattedTextFieldResetMaskButton);
+        optionsPanel.add(jFormattedTextFieldResetMaskButton);
 
 
         JLabel jLabel91 = new JLabel("Number favorites (< 0 unlimited)");
-        getContentPane().add(jLabel91);
+        optionsPanel.add(jLabel91);
         jFormattedTextFieldNumberFavorites.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-        getContentPane().add(jFormattedTextFieldNumberFavorites);
+        optionsPanel.add(jFormattedTextFieldNumberFavorites);
 
 
 
         JLabel labelPassPatterns = new JLabel("Password patterns (\"|\" separated)");
         textFieldPassPatterns = new JTextField();
-        getContentPane().add(labelPassPatterns);
-        getContentPane().add(textFieldPassPatterns);
+        optionsPanel.add(labelPassPatterns);
+        optionsPanel.add(textFieldPassPatterns);
 
         JLabel labelCharset = new JLabel("Character Set");
         String[] charsets = {"ISO-8859-15", "ISO-8859-1", "UTF-8"};
         comboBoxCharset = new JComboBox(charsets);
-        getContentPane().add(labelCharset);
-        getContentPane().add(comboBoxCharset);
+        optionsPanel.add(labelCharset);
+        optionsPanel.add(comboBoxCharset);
 
         JLabel jLabel8 = new JLabel("Font size (text area)");
-        getContentPane().add(jLabel8);
+        optionsPanel.add(jLabel8);
         jFormattedTextTextAreaFontSize.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-        getContentPane().add(jFormattedTextTextAreaFontSize);
+        optionsPanel.add(jFormattedTextTextAreaFontSize);
 
 
 
         JLabel labelUsernamePatterns = new JLabel("Username patterns (\"|\" separated)");
         textFieldUsernamePatterns = new JTextField();
-        getContentPane().add(labelUsernamePatterns);
-        getContentPane().add(textFieldUsernamePatterns);
+        optionsPanel.add(labelUsernamePatterns);
+        optionsPanel.add(textFieldUsernamePatterns);
 
 
-//        getContentPane().add(new JLabel("0"));
         jCheckBoxUsePassDialog.setText("Show password dialog (might not be required with GPG agent)");
-        getContentPane().add(jCheckBoxUsePassDialog);
+        optionsPanel.add(jCheckBoxUsePassDialog);
 
-//        getContentPane().add(new JLabel("1"));
         jCheckBoxPasswordShortcuts.setText("Show password shortcut bar");
-        getContentPane().add(jCheckBoxPasswordShortcuts);
+        optionsPanel.add(jCheckBoxPasswordShortcuts);
 
-//        getContentPane().add(new JLabel("2"));
         jCheckboxReloadAgent.setText("Allow flushing password from GPG agent");
-        getContentPane().add(jCheckboxReloadAgent);
+        optionsPanel.add(jCheckboxReloadAgent);
 
-//        getContentPane().add(new JLabel("3"));
         jCheckboxMastFirstLine.setText("Mask the first line on program start");
-        getContentPane().add(jCheckboxMastFirstLine);
+        optionsPanel.add(jCheckboxMastFirstLine);
 
         jCheckBoxUseFavorites.setText("Show list of favorites");
-        getContentPane().add(jCheckBoxUseFavorites);
+        optionsPanel.add(jCheckBoxUseFavorites);
 
         jCheckBoxFilterFavorites.setText("Filter favorites in addition to passwords");
-        getContentPane().add(jCheckBoxFilterFavorites);
+        optionsPanel.add(jCheckBoxFilterFavorites);
 
         jCheckBoxShowFavoritesCount.setText("Show count of individual favorite");
-        getContentPane().add(jCheckBoxShowFavoritesCount);
+        optionsPanel.add(jCheckBoxShowFavoritesCount);
 
-//        getContentPane().add(new JLabel("")); // empty space
 
         // show/hide debug window
-        getContentPane().add(jCheckBoxShowDebugWindow = new JCheckBox("Show debug window"));
+        optionsPanel.add(jCheckBoxShowDebugWindow = new JCheckBox("Show debug window"));
         DebugWindow.get().addPropertyChangeListener(new PropertyChangeListener()
         {
             @Override
@@ -226,6 +314,16 @@ public class OptionsPanel extends javax.swing.JDialog
         });
 
 
+
+        for (int i = optionsPanel.getComponentCount(); i < row * col; i++) {
+            JLabel l = new JLabel(" ");
+//            l.setBorder(BorderFactory.createLineBorder(Color.red));
+            optionsPanel.add(l);
+        }
+
+
+        // ==============================================================
+
         jButtonSave.setText("Save");
         jButtonSave.setMnemonic(KeyEvent.VK_S);
         jButtonSave.addActionListener(new java.awt.event.ActionListener()
@@ -235,7 +333,6 @@ public class OptionsPanel extends javax.swing.JDialog
                 jButtonSaveActionPerformed(evt);
             }
         });
-        getContentPane().add(jButtonSave);
 
         jButtonClose.setText("Close");
         jButtonSave.setMnemonic(KeyEvent.VK_L);
@@ -246,7 +343,9 @@ public class OptionsPanel extends javax.swing.JDialog
                 jButtonCloseActionPerformed(evt);
             }
         });
-        getContentPane().add(jButtonClose);
+
+        buttonPanel.add(jButtonSave);
+        buttonPanel.add(jButtonClose);
 
         pack();
     }
@@ -344,6 +443,9 @@ public class OptionsPanel extends javax.swing.JDialog
         JgpgPreferences.get().put(PREF_FILTER_FAVORITES, jCheckBoxFilterFavorites.isSelected());
         JgpgPreferences.get().put(PREF_FAVORITES_SHOW_COUNT, jCheckBoxShowFavoritesCount.isSelected());
         JgpgPreferences.get().put(PREF_CHARSET, comboBoxCharset.getSelectedItem());
+        JgpgPreferences.get().put(PREF_GPG_RID_FILE, jTexfFieldGpgRIDFile.getText());
+        JgpgPreferences.get().put(PREF_GPG_DEFAULT_RID, jTexfFieldGpgDefaultRID.getText());
+
         setVisible(false);
     }
 
@@ -354,35 +456,5 @@ public class OptionsPanel extends javax.swing.JDialog
         super.setVisible(b);
     }
 
-    // Variables declaration - do not modify
-    private javax.swing.JButton jButtonClose;
-    private javax.swing.JButton jButtonSave;
-    private javax.swing.JCheckBox jCheckBoxUsePassDialog;
-    private javax.swing.JCheckBox jCheckBoxPasswordShortcuts;
-    private javax.swing.JCheckBox jCheckboxReloadAgent;
-    private javax.swing.JCheckBox jCheckboxMastFirstLine;
-    private javax.swing.JCheckBox jCheckBoxUseFavorites;
-    private javax.swing.JCheckBox jCheckBoxFilterFavorites;
-    private javax.swing.JCheckBox jCheckBoxShowFavoritesCount;
-    private javax.swing.JCheckBox jCheckBoxShowDebugWindow;
-    private javax.swing.JFormattedTextField jFormattedTextPassClearTimeout;
-    private javax.swing.JFormattedTextField jFormattedTextareaClearTimeout;
-    private javax.swing.JFormattedTextField jFormattedTextareaClipTimeout;
-    private javax.swing.JFormattedTextField jFormattedTextFieldResetMaskButton;
-    private javax.swing.JFormattedTextField jFormattedTextFieldNumberFavorites;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JTextField jTextGpgExe;
-    private JTextField jTexfFieldGpgConf;
-    private JTextField jTexfFieldBrowserOpen;
-    private JTextField textFieldPassPatterns;
-    private JComboBox<String> comboBoxCharset;
-    private JTextField textFieldUsernamePatterns;
-    private javax.swing.JTextField jTextGpgHome;
-    private javax.swing.JTextField jTextSecretDirs;
-    private javax.swing.JFormattedTextField jFormattedTextTextAreaFontSize;
-    // End of variables declaration
+
 }

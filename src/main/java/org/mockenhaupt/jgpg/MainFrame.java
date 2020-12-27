@@ -632,6 +632,8 @@ public class MainFrame extends javax.swing.JFrame implements
                 }
             }
         });
+
+
         jList.addMouseListener(new MouseAdapter()
         {
             @Override
@@ -651,8 +653,9 @@ public class MainFrame extends javax.swing.JFrame implements
                 }
             }
 
-            public void mousePressed(MouseEvent e) {
-                if (SwingUtilities.isRightMouseButton(e))
+            public void mousePressed (MouseEvent e)
+            {
+                if (SwingUtilities.isRightMouseButton(e) || e.getButton() == 2)
                 {
                     JList list = (JList) e.getSource();
                     int row = list.locationToIndex(e.getPoint());
@@ -665,12 +668,15 @@ public class MainFrame extends javax.swing.JFrame implements
                 maybeShowPopup(e);
             }
 
-            public void mouseReleased(MouseEvent e) {
+            public void mouseReleased (MouseEvent e)
+            {
                 maybeShowPopup(e);
-//                if (e.getButton() == 2)
-//                {
-//                    System.out.println("e = " + jList.getSelectedValue());
-//                }
+                if (e.getButton() == 2 && favorites.containsKey(jList.getSelectedValue()))
+                {
+                    favorites.remove(jList.getSelectedValue());
+                    refreshFavorites();
+                    jList.setSelectedIndex(-1);
+                }
             }
 
             private void maybeShowPopup (MouseEvent e)
@@ -1087,6 +1093,7 @@ public class MainFrame extends javax.swing.JFrame implements
             {
                 editWindow.setText(out, "Loaded for editing " + filename, filename);
                 editWindow.show();
+                buttonClearTextareaActionPerformed(null);
             }
         }
     }

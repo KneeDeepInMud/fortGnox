@@ -1,5 +1,6 @@
 package org.mockenhaupt.jgpg;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -7,6 +8,7 @@ import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
@@ -15,14 +17,19 @@ import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Toolkit;
+import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.OK_OPTION;
+import static javax.swing.JOptionPane.WARNING_MESSAGE;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_DEFAULT_RID;
 
 public class EditWindow implements JGPGProcess.EncrypionListener
 {
@@ -37,6 +44,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener
     private JButton saveButton;
     final private JFrame parentWindow;
 
+    private String recipientId = "";
 
     final private List<String> directories = new ArrayList<>();
 
@@ -111,6 +119,9 @@ public class EditWindow implements JGPGProcess.EncrypionListener
             editWindow.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 
             editorPane = new JEditorPane();
+            JScrollPane editorScrollPane = new JScrollPane(editorPane);
+            editorPane.setBorder(BorderFactory.createLineBorder(Color.BLUE));
+
             editorPane.setPreferredSize(new Dimension(600, 600));
             editorPane.getDocument()
                     .addDocumentListener(new DocumentListener()
@@ -135,10 +146,13 @@ public class EditWindow implements JGPGProcess.EncrypionListener
                     });
 
             editWindow.setLayout(new BorderLayout());
-            editWindow.add(editorPane, BorderLayout.CENTER);
+            editWindow.add(editorScrollPane, BorderLayout.CENTER);
             editWindow.add(commandToolbar(), BorderLayout.NORTH);
 
             textAreaStatus = new JTextArea();
+            textAreaStatus.setFont(textAreaStatus.getFont().deriveFont(Font.BOLD));
+            textAreaStatus.setBorder(BorderFactory.createEmptyBorder(5, 2, 5, 2));
+
             textAreaStatus.setEditable(false);
             editWindow.add(textAreaStatus, BorderLayout.SOUTH);
 
@@ -177,11 +191,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener
 
         // Button: Save
         saveButton = new JButton("Save / Encrypt");
-        saveButton.addActionListener(actionEvent ->
-        {
-            jgpgProcess.encrypt(textFieldFilename.getText(), editorPane.getText(), "4ADE6739", EditWindow.this);
-        });
-
+        saveButton.addActionListener(actionEvent -> doEncrypt());
 
         textFieldFilename = new JTextField();
         textFieldFilename.setEnabled(false);
@@ -197,14 +207,79 @@ public class EditWindow implements JGPGProcess.EncrypionListener
         return jToolBar;
     }
 
+    private String getRecipient (File gpgFile)
+    {
+        // password store file with recipient ID in directory
+        String ridFileName = JgpgPreferences.get().get(JgpgPreferences.PREF_GPG_RID_FILE);
+        File ridFile = new File(gpgFile.getParent() + File.separator + ridFileName);
+        if (ridFile.exists())
+        {
+            String rid = GpgFileUtils.getFileContent(ridFile.getAbsolutePath());
+            if (rid != null)
+            {
+                return rid.trim();
+            }
+        }
+        else
+        {
+            // Try to use RID from directories
+            GpgFileUtils.ParsedDirectories parsedDirectories = GpgFileUtils.splitDirectoryString(JgpgPreferences.get().get(JgpgPreferences.PREF_SECRETDIRS));
+            String rid = parsedDirectories.directoryRecipientMap.get(gpgFile.getParent());
+            if (rid != null)
+            {
+                return rid;
+            }
+
+            // default ricipient ID
+            return JgpgPreferences.get().get(PREF_GPG_DEFAULT_RID);
+        }
+        return null;
+    }
+
+
+    private void doEncrypt ()
+    {
+        File file = new File(textFieldFilename.getText());
+        if (!file.exists())
+        {
+            JOptionPane.showMessageDialog(editWindow, "file does not exist", "JGPG WARNING", WARNING_MESSAGE);
+            return;
+        }
+
+        String rid = getRecipient(file);
+
+        if (rid == null || rid.isEmpty())
+        {
+            JOptionPane.showMessageDialog(editWindow, "Cannot determine recipient", "JGPG WARNING", WARNING_MESSAGE);
+            return;
+        }
+
+        this.recipientId = rid;
+        jgpgProcess.encrypt(textFieldFilename.getText(), editorPane.getText(), rid, EditWindow.this);
+    }
+
     @Override
     public void handleGpgEncryptResult (String out, String err, String filename, Object clientData)
     {
-        SwingUtilities.invokeLater(() -> {
-            if (err == null || err.isEmpty()) {
-                textAreaStatus.setText("Successfully encrypted " + filename);
+        SwingUtilities.invokeLater(() ->
+        {
+            String rid = "";
+            if (clientData instanceof EditWindow)
+            {
+                rid = " with recipient ID " + ((EditWindow) clientData).recipientId;
+            }
+            if (err == null || err.isEmpty())
+            {
+                textAreaStatus.setText("Successfully encrypted " + filename + rid);
                 setModified(false);
+            }
+            else
+            {
+                textAreaStatus.setText("Failure encrypting " + filename + rid + ", " + err);
+                JOptionPane.showMessageDialog(editWindow, err, "JGPG WARNING", JOptionPane.ERROR_MESSAGE);
             }
         });
     }
+
+
 }

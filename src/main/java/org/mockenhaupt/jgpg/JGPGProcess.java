@@ -262,42 +262,21 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         directoryWatchers.values().stream().forEach(s -> s.stop());
         directoryWatchers.clear();
 
-        if (prefSecretDirsString.isEmpty())
+        GpgFileUtils.ParsedDirectories parsedDirectories = GpgFileUtils.splitDirectoryString(prefSecretDirsString);
+
+        if (!parsedDirectories.directoryList.isEmpty())
         {
-            preferences.put(PREF_SECRETDIRS, f.getAbsolutePath());
-            secretdirs.add(f.getAbsolutePath());
+            secretdirs.addAll(parsedDirectories.directoryList);
+            preferences.put(PREF_SECRETDIRS, parsedDirectories.revisedList);
         }
         else
         {
-            // found a stored property
-            if (prefSecretDirsString.contains(";"))
-            {
-                String revisedProp = "";
-                // prop is an array
-                for (String token : prefSecretDirsString.split(";"))
-                {
-                    if (!token.isEmpty())
-                    {
-                        f = new File(token);
-                        if (f.exists())
-                        {
-                            secretdirs.add(f.getAbsolutePath());
-                            revisedProp += token;
-                            revisedProp += ";";
-                        }
-                    }
-                }
-                revisedProp = revisedProp.replaceAll(";$", "");
-                preferences.put(PREF_SECRETDIRS, revisedProp);
-            }
-            else
-            {
-                // prop is single directrory
-                f = new File(prefSecretDirsString);
-                preferences.put(PREF_SECRETDIRS, f.getAbsolutePath());
-                secretdirs.add(f.getAbsolutePath());
-            }
+            // prop is single directrory
+            f = new File(prefSecretDirsString);
+            preferences.put(PREF_SECRETDIRS, f.getAbsolutePath());
+            secretdirs.add(f.getAbsolutePath());
         }
+
 
         secretdirs.stream().forEach(sd ->
         {
