@@ -64,6 +64,7 @@ import static javax.swing.JOptionPane.OK_OPTION;
 import static org.mockenhaupt.jgpg.DebugWindow.Category.DIR;
 import static org.mockenhaupt.jgpg.DebugWindow.Category.FAV;
 import static org.mockenhaupt.jgpg.DebugWindow.Category.FILTER;
+import static org.mockenhaupt.jgpg.DebugWindow.Category.GPG;
 import static org.mockenhaupt.jgpg.DebugWindow.Category.LIST;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLEAR_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLIP_SECONDS;
@@ -162,6 +163,10 @@ public class MainFrame extends javax.swing.JFrame implements
                             else if (nextArg.toUpperCase().startsWith("LI"))
                             {
                                 DebugWindow.get().enableDebugCategory(LIST);
+                            }
+                            else if (nextArg.toUpperCase().startsWith("G"))
+                            {
+                                DebugWindow.get().enableDebugCategory(GPG);
                             }
                             else
                             {

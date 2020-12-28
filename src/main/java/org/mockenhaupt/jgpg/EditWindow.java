@@ -2,6 +2,7 @@ package org.mockenhaupt.jgpg;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -25,6 +26,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ComponentAdapter;
 import java.io.File;
@@ -176,6 +179,8 @@ public class EditWindow implements JGPGProcess.EncrypionListener
 
     public void show ()
     {
+        Point location = MouseInfo.getPointerInfo().getLocation();
+        editWindow.setLocation(location);
         editWindow.setVisible(true);
     }
 
@@ -185,21 +190,22 @@ public class EditWindow implements JGPGProcess.EncrypionListener
         directoryChooser.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         directoryChooser.setLayout(new BorderLayout());
 
-        int row = 10;
-        int col = 2;
 
-        JPanel directoryChooserPanel = new JPanel(new GridLayout(row,col, 5, 5));
+        JPanel directoryChooserPanel = new JPanel();
+        GroupLayout groupLayout = new GroupLayout(directoryChooserPanel);
+        directoryChooserPanel.setLayout(groupLayout);
+
         directoryChooser.add(directoryChooserPanel, BorderLayout.CENTER);
 
-        directoryChooser.setPreferredSize(new Dimension(800, row * 30 + 40));
+        directoryChooser.setPreferredSize(new Dimension(650, 200));
         directoryChooser.setMinimumSize(directoryChooser.getPreferredSize());
 
-        directoryChooserPanel.add(new  JLabel(" "));
-        directoryChooserPanel.add(new  JLabel(" "));
 
         GpgFileUtils.ParsedDirectories parsedDirectories =
                 GpgFileUtils.splitDirectoryString(JgpgPreferences.get().get(PREF_SECRETDIRS));
         JComboBox<String> comboBoxDirectories = new JComboBox<>();
+        comboBoxDirectories.setMaximumSize(new Dimension(500, 35));
+
         comboBoxDirectories.setModel(new DefaultComboBoxModel<String>(){
             @Override
             public int getSize ()
@@ -216,30 +222,52 @@ public class EditWindow implements JGPGProcess.EncrypionListener
         if (comboBoxDirectories.getModel().getSize() > 0) {
             comboBoxDirectories.setSelectedIndex(0);
         }
+        JTextField fileNameText = new JTextField();
+        fileNameText.setMaximumSize(new Dimension(500, 35));
 
-        directoryChooserPanel.add(new JLabel("Directory", SwingConstants.RIGHT));
-        directoryChooserPanel.add(comboBoxDirectories);
-        directoryChooserPanel.add(new JLabel("New filename:", SwingConstants.RIGHT));
-        JTextField fileName;
-        directoryChooserPanel.add(fileName = new JTextField());
+        JLabel dirNameLabel = new JLabel("Directory", SwingConstants.RIGHT);
+        JLabel fileNameLabel = new JLabel("New filename:", SwingConstants.RIGHT);
+
+
+        groupLayout.setAutoCreateGaps(true);
+        groupLayout.setAutoCreateContainerGaps(true);
+
+        // horizontal
+        GroupLayout.ParallelGroup p1H = groupLayout.createParallelGroup().addComponent(dirNameLabel).addComponent(fileNameLabel);
+        GroupLayout.ParallelGroup p2H = groupLayout.createParallelGroup().addComponent(comboBoxDirectories).addComponent(fileNameText);
+        GroupLayout.SequentialGroup sH = groupLayout.createSequentialGroup().addGroup(p1H).addGroup(p2H);
+
+        // vertical
+        GroupLayout.ParallelGroup p1V = groupLayout.createParallelGroup().addComponent(dirNameLabel).addComponent(comboBoxDirectories);
+        GroupLayout.ParallelGroup p2V = groupLayout.createParallelGroup().addComponent(fileNameLabel).addComponent(fileNameText);
+        GroupLayout.SequentialGroup sV = groupLayout.createSequentialGroup().addGroup(p1V).addGroup(p2V);
+
+        groupLayout.setVerticalGroup(sV);
+        groupLayout.setHorizontalGroup(sH);
+
+
+
         JButton buttonCreate;
         JButton buttonCancel;
 
         JPanel buttonPanel = new JPanel();
         directoryChooser.add(buttonPanel, BorderLayout.SOUTH);
-        buttonPanel.add(buttonCreate = new JButton("Create"));
-        buttonPanel.add(buttonCancel = new JButton("Cancel"));
+        buttonCreate = new JButton("Create");
+        buttonCancel = new JButton("Cancel");
+
+        buttonPanel.add(buttonCreate);
+        buttonPanel.add(buttonCancel);
 
         buttonCancel.addActionListener(actionEvent -> directoryChooser.dispose());
         buttonCreate.addActionListener(actionEvent ->
         {
-            String file = getNewFilename(comboBoxDirectories, fileName);
+            String file = getNewFilename(comboBoxDirectories, fileNameText);
             setText("", "Enter new file " + file, file);
             directoryChooser.dispose();
             show();
         });
 
-        fileName.getDocument().addDocumentListener(new DocumentListener()
+        fileNameText.getDocument().addDocumentListener(new DocumentListener()
         {
             @Override
             public void insertUpdate (DocumentEvent documentEvent)
@@ -261,7 +289,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener
 
             void handleChange ()
             {
-                String ftest = getNewFilename(comboBoxDirectories, fileName);
+                String ftest = getNewFilename(comboBoxDirectories, fileNameText);
                 File ftestFile = new File(ftest);
                 buttonCreate.setEnabled(!ftestFile.exists());
             }
@@ -269,11 +297,8 @@ public class EditWindow implements JGPGProcess.EncrypionListener
 
         buttonCreate.setEnabled(false);
 
-        for (int i = directoryChooserPanel.getComponentCount(); i < row * col; i++) {
-            JLabel l = new JLabel(" " );
-//            l.setBorder(BorderFactory.createLineBorder(Color.red));
-            directoryChooserPanel.add(l);
-        }
+        Point location = MouseInfo.getPointerInfo().getLocation();
+        directoryChooser.setLocation(location);
         directoryChooser.setVisible(true);
     }
 
@@ -332,8 +357,9 @@ public class EditWindow implements JGPGProcess.EncrypionListener
         // password store file with recipient ID in directory
         String ridFileName = JgpgPreferences.get().get(JgpgPreferences.PREF_GPG_RID_FILE);
         File ridFile = new File(gpgFile.getParent() + File.separator + ridFileName);
-        if (ridFile.exists())
+        if (ridFile.exists() && ridFileName != null && !ridFileName.isEmpty())
         {
+            DebugWindow.dbg(DebugWindow.Category.GPG, "Found " + ridFile);
             String rid = GpgFileUtils.getFileContent(ridFile.getAbsolutePath());
             if (rid != null)
             {
