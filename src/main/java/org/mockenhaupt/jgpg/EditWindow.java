@@ -5,6 +5,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
@@ -15,6 +16,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
@@ -27,6 +29,7 @@ import java.awt.Font;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -197,7 +200,11 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
 
     public void showNew ()
     {
-        JDialog directoryChooser = new JDialog(parentWindow, "JGPG Select directory", true);
+        JDialog directoryChooser = new JDialog(parentWindow, "JGPG New Password", true);
+        directoryChooser.getRootPane().registerKeyboardAction(e ->
+        {
+            directoryChooser.dispose();
+        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
         directoryChooser.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         directoryChooser.setLayout(new BorderLayout());
 
@@ -230,10 +237,40 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
                 return parsedDirectories.directoryList.get(index);
             }
         });
-        if (comboBoxDirectories.getModel().getSize() > 0) {
+        JTextField fileNameResulting = new JTextField("");
+        JTextField fileNameText = new JTextField();
+        comboBoxDirectories.addActionListener(actionEvent -> {
+            updateFilenamePreview(comboBoxDirectories, fileNameResulting, fileNameText);
+        });
+        if (comboBoxDirectories.getModel().getSize() > 0)
+        {
             comboBoxDirectories.setSelectedIndex(0);
         }
-        JTextField fileNameText = new JTextField();
+        fileNameText.getDocument().addDocumentListener(new DocumentListener()
+        {
+            @Override
+            public void insertUpdate (DocumentEvent documentEvent)
+            {
+                update();
+            }
+
+            @Override
+            public void removeUpdate (DocumentEvent documentEvent)
+            {
+                update();
+            }
+
+            @Override
+            public void changedUpdate (DocumentEvent documentEvent)
+            {
+                update();
+            }
+            private void update ()
+            {
+                updateFilenamePreview(comboBoxDirectories, fileNameResulting, fileNameText);
+            }
+        });
+        fileNameResulting.setEnabled(false);
         fileNameText.setMaximumSize(new Dimension(500, 35));
 
         JLabel dirNameLabel = new JLabel("Directory", SwingConstants.RIGHT);
@@ -244,27 +281,32 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
         groupLayout.setAutoCreateContainerGaps(true);
 
         // horizontal
-        GroupLayout.ParallelGroup p1H = groupLayout.createParallelGroup().addComponent(dirNameLabel).addComponent(fileNameLabel);
-        GroupLayout.ParallelGroup p2H = groupLayout.createParallelGroup().addComponent(comboBoxDirectories).addComponent(fileNameText);
-        GroupLayout.SequentialGroup sH = groupLayout.createSequentialGroup().addGroup(p1H).addGroup(p2H);
+        GroupLayout gl = groupLayout;
+        gl.setHorizontalGroup(gl.createParallelGroup()
+                .addGroup(gl.createSequentialGroup()
+                        .addGroup(gl.createParallelGroup()
+                                .addComponent(dirNameLabel)
+                                .addComponent(fileNameLabel))
+                        .addGroup(gl.createParallelGroup()
+                                .addComponent(comboBoxDirectories)
+                                .addComponent(fileNameText)))
+                .addComponent(fileNameResulting));
 
         // vertical
-        GroupLayout.ParallelGroup p1V = groupLayout.createParallelGroup().addComponent(dirNameLabel).addComponent(comboBoxDirectories);
-        GroupLayout.ParallelGroup p2V = groupLayout.createParallelGroup().addComponent(fileNameLabel).addComponent(fileNameText);
-        GroupLayout.SequentialGroup sV = groupLayout.createSequentialGroup().addGroup(p1V).addGroup(p2V);
-
-        groupLayout.setVerticalGroup(sV);
-        groupLayout.setHorizontalGroup(sH);
-
-
+        gl.setVerticalGroup(gl.createSequentialGroup()
+                .addGroup(gl.createParallelGroup().addComponent(dirNameLabel).addComponent(comboBoxDirectories))
+                .addGroup(gl.createParallelGroup().addComponent(fileNameLabel).addComponent(fileNameText))
+                .addComponent(fileNameResulting));
 
         JButton buttonCreate;
         JButton buttonCancel;
 
         JPanel buttonPanel = new JPanel();
         directoryChooser.add(buttonPanel, BorderLayout.SOUTH);
-        buttonCreate = new JButton("Create");
+        buttonCreate = new JButton("Create New");
+        buttonCreate.setMnemonic(KeyEvent.VK_N);
         buttonCancel = new JButton("Cancel");
+        buttonCancel.setMnemonic(KeyEvent.VK_C);
 
         buttonPanel.add(buttonCreate);
         buttonPanel.add(buttonCancel);
@@ -313,7 +355,26 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
         directoryChooser.setVisible(true);
     }
 
+    private void updateFilenamePreview (JComboBox<String> comboBoxDirectories, JTextField fileNameResulting, JTextField fileNameText)
+    {
+        if (fileNameText.getText().isEmpty())
+        {
+            fileNameResulting.setText("");
+        }
+        else
+        {
+            fileNameResulting.setText(comboBoxDirectories.getSelectedItem() + File.separator + fileNameText.getText() + getSuffix());
+        }
+    }
+
     private String getNewFilename (JComboBox<String> comboBoxDirectories, JTextField fileName)
+    {
+        String suffix = getSuffix();
+
+        return comboBoxDirectories.getSelectedItem() + File.separator + fileName.getText() + suffix;
+    }
+
+    private String getSuffix ()
     {
         String suffix;
         if (JgpgPreferences.get().getBoolean(PREF_GPG_USE_ASCII))
@@ -324,8 +385,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
         {
             suffix = ".gpg";
         }
-
-        return comboBoxDirectories.getSelectedItem() + File.separator + fileName.getText() + suffix;
+        return suffix;
     }
 
 
@@ -335,6 +395,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
 
         // Button: Cancel
         cancelButton = new JButton("Cancel / Close");
+        cancelButton.setMnemonic(KeyEvent.VK_C);
         cancelButton.addActionListener(actionEvent ->
         {
             if (!modified || OK_OPTION == JOptionPane.showConfirmDialog(parentWindow,
@@ -344,12 +405,12 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
                 editWindow.setVisible(false);
                 editWindow.dispose();
             }
-
         });
 
 
         // Button: Save
         saveButton = new JButton("Save / Encrypt");
+        saveButton.setMnemonic(KeyEvent.VK_S);
         saveButton.addActionListener(actionEvent -> doEncrypt());
 
         textFieldFilename = new JTextField();
