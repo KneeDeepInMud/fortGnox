@@ -53,6 +53,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -681,6 +682,7 @@ public class MainFrame extends javax.swing.JFrame implements
                     favorites.remove(jList.getSelectedValue());
                     refreshFavorites();
                     jList.setSelectedIndex(-1);
+                    JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
                 }
             }
 
@@ -729,27 +731,31 @@ public class MainFrame extends javax.swing.JFrame implements
     private JPopupMenu getSecretsPopupMenu (JList jList)
     {
         JPopupMenu popupMenu = new JPopupMenu();
-
+        boolean hasEntries = false;
         if (favorites.containsKey(jList.getSelectedValue()))
         {
-            JMenuItem miRemoveFavorites = new JMenuItem("Remove from favorites");
+            hasEntries = true;
+            JMenuItem miRemoveFavorites = new JMenuItem("Remove selected entry from favorites");
             miRemoveFavorites.addActionListener(actionEvent ->
             {
                 favorites.remove(jList.getSelectedValue());
                 refreshFavorites();
                 jList.setSelectedIndex(-1);
+                JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
             });
             popupMenu.add(miRemoveFavorites);
 
-
-            JMenuItem miEdit = new JMenuItem("Remove from favorites");
-            miRemoveFavorites.addActionListener(actionEvent ->
+            JMenuItem miCompressFavs = new JMenuItem("Compress favorites");
+            miCompressFavs.addActionListener(actionEvent ->
             {
-                favorites.remove(jList.getSelectedValue());
-                refreshFavorites();
-                jList.setSelectedIndex(-1);
+                compressFavorites();
             });
-            popupMenu.add(miRemoveFavorites);
+            popupMenu.add(miCompressFavs);
+        }
+
+        if (hasEntries)
+        {
+            popupMenu.add(new JSeparator());
         }
 
         JMenuItem miEdit = new JMenuItem("Edit " + jList.getSelectedValue());
@@ -905,6 +911,24 @@ public class MainFrame extends javax.swing.JFrame implements
                 });
 
         JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
+    }
+
+    private void compressFavorites ()
+    {
+        final LinkedHashMap<String, Integer> newFavorites = new LinkedHashMap<>(favorites);
+
+        AtomicInteger i = new AtomicInteger(newFavorites.size() + 1);
+
+        favorites.clear();
+
+        newFavorites.entrySet()
+                .stream().sorted((t2, t1) -> t1.getValue() - t2.getValue())
+                .forEach(stringIntegerEntry -> {
+                    favorites.put(stringIntegerEntry.getKey(), i.decrementAndGet());
+                });
+        refreshFavorites();
+        JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
+
     }
 
 
