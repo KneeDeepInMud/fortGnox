@@ -111,6 +111,10 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         void handleGpgEncryptResult (String out, String err, String filename, Object clientData);
     }
 
+    interface CommandListener
+    {
+        void handleGpgCommandResult (String out, String err, String filename, Object clientData);
+    }
 
     abstract class GpgRunnable implements Runnable
     {
@@ -133,6 +137,13 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         {
             this.command = command;
         }
+        public GpgRunnable (String command, File file, Object clientData)
+        {
+            this.filename = file.getAbsolutePath();
+            this.command = command;
+            this.clientData = clientData;
+        }
+
         public GpgRunnable (String filename, String content, Object clientData)
         {
             this.filename = filename;
@@ -191,6 +202,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
     HashSet<SecretListListener> secretListeners = new HashSet<>();
     HashSet<ResultListListener> resultListeners = new HashSet<>();
     HashSet<EncrypionListener> encryptListeners  = new HashSet<>();
+    HashSet<CommandListener> commandListeners  = new HashSet<>();
 
     private static String lastClipText;
 
@@ -227,6 +239,10 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
     {
         encryptListeners.add(listener);
     }
+    void addCommandListener (CommandListener listener)
+    {
+        commandListeners.add(listener);
+    }
 
     void addResultListener (ResultListListener listener)
     {
@@ -261,6 +277,14 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         }
     }
 
+    private void notifyCommandListeners (String out, String err, String filename, Object clientData)
+    {
+        Iterator<CommandListener> iter = commandListeners.iterator();
+        while (iter.hasNext())
+        {
+            iter.next().handleGpgCommandResult(out, err, filename, clientData);
+        }
+    }
     private void handleSecretPreferenceChanged ()
     {
         PreferencesAccess preferences = JgpgPreferences.get();
@@ -942,7 +966,11 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                     }
                 }
 
-                notifyEncryptionListeners("Encrypted", error, getFilename(), getClientData());
+                if (exitValue != 0)
+                {
+                    error = "failure during encryption command, " + error;
+                }
+                notifyEncryptionListeners("Encrypted" + output, error, getFilename(), getClientData());
             }
         });
 
@@ -955,5 +983,121 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
             notifyEncryptionListeners("", ex.toString(), fname, clientData);
         }
     }
+
+
+
+
+    public void command (String command, String fname, Object clientData)
+    {
+        Thread t = new Thread(new GpgRunnable(command, new File(fname), clientData)
+        {
+            public void run ()
+            {
+                String output = "";
+                String error = "";
+                String clipboardText = null;
+                int lines = 0;
+
+                List<String> cmdArgList = new ArrayList<>();
+                cmdArgList.add(getCommand());
+                cmdArgList.add(getFilename());
+
+                DebugWindow.get().debug(DebugWindow.Category.GPG, cmdArgList.toString());
+                String[] cmds = cmdArgList.toArray(new String[]{});
+
+                int exitValue = 0;
+
+
+                Process gpgProcess;
+                try
+                {
+                    gpgProcess = Runtime.getRuntime().exec(cmds);
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                    notifyCommandListeners("", e.toString(), getFilename(), getClientData());
+                    return;
+                }
+
+                final BufferedReader or = new BufferedReader(
+                        new InputStreamReader(gpgProcess.getInputStream(), charset));
+                final BufferedReader er = new BufferedReader(
+                        new InputStreamReader(gpgProcess.getErrorStream(), charset));
+
+                CharsetEncoder encoder = charset.newEncoder();
+
+                try
+                {
+                    while (stillActive(gpgProcess) || er.ready() || or.ready())
+                    {
+                        while (er.ready())
+                        {
+                            String s = er.readLine();
+                            error += s + LINE_SEP;
+                        }
+                        while (or.ready())
+                        {
+                            String s = or.readLine();
+                            lines++;
+                            output += s + LINE_SEP;
+                            if (!encoder.canEncode(s))
+                            {
+                                error = "Binary content in file detected";
+                            }
+                            if (this.isToClipboard() && clipboardText == null)
+                            {
+                                clipboardText = s;
+                            }
+                        }
+                        try
+                        {
+                            Thread.sleep(10, 10);
+                        }
+                        catch (InterruptedException ex)
+                        {
+                            notifyCommandListeners(output, error, fname, clientData);
+                            break;
+                        }
+                    }
+
+                    exitValue = gpgProcess.exitValue();
+                }
+                catch (IOException ex)
+                {
+                    notifyCommandListeners("", ex.toString(), fname, clientData);
+                }
+                catch (IllegalThreadStateException ex)
+                {
+                    // nope
+                }
+                finally
+                {
+                    if (stillActive(gpgProcess))
+                    {
+                        gpgProcess.destroy();
+                    }
+                }
+
+                if (exitValue != 0)
+                {
+                    error = "failure in post command, " + error;
+                }
+                notifyCommandListeners(output, error, getFilename(), getClientData());
+            }
+        });
+
+        try
+        {
+            t.start();
+        }
+        catch (Exception ex)
+        {
+            notifyCommandListeners("", ex.toString(), fname, clientData);
+        }
+    }
+
+
+
 
 }

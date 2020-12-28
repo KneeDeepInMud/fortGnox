@@ -1233,8 +1233,6 @@ public class MainFrame extends javax.swing.JFrame implements
         });
         jToolBar1.add(buttonNew);
 
-
-
         jButtonClipboard.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/icons8-clipboard-30.png"))); // NOI18N
         jButtonClipboard.setText("Clipboard First Line");
         jButtonClipboard.setToolTipText("Save the first line of decoded file to clipboard");

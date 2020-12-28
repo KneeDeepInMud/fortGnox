@@ -39,10 +39,12 @@ import static javax.swing.JOptionPane.OK_OPTION;
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CHARSET;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_DEFAULT_RID;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_POST_COMMAND;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_USE_ASCII;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_TEXTAREA_FONT_SIZE;
 
-public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChangeListener
+public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChangeListener, JGPGProcess.CommandListener
 {
     private JDialog editWindow;
     private JEditorPane editorPane;
@@ -66,6 +68,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
         this.parentWindow = parent;
         init(parent);
         jgpgProcess.addEncryptionListener(this);
+        jgpgProcess.addCommandListener(this);
         JgpgPreferences.get().addPropertyChangeListener(this);
     }
 
@@ -134,6 +137,9 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
             editWindow.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 
             editorPane = new JEditorPane();
+            editorPane.setFont(new Font("monospaced", Font.PLAIN,
+                    JgpgPreferences.get().get(PREF_TEXTAREA_FONT_SIZE, 14)));
+
             editorPane.setContentType("text/plain; charset="+ JgpgPreferences.get().get(PREF_CHARSET)+";");
 
             JScrollPane editorScrollPane = new JScrollPane(editorPane);
@@ -432,9 +438,18 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
             if (err == null || err.isEmpty())
             {
                 String status = "Successfully encrypted " + filename + rid;
-                setText("", "", filename);
-                editWindow.dispose();
-                JOptionPane.showMessageDialog(editWindow, status, "JGPG INFO", JOptionPane.INFORMATION_MESSAGE);
+                setText("", status, filename);
+                String postCommand = JgpgPreferences.get().get(PREF_GPG_POST_COMMAND);
+                if (postCommand != null && !postCommand.isEmpty())
+                {
+                    jgpgProcess.command(postCommand, filename, this);
+                    editWindow.dispose();
+                }
+                else
+                {
+                    editWindow.dispose();
+                    JOptionPane.showMessageDialog(editWindow, status, "JGPG INFO", JOptionPane.INFORMATION_MESSAGE);
+                }
             }
             else
             {
@@ -456,6 +471,27 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
                     editorPane.setContentType("text/plain; charset="+ JgpgPreferences.get().get(PREF_CHARSET)+";");
                 }
                 break;
+
+            case PREF_TEXTAREA_FONT_SIZE:
+                if (editorPane != null)
+                {
+                    editorPane.setFont(new Font("monospaced", Font.PLAIN,
+                            JgpgPreferences.get().get(PREF_TEXTAREA_FONT_SIZE, 14)));
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void handleGpgCommandResult (String out, String err, String filename, Object clientData)
+    {
+        if (err != null && !err.isEmpty())
+        {
+            JOptionPane.showMessageDialog(editWindow, out + err, "JGPG POST", JOptionPane.ERROR_MESSAGE);
+        }
+        else
+        {
+            JOptionPane.showMessageDialog(editWindow, out + err, "JGPG POST", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 }

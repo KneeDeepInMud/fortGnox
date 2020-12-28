@@ -30,6 +30,7 @@ import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPGCONF_COMMAND;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_COMMAND;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_DEFAULT_RID;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_HOMEDIR;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_POST_COMMAND;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_RID_FILE;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_USE_ASCII;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_MASK_FIRST_LINE;
@@ -80,6 +81,7 @@ public class OptionsPanel extends javax.swing.JDialog
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JTextField jTextGpgExe;
+    private javax.swing.JTextField jTextGpgPostCommand;
     private JTextField jTexfFieldGpgConf;
     private JTextField jTexfFieldBrowserOpen;
     private JTextField jTexfFieldGpgRIDFile;
@@ -112,6 +114,7 @@ public class OptionsPanel extends javax.swing.JDialog
     {
         PreferencesAccess pa = JgpgPreferences.get();
         this.jTextGpgExe.setText(pa.get(PREF_GPG_COMMAND));
+        this.jTextGpgPostCommand.setText(pa.get(PREF_GPG_POST_COMMAND));
         this.jTextGpgHome.setText(pa.get(PREF_GPG_HOMEDIR));
         this.jTexfFieldGpgConf.setText(  pa.get(PREF_GPGCONF_COMMAND)  );//jgpgProcess.getPrefGpgConfCommand());
         this.jTexfFieldBrowserOpen.setText(  pa.get(PREF_URL_OPEN_COMMAND)  );//jgpgProcess.getPrefGpgConfCommand());
@@ -170,6 +173,9 @@ public class OptionsPanel extends javax.swing.JDialog
         jTexfFieldGpgDefaultRID = new JTextField();
         gpgPanel.add(jTexfFieldGpgDefaultRID);
 
+        gpgPanel.add(new JLabel("GPG Post Command (will be executed after encryption)"));
+        gpgPanel.add(jTextGpgPostCommand);
+
         jCheckBoxGpgUseAsciiFormat.setText("Encrypt in ASCII format");
         gpgPanel.add(jCheckBoxGpgUseAsciiFormat);
 
@@ -185,6 +191,7 @@ public class OptionsPanel extends javax.swing.JDialog
     private void initComponents()
     {
         jTextGpgExe = new javax.swing.JTextField();
+        jTextGpgPostCommand = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         jTextGpgHome = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
@@ -452,6 +459,7 @@ public class OptionsPanel extends javax.swing.JDialog
         JgpgPreferences.get().put(PREF_GPG_RID_FILE, jTexfFieldGpgRIDFile.getText());
         JgpgPreferences.get().put(PREF_GPG_DEFAULT_RID, jTexfFieldGpgDefaultRID.getText());
         JgpgPreferences.get().put(PREF_GPG_USE_ASCII, jCheckBoxGpgUseAsciiFormat.isSelected());
+        JgpgPreferences.get().put(PREF_GPG_POST_COMMAND, jTextGpgPostCommand.getText());
 
         setVisible(false);
     }
