@@ -23,13 +23,12 @@ import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GridLayout;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Toolkit;
-import java.awt.event.ComponentAdapter;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -38,10 +37,12 @@ import java.util.List;
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.OK_OPTION;
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CHARSET;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_DEFAULT_RID;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_USE_ASCII;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
 
-public class EditWindow implements JGPGProcess.EncrypionListener
+public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChangeListener
 {
     private JDialog editWindow;
     private JEditorPane editorPane;
@@ -65,6 +66,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener
         this.parentWindow = parent;
         init(parent);
         jgpgProcess.addEncryptionListener(this);
+        JgpgPreferences.get().addPropertyChangeListener(this);
     }
 
 
@@ -132,8 +134,11 @@ public class EditWindow implements JGPGProcess.EncrypionListener
             editWindow.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 
             editorPane = new JEditorPane();
+            editorPane.setContentType("text/plain; charset="+ JgpgPreferences.get().get(PREF_CHARSET)+";");
+
             JScrollPane editorScrollPane = new JScrollPane(editorPane);
             editorPane.setBorder(BorderFactory.createLineBorder(Color.BLUE));
+
 
             editorPane.setPreferredSize(new Dimension(800, 600));
             editorPane.getDocument()
@@ -304,7 +309,17 @@ public class EditWindow implements JGPGProcess.EncrypionListener
 
     private String getNewFilename (JComboBox<String> comboBoxDirectories, JTextField fileName)
     {
-        return comboBoxDirectories.getSelectedItem() + File.separator + fileName.getText() + ".gpg";
+        String suffix;
+        if (JgpgPreferences.get().getBoolean(PREF_GPG_USE_ASCII))
+        {
+            suffix = ".asc";
+        }
+        else
+        {
+            suffix = ".gpg";
+        }
+
+        return comboBoxDirectories.getSelectedItem() + File.separator + fileName.getText() + suffix;
     }
 
 
@@ -430,4 +445,17 @@ public class EditWindow implements JGPGProcess.EncrypionListener
     }
 
 
+    @Override
+    public void propertyChange (PropertyChangeEvent propertyChangeEvent)
+    {
+        switch (propertyChangeEvent.getPropertyName())
+        {
+            case PREF_CHARSET:
+                if (editorPane != null)
+                {
+                    editorPane.setContentType("text/plain; charset="+ JgpgPreferences.get().get(PREF_CHARSET)+";");
+                }
+                break;
+        }
+    }
 }

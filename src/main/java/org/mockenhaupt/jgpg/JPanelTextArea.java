@@ -41,6 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CHARSET;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_RESET_MASK_BUTTON_SECONDS;
 
@@ -1117,7 +1118,6 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
                 prefTextAreaFontSize = JgpgPreferences.get().get(JgpgPreferences.PREF_TEXTAREA_FONT_SIZE, prefTextAreaFontSize);
                 SwingUtilities.invokeLater(() -> updateText());
                 break;
-
         }
     }
 

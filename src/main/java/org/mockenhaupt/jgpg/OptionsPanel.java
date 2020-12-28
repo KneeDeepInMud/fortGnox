@@ -7,7 +7,6 @@
 package org.mockenhaupt.jgpg;
 
 
-import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -15,7 +14,6 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -33,6 +31,7 @@ import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_COMMAND;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_DEFAULT_RID;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_HOMEDIR;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_RID_FILE;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_USE_ASCII;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_MASK_FIRST_LINE;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_NUMBER_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_MASK_PATTERNS;
@@ -67,6 +66,7 @@ public class OptionsPanel extends javax.swing.JDialog
     private javax.swing.JCheckBox jCheckboxReloadAgent;
     private javax.swing.JCheckBox jCheckboxMastFirstLine;
     private javax.swing.JCheckBox jCheckBoxUseFavorites;
+    private javax.swing.JCheckBox jCheckBoxGpgUseAsciiFormat;
     private javax.swing.JCheckBox jCheckBoxFilterFavorites;
     private javax.swing.JCheckBox jCheckBoxShowFavoritesCount;
     private javax.swing.JCheckBox jCheckBoxShowDebugWindow;
@@ -134,6 +134,8 @@ public class OptionsPanel extends javax.swing.JDialog
         this.textFieldUsernamePatterns.setText(pa.get(PREF_USERNAME_MASK_PATTERNS));
         this.jTexfFieldGpgRIDFile.setText(pa.get(PREF_GPG_RID_FILE, ".gpg-id"));
         this.jTexfFieldGpgDefaultRID.setText(pa.get(PREF_GPG_DEFAULT_RID, ""));
+        this.jCheckBoxGpgUseAsciiFormat.setSelected(pa.getBoolean(PREF_GPG_USE_ASCII));//jgpgProcess.isPrefConnectToGpgAgent());
+
     }
 
 
@@ -168,6 +170,9 @@ public class OptionsPanel extends javax.swing.JDialog
         jTexfFieldGpgDefaultRID = new JTextField();
         gpgPanel.add(jTexfFieldGpgDefaultRID);
 
+        jCheckBoxGpgUseAsciiFormat.setText("Encrypt in ASCII format");
+        gpgPanel.add(jCheckBoxGpgUseAsciiFormat);
+
         for (int i = gpgPanel.getComponentCount(); i < row * col; i++) {
             JLabel l = new JLabel(" ");
 //            l.setBorder(BorderFactory.createLineBorder(Color.red));
@@ -193,6 +198,7 @@ public class OptionsPanel extends javax.swing.JDialog
         jCheckboxReloadAgent = new javax.swing.JCheckBox();
         jCheckboxMastFirstLine = new javax.swing.JCheckBox();
         jCheckBoxUseFavorites = new javax.swing.JCheckBox();
+        jCheckBoxGpgUseAsciiFormat = new javax.swing.JCheckBox();
         jCheckBoxFilterFavorites = new javax.swing.JCheckBox();
         jCheckBoxShowFavoritesCount = new javax.swing.JCheckBox();
         jButtonSave = new javax.swing.JButton();
@@ -445,6 +451,7 @@ public class OptionsPanel extends javax.swing.JDialog
         JgpgPreferences.get().put(PREF_CHARSET, comboBoxCharset.getSelectedItem());
         JgpgPreferences.get().put(PREF_GPG_RID_FILE, jTexfFieldGpgRIDFile.getText());
         JgpgPreferences.get().put(PREF_GPG_DEFAULT_RID, jTexfFieldGpgDefaultRID.getText());
+        JgpgPreferences.get().put(PREF_GPG_USE_ASCII, jCheckBoxGpgUseAsciiFormat.isSelected());
 
         setVisible(false);
     }

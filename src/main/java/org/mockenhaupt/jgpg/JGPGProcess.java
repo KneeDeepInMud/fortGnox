@@ -36,7 +36,14 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.mockenhaupt.jgpg.JgpgPreferences.*;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CHARSET;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPGCONF_COMMAND;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_COMMAND;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_HOMEDIR;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_USE_ASCII;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_GPG_AGENT;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_PASS_DIALOG;
 
 /**
  *
@@ -815,6 +822,10 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                 cmdArgList.add(prefGpgExeLocation);
                 cmdArgList.add("--batch");
                 cmdArgList.add("--yes");
+                if (JgpgPreferences.get().getBoolean(PREF_GPG_USE_ASCII))
+                {
+                    cmdArgList.add("--armor");
+                }
                 cmdArgList.add("--homedir");
                 cmdArgList.add(prefGpgHome);
                 cmdArgList.add("--encrypt");
@@ -865,7 +876,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                     }
                     catch (IOException e)
                     {
-                        notifyEncryptionListeners("",e.getMessage() +  " ERROR writing content fo rencryption", fname, clientData);
+                        notifyEncryptionListeners("",e.getMessage() +  " ERROR writing content for encryption", fname, clientData);
                         return;
                     }
                     catch (InterruptedException e)
