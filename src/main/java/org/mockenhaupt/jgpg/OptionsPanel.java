@@ -79,8 +79,8 @@ public class OptionsPanel extends javax.swing.JDialog
     private javax.swing.JFormattedTextField jFormattedTextFieldNumberFavorites;
     private javax.swing.JLabel labelDataDirs;
     private javax.swing.JLabel labelGpgHome;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabelPassClearTimeout;
+    private javax.swing.JLabel jLabelTextClearTimeout;
     private javax.swing.JTextField jTextGpgExe;
     private javax.swing.JTextField jTextGpgPostCommand;
     private JTextField jTexfFieldGpgConf;
@@ -163,11 +163,14 @@ public class OptionsPanel extends javax.swing.JDialog
 
         JLabel labelGpgExe = new JLabel("GPG Executable");
 
+        gl.setAutoCreateGaps(true);
+        gl.setAutoCreateContainerGaps(true);
+
         gl.setHorizontalGroup(
                 gl.createParallelGroup()
                     .addGroup(
                         gl.createSequentialGroup()
-                            .addGroup(gl.createParallelGroup()
+                            .addGroup(gl.createParallelGroup(GroupLayout.Alignment.LEADING)
                                     .addComponent(labelGpgExe)
                                     .addComponent(jLabelGpgConf)
                                     .addComponent(labelGpgHome)
@@ -199,8 +202,7 @@ public class OptionsPanel extends javax.swing.JDialog
                     .addGroup(gl.createParallelGroup().addComponent(labelDefaultRID).addComponent(jTexfFieldGpgDefaultRID))
                     .addGroup(gl.createParallelGroup().addComponent(labelGpgPostCommand).addComponent(jTextGpgPostCommand))
                     .addComponent(jCheckBoxGpgUseAsciiFormat)
-
-
+                    .addGap(1000)
                     );
 
 
@@ -216,9 +218,9 @@ public class OptionsPanel extends javax.swing.JDialog
         jTextGpgHome = new javax.swing.JTextField();
         labelDataDirs = new javax.swing.JLabel();
         jTextSecretDirs = new javax.swing.JTextField();
-        jLabel5 = new javax.swing.JLabel();
+        jLabelPassClearTimeout = new javax.swing.JLabel();
         jFormattedTextPassClearTimeout = new javax.swing.JFormattedTextField();
-        jLabel6 = new javax.swing.JLabel();
+        jLabelTextClearTimeout = new javax.swing.JLabel();
         jFormattedTextareaClearTimeout = new javax.swing.JFormattedTextField();
         jCheckBoxUsePassDialog = new javax.swing.JCheckBox();
         jCheckBoxPasswordShortcuts = new javax.swing.JCheckBox();
@@ -230,101 +232,57 @@ public class OptionsPanel extends javax.swing.JDialog
         jCheckBoxShowFavoritesCount = new javax.swing.JCheckBox();
         jButtonSave = new javax.swing.JButton();
         jButtonClose = new javax.swing.JButton();
-
+        jCheckBoxShowDebugWindow = new JCheckBox("Show debug window");
         jFormattedTextareaClipTimeout = new javax.swing.JFormattedTextField();
         jFormattedTextFieldResetMaskButton = new javax.swing.JFormattedTextField();
         jFormattedTextFieldNumberFavorites = new javax.swing.JFormattedTextField();
         jFormattedTextTextAreaFontSize = new javax.swing.JFormattedTextField();
 
-        int row = 19;
-        int col = 2;
-        optionsPanel.setLayout(new java.awt.GridLayout(row, col, 10, 1));
+        GroupLayout gl = new GroupLayout(optionsPanel);
+        optionsPanel.setLayout(gl);
 
         JLabel jLabelOpenBrowserCommand = new JLabel("Browser launch command");
-        optionsPanel.add(jLabelOpenBrowserCommand);
         jTexfFieldBrowserOpen = new JTextField();
         jTexfFieldBrowserOpen.setMinimumSize(new java.awt.Dimension(500, 20));
         jTexfFieldBrowserOpen.setPreferredSize(new java.awt.Dimension(500, 20));
-        optionsPanel.add(jTexfFieldBrowserOpen);
 
-
-        jLabel5.setText("Password clear timeout [s]");
-        optionsPanel.add(jLabel5);
+        jLabelPassClearTimeout.setText("Password clear timeout [s]");
 
         jFormattedTextPassClearTimeout.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-        optionsPanel.add(jFormattedTextPassClearTimeout);
 
-        jLabel6.setText("Textarea clear timeout [s]");
-        optionsPanel.add(jLabel6);
+        jLabelTextClearTimeout.setText("Textarea clear timeout [s]");
         jFormattedTextareaClearTimeout.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-        optionsPanel.add(jFormattedTextareaClearTimeout);
 
-        JLabel jLabel7 = new JLabel("Clipboard flush timeout [s]");
-        optionsPanel.add(jLabel7);
+        JLabel jLabelClipboardTimeout = new JLabel("Clipboard flush timeout [s]");
         jFormattedTextareaClipTimeout.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-        optionsPanel.add(jFormattedTextareaClipTimeout);
 
-        JLabel jLabel9 = new JLabel("Restore mask password button timeout [s] (< 0 to disable)");
-        optionsPanel.add(jLabel9);
+        JLabel jLabelResetMaskTimeout = new JLabel("Restore mask password button timeout [s] (< 0 to disable)");
         jFormattedTextFieldResetMaskButton.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-        optionsPanel.add(jFormattedTextFieldResetMaskButton);
 
-
-        JLabel jLabel91 = new JLabel("Number favorites (< 0 unlimited)");
-        optionsPanel.add(jLabel91);
+        JLabel jLabelNumberFavorites = new JLabel("Number favorites (< 0 unlimited)");
         jFormattedTextFieldNumberFavorites.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-        optionsPanel.add(jFormattedTextFieldNumberFavorites);
-
-
-
-        JLabel labelPassPatterns = new JLabel("Password patterns (\"|\" separated)");
+        JLabel jLabelPassPatterns = new JLabel("Password patterns (\"|\" separated)");
         textFieldPassPatterns = new JTextField();
-        optionsPanel.add(labelPassPatterns);
-        optionsPanel.add(textFieldPassPatterns);
 
         JLabel labelCharset = new JLabel("Character Set");
         String[] charsets = {"ISO-8859-15", "ISO-8859-1", "UTF-8"};
         comboBoxCharset = new JComboBox(charsets);
-        optionsPanel.add(labelCharset);
-        optionsPanel.add(comboBoxCharset);
 
-        JLabel jLabel8 = new JLabel("Font size (text area)");
-        optionsPanel.add(jLabel8);
+        JLabel jLabelFontSize = new JLabel("Font size (text area)");
         jFormattedTextTextAreaFontSize.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-        optionsPanel.add(jFormattedTextTextAreaFontSize);
-
-
 
         JLabel labelUsernamePatterns = new JLabel("Username patterns (\"|\" separated)");
         textFieldUsernamePatterns = new JTextField();
-        optionsPanel.add(labelUsernamePatterns);
-        optionsPanel.add(textFieldUsernamePatterns);
-
 
         jCheckBoxUsePassDialog.setText("Show password dialog (might not be required with GPG agent)");
-        optionsPanel.add(jCheckBoxUsePassDialog);
-
         jCheckBoxPasswordShortcuts.setText("Show password shortcut bar");
-        optionsPanel.add(jCheckBoxPasswordShortcuts);
-
         jCheckboxReloadAgent.setText("Allow flushing password from GPG agent");
-        optionsPanel.add(jCheckboxReloadAgent);
-
         jCheckboxMastFirstLine.setText("Mask the first line on program start");
-        optionsPanel.add(jCheckboxMastFirstLine);
-
         jCheckBoxUseFavorites.setText("Show list of favorites");
-        optionsPanel.add(jCheckBoxUseFavorites);
-
         jCheckBoxFilterFavorites.setText("Filter favorites in addition to passwords");
-        optionsPanel.add(jCheckBoxFilterFavorites);
-
         jCheckBoxShowFavoritesCount.setText("Show count of individual favorite");
-        optionsPanel.add(jCheckBoxShowFavoritesCount);
-
 
         // show/hide debug window
-        optionsPanel.add(jCheckBoxShowDebugWindow = new JCheckBox("Show debug window"));
         DebugWindow.get().addPropertyChangeListener(new PropertyChangeListener()
         {
             @Override
@@ -346,14 +304,75 @@ public class OptionsPanel extends javax.swing.JDialog
             }
         });
 
+        gl.setAutoCreateGaps(true);
+        gl.setAutoCreateContainerGaps(true);
+
+        gl.setHorizontalGroup(
+                gl.createParallelGroup()
+                        .addGroup(
+                                gl.createSequentialGroup()
+                                        .addGroup(gl.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                .addComponent(jLabelOpenBrowserCommand)
+                                                .addComponent(jLabelPassClearTimeout)
+                                                .addComponent(jLabelTextClearTimeout)
+                                                .addComponent(jLabelClipboardTimeout)
+                                                .addComponent(jLabelResetMaskTimeout)
+                                                .addComponent(jLabelNumberFavorites)
+                                                .addComponent(jLabelPassPatterns)
+                                                .addComponent(labelCharset)
+                                                .addComponent(jLabelFontSize)
+                                                .addComponent(labelUsernamePatterns)
+                                                .addComponent(jCheckBoxUsePassDialog)
+                                                .addComponent(jCheckboxReloadAgent)
+                                                .addComponent(jCheckBoxUseFavorites)
+                                                .addComponent(jCheckBoxShowFavoritesCount)
+                                        )
+                                        .addGroup(gl.createParallelGroup()
+                                                .addComponent(jTexfFieldBrowserOpen)
+                                                .addComponent(jFormattedTextPassClearTimeout)
+                                                .addComponent(jFormattedTextareaClearTimeout)
+                                                .addComponent(jFormattedTextareaClipTimeout)
+                                                .addComponent(jFormattedTextFieldResetMaskButton)
+                                                .addComponent(jFormattedTextFieldNumberFavorites)
+                                                .addComponent(textFieldPassPatterns)
+                                                .addComponent(comboBoxCharset)
+                                                .addComponent(jFormattedTextTextAreaFontSize)
+                                                .addComponent(textFieldUsernamePatterns)
+                                                .addComponent(jCheckBoxPasswordShortcuts)
+                                                .addComponent(jCheckboxMastFirstLine)
+                                                .addComponent(jCheckBoxFilterFavorites)
+                                                .addComponent(jCheckBoxShowDebugWindow)
+                                        )
+                        )
+        );
+
+        gl.setVerticalGroup(
+                gl.createSequentialGroup()
+                        .addGroup(gl.createParallelGroup().addComponent(jLabelOpenBrowserCommand).addComponent(jTexfFieldBrowserOpen))
+                        .addGroup(gl.createParallelGroup().addComponent(jLabelPassClearTimeout).addComponent(jFormattedTextPassClearTimeout))
+                        .addGroup(gl.createParallelGroup().addComponent(jLabelTextClearTimeout).addComponent(jFormattedTextareaClearTimeout))
+                        .addGroup(gl.createParallelGroup().addComponent(jLabelClipboardTimeout).addComponent(jFormattedTextareaClipTimeout))
+                        .addGroup(gl.createParallelGroup().addComponent(jLabelResetMaskTimeout).addComponent(jFormattedTextFieldResetMaskButton))
+                        .addGroup(gl.createParallelGroup().addComponent(jLabelNumberFavorites).addComponent(jFormattedTextFieldNumberFavorites))
+                        .addGroup(gl.createParallelGroup().addComponent(jLabelPassPatterns).addComponent(textFieldPassPatterns))
+                        .addGroup(gl.createParallelGroup().addComponent(labelCharset).addComponent(comboBoxCharset))
+                        .addGroup(gl.createParallelGroup().addComponent(jLabelFontSize).addComponent(jFormattedTextTextAreaFontSize))
+                        .addGroup(gl.createParallelGroup().addComponent(labelUsernamePatterns).addComponent(textFieldUsernamePatterns))
+                        .addGroup(gl.createParallelGroup().addComponent(jCheckBoxUsePassDialog).addComponent(jCheckBoxPasswordShortcuts))
+                        .addGroup(gl.createParallelGroup().addComponent(jCheckboxReloadAgent).addComponent(jCheckboxMastFirstLine))
+                        .addGroup(gl.createParallelGroup().addComponent(jCheckBoxUseFavorites).addComponent(jCheckBoxFilterFavorites))
+                        .addGroup(gl.createParallelGroup().addComponent(jCheckBoxShowFavoritesCount).addComponent(jCheckBoxShowDebugWindow))
+        );
 
 
-        for (int i = optionsPanel.getComponentCount(); i < row * col; i++) {
-            JLabel l = new JLabel(" ");
-//            l.setBorder(BorderFactory.createLineBorder(Color.red));
-            optionsPanel.add(l);
-        }
-
+//        Arrays.stream(optionsPanel.getComponents()).forEach(component -> {
+//            if (component instanceof JLabel)
+//            {
+//                ((JLabel)component).setHorizontalAlignment(JLabel.RIGHT);
+//                ((JLabel)component).setBorder(BorderFactory.createLineBorder(Color.red));
+//
+//            }
+//        });
 
         // ==============================================================
 
