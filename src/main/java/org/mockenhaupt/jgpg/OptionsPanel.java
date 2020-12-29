@@ -7,6 +7,7 @@
 package org.mockenhaupt.jgpg;
 
 
+import javax.swing.GroupLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -76,8 +77,8 @@ public class OptionsPanel extends javax.swing.JDialog
     private javax.swing.JFormattedTextField jFormattedTextareaClipTimeout;
     private javax.swing.JFormattedTextField jFormattedTextFieldResetMaskButton;
     private javax.swing.JFormattedTextField jFormattedTextFieldNumberFavorites;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel labelDataDirs;
+    private javax.swing.JLabel labelGpgHome;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JTextField jTextGpgExe;
@@ -146,44 +147,63 @@ public class OptionsPanel extends javax.swing.JDialog
     {
         int col = 2;
         int row = 20;
-        gpgPanel.setLayout(new java.awt.GridLayout(row, col, 4, 1));
-
-        gpgPanel.add(new JLabel("GPG Executable"));
-        gpgPanel.add(jTextGpgExe);
+        GroupLayout gl = new GroupLayout(gpgPanel);
+        gpgPanel.setLayout(gl);
 
         JLabel jLabelGpgConf = new JLabel("GPGCONF Executable");
-        gpgPanel.add(jLabelGpgConf);
         jTexfFieldGpgConf = new JTextField();
-        gpgPanel.add(jTexfFieldGpgConf);
-
-        jLabel3.setText("GPG Home");
-        gpgPanel.add(jLabel3);
-        gpgPanel.add(jTextGpgHome);
-
-        jLabel2.setText("Data directories (separate with \";\")");
-        gpgPanel.add(jLabel2);
-        gpgPanel.add(jTextSecretDirs);
-
-
-        gpgPanel.add(new JLabel("Recipient ID hint file"));
+        labelGpgHome.setText("GPG Home");
+        labelDataDirs.setText("Data directories (separate with \";\")");
         jTexfFieldGpgRIDFile = new JTextField();
-        gpgPanel.add(jTexfFieldGpgRIDFile);
-
-        gpgPanel.add(new JLabel("Default recipient ID for password encryption"));
         jTexfFieldGpgDefaultRID = new JTextField();
-        gpgPanel.add(jTexfFieldGpgDefaultRID);
-
-        gpgPanel.add(new JLabel("GPG Post Command (will be executed after encryption)"));
-        gpgPanel.add(jTextGpgPostCommand);
-
         jCheckBoxGpgUseAsciiFormat.setText("Encrypt in ASCII format");
-        gpgPanel.add(jCheckBoxGpgUseAsciiFormat);
+        JLabel labelRID = new JLabel("Recipient ID hint file");
+        JLabel labelDefaultRID = new JLabel("Default recipient ID for password encryption");
+        JLabel labelGpgPostCommand = new JLabel("GPG Post Command (will be executed after encryption)");
 
-        for (int i = gpgPanel.getComponentCount(); i < row * col; i++) {
-            JLabel l = new JLabel(" ");
-//            l.setBorder(BorderFactory.createLineBorder(Color.red));
-            gpgPanel.add(l);
-        }
+        JLabel labelGpgExe = new JLabel("GPG Executable");
+
+        gl.setHorizontalGroup(
+                gl.createParallelGroup()
+                    .addGroup(
+                        gl.createSequentialGroup()
+                            .addGroup(gl.createParallelGroup()
+                                    .addComponent(labelGpgExe)
+                                    .addComponent(jLabelGpgConf)
+                                    .addComponent(labelGpgHome)
+                                    .addComponent(labelDataDirs)
+                                    .addComponent(labelRID)
+                                    .addComponent(labelDefaultRID)
+                                    .addComponent(labelGpgPostCommand)
+                            )
+                            .addGroup(gl.createParallelGroup()
+                                    .addComponent(jTextGpgExe)
+                                    .addComponent(jTexfFieldGpgConf)
+                                    .addComponent(jTextGpgHome)
+                                    .addComponent(jTextSecretDirs)
+                                    .addComponent(jTexfFieldGpgRIDFile)
+                                    .addComponent(jTexfFieldGpgDefaultRID)
+                                    .addComponent(jTextGpgPostCommand)
+                            )
+                    )
+                    .addComponent(jCheckBoxGpgUseAsciiFormat)
+        );
+
+        gl.setVerticalGroup(
+                gl.createSequentialGroup()
+                    .addGroup(gl.createParallelGroup().addComponent(labelGpgExe).addComponent(jTextGpgExe))
+                    .addGroup(gl.createParallelGroup().addComponent(jLabelGpgConf).addComponent(jTexfFieldGpgConf))
+                    .addGroup(gl.createParallelGroup().addComponent(labelGpgHome).addComponent(jTextGpgHome))
+                    .addGroup(gl.createParallelGroup().addComponent(labelDataDirs).addComponent(jTextSecretDirs))
+                    .addGroup(gl.createParallelGroup().addComponent(labelRID).addComponent(jTexfFieldGpgRIDFile))
+                    .addGroup(gl.createParallelGroup().addComponent(labelDefaultRID).addComponent(jTexfFieldGpgDefaultRID))
+                    .addGroup(gl.createParallelGroup().addComponent(labelGpgPostCommand).addComponent(jTextGpgPostCommand))
+                    .addComponent(jCheckBoxGpgUseAsciiFormat)
+
+
+                    );
+
+
     }
 
 
@@ -192,9 +212,9 @@ public class OptionsPanel extends javax.swing.JDialog
     {
         jTextGpgExe = new javax.swing.JTextField();
         jTextGpgPostCommand = new javax.swing.JTextField();
-        jLabel3 = new javax.swing.JLabel();
+        labelGpgHome = new javax.swing.JLabel();
         jTextGpgHome = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
+        labelDataDirs = new javax.swing.JLabel();
         jTextSecretDirs = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
         jFormattedTextPassClearTimeout = new javax.swing.JFormattedTextField();
