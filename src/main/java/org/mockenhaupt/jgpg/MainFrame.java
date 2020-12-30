@@ -576,7 +576,7 @@ public class MainFrame extends JFrame implements
                                                             ex);
         }
 
-//        buttonLAF.setVisible(false);
+        buttonLAF.setVisible(false);
 //        buttonLAF.setMnemonic('L');
         
         progressClearTimer.setMaximum(CLEAR_SECONDS);

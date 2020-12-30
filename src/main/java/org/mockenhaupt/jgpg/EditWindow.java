@@ -22,8 +22,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.MouseInfo;
@@ -47,13 +49,17 @@ import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_USE_ASCII;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_TEXTAREA_FONT_SIZE;
 
-public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChangeListener, JGPGProcess.CommandListener
+public class EditWindow implements JGPGProcess.EncrypionListener,
+        PropertyChangeListener,
+        JGPGProcess.CommandListener,
+        PasswordGenerator.PasswordInsertListener
 {
     private JDialog editWindow;
     private JEditorPane editorPane;
     private JTextArea textAreaStatus;
     private JComboBox<String> comboBoxDirectories;
     private JTextField textFieldFilename;
+    private JLabel labelRID = new JLabel("RID");
     private JTextField textFieldRID;
     final private JGPGProcess jgpgProcess;
     private boolean modified = false;
@@ -65,10 +71,13 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
 
     final private List<String> directories = new ArrayList<>();
 
+    private PasswordGenerator passwordGenerator;
+
     public EditWindow (JFrame parent, JGPGProcess jgpgProcess)
     {
         this.jgpgProcess = jgpgProcess;
         this.parentWindow = parent;
+        passwordGenerator = new PasswordGenerator(this);
         init(parent);
         jgpgProcess.addEncryptionListener(this);
         jgpgProcess.addCommandListener(this);
@@ -125,7 +134,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
     public void setModified (boolean modified)
     {
         this.saveButton.setEnabled(modified);
-        this.saveButton.setVisible(modified);
+//        this.saveButton.setE(modified);
         this.modified = modified;
     }
 
@@ -344,7 +353,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
             {
                 String ftest = getNewFilename(comboBoxDirectories, fileNameText);
                 File ftestFile = new File(ftest);
-                buttonCreate.setEnabled(!ftestFile.exists());
+                buttonCreate.setEnabled(!ftestFile.exists() && !fileNameText.getText().isEmpty());
             }
         });
 
@@ -389,9 +398,11 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
     }
 
 
-    private JToolBar commandToolbar ()
+    private Container commandToolbar ()
     {
-        JToolBar jToolBar = new JToolBar();
+        JPanel jToolBar = new JPanel();
+        GroupLayout gl = new GroupLayout(jToolBar);
+        jToolBar.setLayout(gl);
 
         // Button: Cancel
         cancelButton = new JButton("Cancel / Close");
@@ -413,6 +424,14 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
         saveButton.setMnemonic(KeyEvent.VK_S);
         saveButton.addActionListener(actionEvent -> doEncrypt());
 
+
+//        JButton passwordGenerator = new JButton("Random Password");
+//        passwordGenerator.setMnemonic(KeyEvent.VK_R);
+//        passwordGenerator.addActionListener(ae -> {
+//            new PasswordGenerator(parentWindow);
+//        });
+
+
         textFieldFilename = new JTextField();
         textFieldFilename.setEnabled(false);
 
@@ -423,13 +442,38 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
         comboBoxDirectories = new JComboBox<>();
         comboBoxDirectories.setVisible(false);
 
-        jToolBar.add(cancelButton);
-        jToolBar.add(saveButton);
-        jToolBar.add(comboBoxDirectories);
-        jToolBar.add(textFieldFilename);
+        JPanel passwordGeneratorPanel = passwordGenerator.getGeneratorPanel();
+        gl.setHorizontalGroup(gl.createParallelGroup()
+                .addGroup(gl.createSequentialGroup()
+                        .addComponent(cancelButton)
+                        .addComponent(saveButton)
+                        .addComponent(comboBoxDirectories)
+                        .addComponent(textFieldFilename)
+                        .addComponent(labelRID)
+                        .addComponent(textFieldRID)
+                )
+                .addComponent(passwordGeneratorPanel)
+        );
 
-        jToolBar.add(new JLabel("RID:"));
-        jToolBar.add(textFieldRID);
+        gl.setVerticalGroup(gl.createSequentialGroup()
+                .addGroup(gl.createParallelGroup()
+                        .addComponent(cancelButton)
+                        .addComponent(saveButton)
+                        .addComponent(comboBoxDirectories)
+                        .addComponent(textFieldFilename)
+                        .addComponent(labelRID)
+                        .addComponent(textFieldRID)
+                       )
+                .addComponent(passwordGeneratorPanel)
+        );
+//        jToolBar.add(cancelButton);
+//        jToolBar.add(saveButton);
+//        jToolBar.add(comboBoxDirectories);
+//        jToolBar.add(textFieldFilename);
+//        jToolBar.add(new JLabel("RID:"));
+//        jToolBar.add(textFieldRID);
+
+//        jToolBar.add(passwordGenerator.getGeneratorPanel());
 
         return jToolBar;
     }
@@ -553,6 +597,19 @@ public class EditWindow implements JGPGProcess.EncrypionListener, PropertyChange
         else
         {
             JOptionPane.showMessageDialog(editWindow, out + err, "JGPG POST", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    @Override
+    public void handlePasswordInsert (String password)
+    {
+        try
+        {
+            editorPane.getDocument().insertString(editorPane.getCaretPosition(), password, null);
+        }
+        catch (BadLocationException e)
+        {
+            textAreaStatus.setText("Failure inserting password, " + e.toString());
         }
     }
 }
