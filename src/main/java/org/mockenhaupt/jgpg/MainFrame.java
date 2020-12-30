@@ -11,21 +11,30 @@
 package org.mockenhaupt.jgpg;
 
 
+import javax.swing.AbstractListModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.WindowConstants;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
@@ -60,6 +69,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.OK_OPTION;
 import static org.mockenhaupt.jgpg.DebugWindow.Category.DIR;
@@ -81,14 +91,13 @@ import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_FAVORITES;
  *
  * @author fmoc
  */
-public class MainFrame extends javax.swing.JFrame implements
+public class MainFrame extends JFrame implements
         JGPGProcess.SecretListListener,
         JGPGProcess.ResultListListener,
         ActionListener,
         PropertyChangeListener
 {
 
-    private final boolean DEBUG = false;
     private JGPGProcess gpgProcess;
     private EditWindow editWindow;
 //    private PassphraseDialog passDlg;
@@ -120,6 +129,20 @@ public class MainFrame extends javax.swing.JFrame implements
     public static final String VERSION_BUILD = "buildNumber";
 
     public static final String CLIENTDATA_EDIT = "editGpg";
+    private JButton buttonClearPass;
+    private JButton buttonClearFavorites;
+    private JButton buttonLAF;
+    private JButton buttonNew;
+    private JList jListSecrets;
+    private JToolBar.Separator jSeparator1;
+    private JProgressBar progressClearTimer;
+    private JProgressBar progressPassTimer;
+    private JTextField textFilter;
+    private JPanelTextArea jPanelTextArea;
+    private JLabel labelSecretInfo;
+
+    private boolean prefUseFavoriteList = true;
+    private boolean prefFilterFavoriteList = true;
 
     /**
      * @param args the command line arguments
@@ -508,12 +531,6 @@ public class MainFrame extends javax.swing.JFrame implements
         URL url = this.getClass().getResource("kgpg_identity.png");
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 
-        if (DEBUG)
-        {
-            CLEAR_SECONDS = 3;
-            CLIP_SECONDS = 3;
-            PASSWORD_SECONDS = 8;
-        }
 
         lafs = UIManager.getInstalledLookAndFeels();
         try
@@ -559,7 +576,7 @@ public class MainFrame extends javax.swing.JFrame implements
                                                             ex);
         }
 
-        buttonLAF.setVisible(false);
+//        buttonLAF.setVisible(false);
 //        buttonLAF.setMnemonic('L');
         
         progressClearTimer.setMaximum(CLEAR_SECONDS);
@@ -583,8 +600,6 @@ public class MainFrame extends javax.swing.JFrame implements
                     textFilter.setText("");
                 }
                 refreshSecretList();
-
-//                gpgProcess.setFilter(textFilter.getText());
             }
         });
 
@@ -616,6 +631,8 @@ public class MainFrame extends javax.swing.JFrame implements
         setSize(880, 640);
     }
 
+
+
     private void initSecretListEventHandling (JList jList)
     {
         jList.addKeyListener(new KeyAdapter()
@@ -632,7 +649,6 @@ public class MainFrame extends javax.swing.JFrame implements
                 else if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
                 {
                     textFilter.setText("");
-//                    gpgProcess.setFilter(textFilter.getText());
                     refreshSecretList();
                     textFilter.requestFocus();
                 }
@@ -811,33 +827,12 @@ public class MainFrame extends javax.swing.JFrame implements
         });
     }
 
-
-
-//    private String favoritesParseFromJsonX (String json)
-//    {
-//        try
-//        {
-//            ObjectMapper objectMapper = new ObjectMapper();
-//            Map<String, Integer> result = objectMapper.readValue(json, LinkedHashMap.class);
-//            result.entrySet().stream().forEach(stringIntegerEntry ->
-//                    {
-//                        String fname = stringIntegerEntry.getKey();
-//                        if (new File(fname).isFile())
-//                        {
-//                            favorites.put(fname, stringIntegerEntry.getValue());
-//                        }
-//                    }
-//            );
-//            refreshFavorites();
-//        }
-//        catch (IOException e)
-//        {
-//            e.printStackTrace();
-//        }
-//        return json;
-//    }
-
-    private String favoritesParseFromJson (String json)
+    /**
+     * Avoid dependencies to Jackson etc. by parsing simple JSON "by hand"
+      * @param json
+     * @return
+     */
+    private void favoritesParseFromJson (String json)
     {
         Pattern p = Pattern.compile("\"([^\"]+)\":([^,}]*)[,}]");
         Matcher m = p.matcher(json);
@@ -857,8 +852,6 @@ public class MainFrame extends javax.swing.JFrame implements
         JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
 
         refreshFavorites();
-
-        return json;
     }
 
     private String favoritesAsJson ()
@@ -1023,7 +1016,7 @@ public class MainFrame extends javax.swing.JFrame implements
         if (secretListModel != null)
         {
             secretListInfo = " " + secretListModel.size() + " entries";
-            jListSecrets.setModel(new javax.swing.AbstractListModel()
+            jListSecrets.setModel(new AbstractListModel()
             {
                 public int getSize ()
                 {
@@ -1153,43 +1146,43 @@ public class MainFrame extends javax.swing.JFrame implements
     private void initComponents()
     {
 
-        javax.swing.JSplitPane jSplitPane1 = new javax.swing.JSplitPane();
+        JSplitPane jSplitPane1 = new JSplitPane();
         JPanel panelList = new JPanel();
-        textFilter = new javax.swing.JTextField();
-        javax.swing.JScrollPane scrollPaneSecrets = new javax.swing.JScrollPane();
+        textFilter = new JTextField();
+        JScrollPane scrollPaneSecrets = new JScrollPane();
 
         // gpg files and favorite gpg files
 
         labelSecretInfo = new JLabel();
         jListSecrets = new JList();
         JPanel jToolBarPanel = new JPanel(new BorderLayout());
-        javax.swing.JToolBar jToolBar1 = new javax.swing.JToolBar();
-        buttonClearPass = new javax.swing.JButton();
-        buttonClearFavorites = new javax.swing.JButton();
+        JToolBar jToolBarMainFunctions = new JToolBar();
+        buttonClearPass = new JButton();
+        buttonClearFavorites = new JButton();
         buttonClearPass.setMnemonic(KeyEvent.VK_P);
         JButton buttonClearTextarea = new JButton();
         buttonClearTextarea.setMnemonic(KeyEvent.VK_L);
-        javax.swing.JToolBar.Separator jSeparator01 = new javax.swing.JToolBar.Separator();
-        jSeparator1 = new javax.swing.JToolBar.Separator();
+        JToolBar.Separator jSeparator01 = new JToolBar.Separator();
+        jSeparator1 = new JToolBar.Separator();
         JButton buttonExit = new JButton();
         JToggleButton buttonOptions = new JToggleButton();
         JButton buttonAbout = new JButton();
         buttonExit.setMnemonic(KeyEvent.VK_X);
         buttonOptions.setMnemonic(KeyEvent.VK_O);
-        javax.swing.JToolBar.Separator jSeparator2 = new javax.swing.JToolBar.Separator();
+        JToolBar.Separator jSeparator2 = new JToolBar.Separator();
         JButton jButtonSettings = new JButton();
         jButtonSettings.setMnemonic(KeyEvent.VK_S);
         JButton jButtonClipboard = new JButton();
         jButtonClipboard.setMnemonic(KeyEvent.VK_C);
-        javax.swing.JToolBar.Separator jSeparator3 = new javax.swing.JToolBar.Separator();
-        buttonLAF = new javax.swing.JButton();
-        buttonNew = new javax.swing.JButton();
+        JToolBar.Separator jSeparator3 = new JToolBar.Separator();
+        buttonLAF = new JButton();
+        buttonNew = new JButton();
         JPanel statusBarPanel = new JPanel();
-        progressClearTimer = new javax.swing.JProgressBar();
-        progressPassTimer = new javax.swing.JProgressBar();
+        progressClearTimer = new JProgressBar();
+        progressPassTimer = new JProgressBar();
 
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setTitle("JGPG");
         setMinimumSize(new java.awt.Dimension(800, 600));
 
@@ -1213,7 +1206,7 @@ public class MainFrame extends javax.swing.JFrame implements
         JButton cleanButton = new JButton();
         cleanButton.setMinimumSize(new java.awt.Dimension(30, 30));
         cleanButton.setPreferredSize(new java.awt.Dimension(30, 30));
-        ImageIcon cleanButtonIcon = new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/clean.png"));
+        ImageIcon cleanButtonIcon = new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/clean.png"));
         cleanButton.setIcon(cleanButtonIcon); // NOI18N
         textFilterPanel.add(cleanButton, BorderLayout.EAST);
 
@@ -1238,16 +1231,16 @@ public class MainFrame extends javax.swing.JFrame implements
 
         getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
-        jToolBar1.setRollover(true);
+        jToolBarMainFunctions.setRollover(true);
 
 
 
-        buttonNew.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/new32.png")));
+        buttonNew.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/new32.png")));
         buttonNew.setText("New");
         buttonNew.setToolTipText("Insert new password");
         buttonNew.setFocusable(false);
-        buttonNew.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        buttonNew.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        buttonNew.setHorizontalTextPosition(SwingConstants.CENTER);
+        buttonNew.setVerticalTextPosition(SwingConstants.BOTTOM);
         buttonNew.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -1255,14 +1248,14 @@ public class MainFrame extends javax.swing.JFrame implements
                 editWindow.showNew();
             }
         });
-        jToolBar1.add(buttonNew);
+        jToolBarMainFunctions.add(buttonNew);
 
-        jButtonClipboard.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/icons8-clipboard-30.png"))); // NOI18N
+        jButtonClipboard.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/icons8-clipboard-30.png"))); // NOI18N
         jButtonClipboard.setText("Clipboard First Line");
         jButtonClipboard.setToolTipText("Save the first line of decoded file to clipboard");
         jButtonClipboard.setFocusable(false);
-        jButtonClipboard.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButtonClipboard.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButtonClipboard.setHorizontalTextPosition(SwingConstants.CENTER);
+        jButtonClipboard.setVerticalTextPosition(SwingConstants.BOTTOM);
         jButtonClipboard.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -1277,13 +1270,13 @@ public class MainFrame extends javax.swing.JFrame implements
 
 
         // ---------------------------------
-        buttonClearTextarea.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346509543_edit-clear.png"))); // NOI18N
+        buttonClearTextarea.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346509543_edit-clear.png"))); // NOI18N
         buttonClearTextarea.setText("Clear Textarea");
         buttonClearTextarea.setToolTipText("Clears the textarea and the clipboard in case a password has been stored there");
         buttonClearTextarea.setBorderPainted(false);
         buttonClearTextarea.setFocusable(false);
-        buttonClearTextarea.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        buttonClearTextarea.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        buttonClearTextarea.setHorizontalTextPosition(SwingConstants.CENTER);
+        buttonClearTextarea.setVerticalTextPosition(SwingConstants.BOTTOM);
         buttonClearTextarea.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -1291,18 +1284,18 @@ public class MainFrame extends javax.swing.JFrame implements
                 buttonClearTextareaActionPerformed(evt);
             }
         });
-        jToolBar1.add(buttonClearTextarea);
-        jToolBar1.add(jSeparator01);
+        jToolBarMainFunctions.add(buttonClearTextarea);
+        jToolBarMainFunctions.add(jSeparator01);
 
 
         // ---------------------------------
-        buttonClearPass.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346509520_preferences-desktop-cryptography.png"))); // NOI18N
+        buttonClearPass.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346509520_preferences-desktop-cryptography.png"))); // NOI18N
         buttonClearPass.setText("Clear Passphrase");
         buttonClearPass.setToolTipText("Clears the internally stored passphrase and optionally the GPG agenty password (see Settings)");
         buttonClearPass.setBorderPainted(false);
         buttonClearPass.setFocusable(false);
-        buttonClearPass.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        buttonClearPass.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        buttonClearPass.setHorizontalTextPosition(SwingConstants.CENTER);
+        buttonClearPass.setVerticalTextPosition(SwingConstants.BOTTOM);
         buttonClearPass.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -1310,15 +1303,15 @@ public class MainFrame extends javax.swing.JFrame implements
                 buttonClearPassActionPerformed(evt);
             }
         });
-        jToolBar1.add(buttonClearPass);
+        jToolBarMainFunctions.add(buttonClearPass);
         // ---------------------------------
-        buttonClearFavorites.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/favs32.png"))); // NOI18N
+        buttonClearFavorites.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/favs32.png"))); // NOI18N
         buttonClearFavorites.setText("Clear Favorites");
         buttonClearFavorites.setToolTipText("Clears the favorites list");
         buttonClearFavorites.setBorderPainted(false);
         buttonClearFavorites.setFocusable(false);
-        buttonClearFavorites.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        buttonClearFavorites.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        buttonClearFavorites.setHorizontalTextPosition(SwingConstants.CENTER);
+        buttonClearFavorites.setVerticalTextPosition(SwingConstants.BOTTOM);
         buttonClearFavorites.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed (java.awt.event.ActionEvent evt)
@@ -1331,21 +1324,21 @@ public class MainFrame extends javax.swing.JFrame implements
                 }
             }
         });
-        jToolBar1.add(buttonClearFavorites);
+        jToolBarMainFunctions.add(buttonClearFavorites);
 
         // ---------------------------------
 
 
         jSeparator1.setRequestFocusEnabled(false);
         jSeparator1.setSeparatorSize(new java.awt.Dimension(30, 4));
-        jToolBar1.add(jSeparator1);
+        jToolBarMainFunctions.add(jSeparator1);
 
-        buttonExit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346509462_exit.png"))); // NOI18N
+        buttonExit.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346509462_exit.png"))); // NOI18N
         buttonExit.setText("EXIT");
         buttonExit.setBorderPainted(false);
         buttonExit.setFocusable(false);
-        buttonExit.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        buttonExit.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        buttonExit.setHorizontalTextPosition(SwingConstants.CENTER);
+        buttonExit.setVerticalTextPosition(SwingConstants.BOTTOM);
         buttonExit.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -1354,12 +1347,12 @@ public class MainFrame extends javax.swing.JFrame implements
             }
         });
 
-        buttonOptions.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/toolbar.png"))); // NOI18N
+        buttonOptions.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/toolbar.png"))); // NOI18N
         buttonOptions.setText("Text Options");
         buttonOptions.setBorderPainted(false);
         buttonOptions.setFocusable(false);
-        buttonOptions.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        buttonOptions.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        buttonOptions.setHorizontalTextPosition(SwingConstants.CENTER);
+        buttonOptions.setVerticalTextPosition(SwingConstants.BOTTOM);
         buttonOptions.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -1369,20 +1362,20 @@ public class MainFrame extends javax.swing.JFrame implements
         });
         jPanelTextArea.setButtonToolbarVisible(buttonOptions.isSelected());
 
-        jToolBar1.add(jButtonSettings);
+        jToolBarMainFunctions.add(jButtonSettings);
 
         jSeparator2.setRequestFocusEnabled(false);
         jSeparator2.setSeparatorSize(new java.awt.Dimension(30, 4));
-        jToolBar1.add(jSeparator2);
-        jToolBar1.add(buttonOptions);
-        jToolBar1.add(jSeparator2);
-        jToolBar1.add(buttonExit);
+        jToolBarMainFunctions.add(jSeparator2);
+        jToolBarMainFunctions.add(buttonOptions);
+        jToolBarMainFunctions.add(jSeparator2);
+        jToolBarMainFunctions.add(buttonExit);
 
-        jButtonSettings.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/Settings-icon.png"))); // NOI18N
+        jButtonSettings.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/Settings-icon.png"))); // NOI18N
         jButtonSettings.setText("JGPG Settings");
         jButtonSettings.setFocusable(false);
-        jButtonSettings.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButtonSettings.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButtonSettings.setHorizontalTextPosition(SwingConstants.CENTER);
+        jButtonSettings.setVerticalTextPosition(SwingConstants.BOTTOM);
         jButtonSettings.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -1396,12 +1389,12 @@ public class MainFrame extends javax.swing.JFrame implements
 
         jSeparator3.setRequestFocusEnabled(false);
         jSeparator3.setSeparatorSize(new java.awt.Dimension(30, 4));
-        jToolBar1.add(jSeparator3);
+        jToolBarMainFunctions.add(jSeparator3);
 
-        buttonLAF.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346515642_gnome-settings-theme.png"))); // NOI18N
+        buttonLAF.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346515642_gnome-settings-theme.png"))); // NOI18N
         buttonLAF.setText("Change theme");
         buttonLAF.setFocusable(false);
-        buttonLAF.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
+        buttonLAF.setHorizontalTextPosition(SwingConstants.RIGHT);
         buttonLAF.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -1409,15 +1402,15 @@ public class MainFrame extends javax.swing.JFrame implements
                 buttonLAFActionPerformed(evt);
             }
         });
-        jToolBar1.add(buttonLAF);
+        jToolBarMainFunctions.add(buttonLAF);
 
 
-        buttonAbout.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/icons8-info-30.png"))); // NOI18N
+        buttonAbout.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/icons8-info-30.png"))); // NOI18N
         buttonAbout.setText("");
         buttonAbout.setBorderPainted(false);
         buttonAbout.setFocusable(false);
-        buttonAbout.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        buttonAbout.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        buttonAbout.setHorizontalTextPosition(SwingConstants.CENTER);
+        buttonAbout.setVerticalTextPosition(SwingConstants.BOTTOM);
         buttonAbout.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -1427,7 +1420,7 @@ public class MainFrame extends javax.swing.JFrame implements
         });
         jToolBarPanel.add(buttonAbout, BorderLayout.EAST);
 
-        jToolBarPanel.add(jToolBar1, BorderLayout.CENTER);
+        jToolBarPanel.add(jToolBarMainFunctions, BorderLayout.CENTER);
         getContentPane().add(jToolBarPanel, java.awt.BorderLayout.PAGE_START);
 
         statusBarPanel.setLayout(new java.awt.GridLayout(1, 0, 10, 0));
@@ -1456,23 +1449,6 @@ public class MainFrame extends javax.swing.JFrame implements
         pack();
     }
 
-//    JTextArea debugTextArea = new JTextArea();
-//    private void initDebugWindow ()
-//    {
-//        JFrame debugFrame = new JFrame();
-//        debugFrame.setLayout(new BorderLayout());
-//        debugTextArea.setFont(new Font("monospaced", Font.PLAIN, 12));
-//        JScrollPane debugScrollPane = new JScrollPane(debugTextArea);
-//        debugScrollPane.setPreferredSize(new Dimension(600, 600));
-//        debugFrame.getContentPane().add(debugScrollPane, BorderLayout.CENTER);
-//        JToolBar debugToolbar;
-//        debugFrame.getContentPane().add(debugToolbar = new JToolBar(), BorderLayout.NORTH);
-//        JButton debugClear = new JButton("Clear");
-//        debugClear.addActionListener(e -> debugTextArea.setText(""));
-//        debugToolbar.add(debugClear);
-//        debugFrame.pack();
-//        debugFrame.setVisible(true);
-//    }
 
     private void buttonClearTextareaActionPerformed(java.awt.event.ActionEvent evt) {
         jPanelTextArea.clear("Cleared");
@@ -1531,7 +1507,7 @@ public class MainFrame extends javax.swing.JFrame implements
                 sb.toString(),
                 "About JGPG " + getVersionFromManifest().computeIfAbsent(VERSION_PROJECT, k -> "UNKNOWN"),
                 JOptionPane.INFORMATION_MESSAGE,
-                new javax.swing.ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/icons8-info-30.png")));
+                new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/icons8-info-30.png")));
     }
 
 
@@ -1578,21 +1554,6 @@ public class MainFrame extends javax.swing.JFrame implements
 
 
 
-    // Variables declaration - do not modify
-    private javax.swing.JButton buttonClearPass;
-    private javax.swing.JButton buttonClearFavorites;
-    private javax.swing.JButton buttonLAF;
-    private javax.swing.JButton buttonNew;
-    private JList jListSecrets;
-    private javax.swing.JToolBar.Separator jSeparator1;
-    private javax.swing.JProgressBar progressClearTimer;
-    private javax.swing.JProgressBar progressPassTimer;
-    private javax.swing.JTextField textFilter;
-    private JPanelTextArea jPanelTextArea;
-    private JLabel labelSecretInfo;
-
-    private boolean prefUseFavoriteList = true;
-    private boolean prefFilterFavoriteList = true;
 
     public void actionPerformed (ActionEvent e)
     {

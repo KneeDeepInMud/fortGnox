@@ -117,18 +117,18 @@ public class OptionsPanel extends javax.swing.JDialog
         this.jTextGpgExe.setText(pa.get(PREF_GPG_COMMAND));
         this.jTextGpgPostCommand.setText(pa.get(PREF_GPG_POST_COMMAND));
         this.jTextGpgHome.setText(pa.get(PREF_GPG_HOMEDIR));
-        this.jTexfFieldGpgConf.setText(  pa.get(PREF_GPGCONF_COMMAND)  );//jgpgProcess.getPrefGpgConfCommand());
-        this.jTexfFieldBrowserOpen.setText(  pa.get(PREF_URL_OPEN_COMMAND)  );//jgpgProcess.getPrefGpgConfCommand());
-        this.jTextSecretDirs.setText(pa.get(PREF_SECRETDIRS));//jgpgProcess.getPrefSecretDirsString());
-        this.jCheckBoxUsePassDialog.setSelected(pa.getBoolean(PREF_USE_PASS_DIALOG)); // jgpgProcess.isPrefUsePasswordDialog());
-        this.jCheckBoxPasswordShortcuts.setSelected(pa.getBoolean(PREF_SHOW_PASSWORD_SHORTCUT_BAR)); // jgpgProcess.isPrefUsePasswordDialog());
-        this.jCheckboxReloadAgent.setSelected(pa.getBoolean(PREF_USE_GPG_AGENT));//jgpgProcess.isPrefConnectToGpgAgent());
-        this.jCheckboxMastFirstLine.setSelected(pa.getBoolean(PREF_MASK_FIRST_LINE));//jgpgProcess.isPrefConnectToGpgAgent());
-        this.jCheckBoxUseFavorites.setSelected(pa.getBoolean(PREF_USE_FAVORITES));//jgpgProcess.isPrefConnectToGpgAgent());
+        this.jTexfFieldGpgConf.setText(pa.get(PREF_GPGCONF_COMMAND));
+        this.jTexfFieldBrowserOpen.setText(pa.get(PREF_URL_OPEN_COMMAND));
+        this.jTextSecretDirs.setText(pa.get(PREF_SECRETDIRS));
+        this.jCheckBoxUsePassDialog.setSelected(pa.getBoolean(PREF_USE_PASS_DIALOG));
+        this.jCheckBoxPasswordShortcuts.setSelected(pa.getBoolean(PREF_SHOW_PASSWORD_SHORTCUT_BAR));
+        this.jCheckboxReloadAgent.setSelected(pa.getBoolean(PREF_USE_GPG_AGENT));
+        this.jCheckboxMastFirstLine.setSelected(pa.getBoolean(PREF_MASK_FIRST_LINE));
+        this.jCheckBoxUseFavorites.setSelected(pa.getBoolean(PREF_USE_FAVORITES));
         this.jCheckBoxFilterFavorites.setSelected(pa.getBoolean(PREF_FILTER_FAVORITES));
-        this.jCheckBoxShowFavoritesCount.setSelected(pa.getBoolean(PREF_FAVORITES_SHOW_COUNT));//jgpgProcess.isPrefConnectToGpgAgent());
+        this.jCheckBoxShowFavoritesCount.setSelected(pa.getBoolean(PREF_FAVORITES_SHOW_COUNT));
         this.jFormattedTextareaClearTimeout.setText(String.format("%d", pa.getInt(PREF_CLEAR_SECONDS)));
-        this.jFormattedTextPassClearTimeout.setText(String.format("%d", pa.getInt(PREF_PASSWORD_SECONDS))); //mainFrame.getPASSWORD_SECONDS()));
+        this.jFormattedTextPassClearTimeout.setText(String.format("%d", pa.getInt(PREF_PASSWORD_SECONDS)));
         this.jFormattedTextareaClipTimeout.setText(String.format("%d", pa.getInt(PREF_CLIP_SECONDS)));
         this.jFormattedTextFieldResetMaskButton.setText(String.format("%d", pa.getInt(PREF_RESET_MASK_BUTTON_SECONDS)));
         this.jFormattedTextFieldNumberFavorites.setText(String.format("%d", pa.getInt(PREF_NUMBER_FAVORITES)));
@@ -138,15 +138,13 @@ public class OptionsPanel extends javax.swing.JDialog
         this.textFieldUsernamePatterns.setText(pa.get(PREF_USERNAME_MASK_PATTERNS));
         this.jTexfFieldGpgRIDFile.setText(pa.get(PREF_GPG_RID_FILE, ".gpg-id"));
         this.jTexfFieldGpgDefaultRID.setText(pa.get(PREF_GPG_DEFAULT_RID, ""));
-        this.jCheckBoxGpgUseAsciiFormat.setSelected(pa.getBoolean(PREF_GPG_USE_ASCII));//jgpgProcess.isPrefConnectToGpgAgent());
+        this.jCheckBoxGpgUseAsciiFormat.setSelected(pa.getBoolean(PREF_GPG_USE_ASCII));
 
     }
 
 
     private void initGpgSettings ()
     {
-        int col = 2;
-        int row = 20;
         GroupLayout gl = new GroupLayout(gpgPanel);
         gpgPanel.setLayout(gl);
 
@@ -243,8 +241,6 @@ public class OptionsPanel extends javax.swing.JDialog
 
         JLabel jLabelOpenBrowserCommand = new JLabel("Browser launch command");
         jTexfFieldBrowserOpen = new JTextField();
-        jTexfFieldBrowserOpen.setMinimumSize(new java.awt.Dimension(500, 20));
-        jTexfFieldBrowserOpen.setPreferredSize(new java.awt.Dimension(500, 20));
 
         jLabelPassClearTimeout.setText("Password clear timeout [s]");
 
@@ -364,15 +360,6 @@ public class OptionsPanel extends javax.swing.JDialog
                         .addGroup(gl.createParallelGroup().addComponent(jCheckBoxShowFavoritesCount).addComponent(jCheckBoxShowDebugWindow))
         );
 
-
-//        Arrays.stream(optionsPanel.getComponents()).forEach(component -> {
-//            if (component instanceof JLabel)
-//            {
-//                ((JLabel)component).setHorizontalAlignment(JLabel.RIGHT);
-//                ((JLabel)component).setBorder(BorderFactory.createLineBorder(Color.red));
-//
-//            }
-//        });
 
         // ==============================================================
 

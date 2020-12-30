@@ -206,7 +206,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
 
     private static String lastClipText;
 
-    private boolean prefUsePasswordDialog = true;
+    private boolean prefUsePasswordDialog = false;
     private boolean prefConnectToGpgAgent = true;
 
     public boolean isPrefUsePasswordDialog ()
@@ -322,7 +322,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         rebuildSecretList();
     }
 
-    //    protected Preferences preferences;
+    //  protected Preferences preferences;
     public JGPGProcess ()
     {
 
@@ -467,13 +467,14 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                         secretList[ix.getAndIncrement()] = s;
                     });
                 }
-        );
+                );
 
         completeFileMap.putAll(fileMap);
 
         final String sepChar = Pattern.quote(File.separator);
-        final Pattern bnPattern = Pattern.compile("([^"+ sepChar + "]+)" + sepChar +  "([^" + sepChar + "]+)$");
-        completeFileMap.entrySet().stream().forEach(stringStringEntry -> {
+        final Pattern bnPattern = Pattern.compile("([^" + sepChar + "]+)" + sepChar + "([^" + sepChar + "]+)$");
+        completeFileMap.entrySet().stream().forEach(stringStringEntry ->
+        {
             Matcher m = bnPattern.matcher(stringStringEntry.getKey());
 
             while (m.find() && m.groupCount() == 2)
@@ -723,7 +724,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         }
         catch (Exception ex)
         {
-            handleGpgResult(ex.getMessage(), "Internal error occurred starting decrytion thread", 333, null);
+            handleGpgResult(ex.getMessage(), "Internal error occurred starting decryption thread", 333, null);
         }
     }
 
@@ -874,7 +875,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                 catch (IOException e)
                 {
                     e.printStackTrace();
-//                    handleGpgResult(e.getMessage(), "ERROR Runtime.getRuntime()", 555);
+                    notifyEncryptionListeners("",e.getMessage() +  " ERROR staring encryption process", fname, clientData);
                     return;
                 }
 
@@ -906,7 +907,6 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                     catch (InterruptedException e)
                     {
                         notifyEncryptionListeners("",e.getMessage() +  " ERROR writing password", fname, clientData);
-//                        handleGpgResult(e.getMessage(), "ERROR writing password", 664);
                         return;
                     }
                 }
