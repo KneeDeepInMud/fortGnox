@@ -3,13 +3,14 @@ package org.mockenhaupt.jgpg;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import java.awt.Dimension;
@@ -31,16 +32,17 @@ public class PasswordGenerator
     private final List<Character> special = new ArrayList<>();
     private final JComboBox<String> comboBoxPasswords = new JComboBox<>();
     private final JFormattedTextField textFieldLength = new JFormattedTextField();
-    private final JCheckBox cbUpper = new JCheckBox("Uppercase");
-    private final JCheckBox cbLower = new JCheckBox("Lowercase");
-    private final JCheckBox cbDigit = new JCheckBox("Digits");
-    private final JCheckBox cbSpecial = new JCheckBox("Special");
+    private final JCheckBoxPersistent cbUpper = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_UPPER, "Uppercase");
+    private final JCheckBoxPersistent cbLower = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_LOWER, "Lowercase");
+    private final JCheckBoxPersistent cbDigit = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_DIGITS, "Digits");
+    private final JCheckBoxPersistent cbSpecial = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_SPECIAL, "Special");
     private final JButton buttonGenerate = new JButton("Generate Password");
     private final JButton buttonInsert = new JButton("Insert");
     private final JButton buttonCopy = new JButton("Clipboard");
     private final List<String> passwordList = new ArrayList<>();
 
     private final PasswordInsertListener passwordInsertListener;
+
     interface PasswordInsertListener
     {
         void handlePasswordInsert (String password);
@@ -64,7 +66,7 @@ public class PasswordGenerator
 
     public static void main (String args[])
     {
-        PasswordGenerator pgw = new PasswordGenerator((JFrame)null);
+        new PasswordGenerator((JFrame) null);
     }
 
     public static boolean isPrintableChar (char c)
@@ -205,7 +207,8 @@ public class PasswordGenerator
         buttonGenerate.setMnemonic(KeyEvent.VK_G);
 
         buttonCopy.addActionListener(actionEvent -> JGPGProcess.clip(comboBoxPasswords.getSelectedItem().toString()));
-        buttonInsert.addActionListener(actionEvent -> {
+        buttonInsert.addActionListener(actionEvent ->
+        {
             if (passwordInsertListener != null)
             {
                 passwordInsertListener.handlePasswordInsert(comboBoxPasswords.getSelectedItem().toString());
@@ -236,14 +239,36 @@ public class PasswordGenerator
                 handleEnabled();
             }
         });
-        cbLower.setSelected(true);
-        cbUpper.setSelected(true);
-        cbDigit.setSelected(true);
-        cbDigit.setSelected(true);
+
 
         textFieldLength.setMinimumSize(new Dimension(40, 10));
-        textFieldLength.setValue(18);
+        textFieldLength.setValue(JgpgPreferences.get().getPreference(JgpgPreferences.PREF_GPG_PASS_LENGTH, 18));
         textFieldLength.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
+        textFieldLength.getDocument().addDocumentListener(new DocumentListener()
+        {
+            void updatePreference ()
+            {
+                JgpgPreferences.get().putPreference(JgpgPreferences.PREF_GPG_PASS_LENGTH, textFieldLength.getText());
+            }
+
+            @Override
+            public void insertUpdate (DocumentEvent documentEvent)
+            {
+                updatePreference();
+            }
+
+            @Override
+            public void removeUpdate (DocumentEvent documentEvent)
+            {
+                updatePreference();
+            }
+
+            @Override
+            public void changedUpdate (DocumentEvent documentEvent)
+            {
+                updatePreference();
+            }
+        });
 
         handleEnabled();
         gl.setHorizontalGroup(

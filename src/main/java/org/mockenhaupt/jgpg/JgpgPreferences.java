@@ -36,6 +36,11 @@ public class JgpgPreferences
     public static final String PREF_GPG_DEFAULT_RID = "gpg_default_rid";
     public static final String PREF_GPG_USE_ASCII = "GPG_USE_ASCII";
 
+    public static final String PREF_GPG_PASS_DIGITS = "PREF_GPG_PASS_DIGITS";
+    public static final String PREF_GPG_PASS_UPPER = "PREF_GPG_PASS_UPPER";
+    public static final String PREF_GPG_PASS_LOWER = "PREF_GPG_PASS_LOWER";
+    public static final String PREF_GPG_PASS_SPECIAL = "PREF_GPG_PASS_SPECIAL";
+    public static final String PREF_GPG_PASS_LENGTH = "PREF_GPG_PASS_LENGTH";
 
     public static PreferencesAccess get ()
     {
