@@ -1237,8 +1237,9 @@ public class MainFrame extends JFrame implements
 
         buttonNew.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/new32.png")));
         buttonNew.setText("New");
-        buttonNew.setToolTipText("Insert new password");
+        buttonNew.setMnemonic('n');
         buttonNew.setFocusable(false);
+        buttonNew.setToolTipText("Insert new password");
         buttonNew.setHorizontalTextPosition(SwingConstants.CENTER);
         buttonNew.setVerticalTextPosition(SwingConstants.BOTTOM);
         buttonNew.addActionListener(new java.awt.event.ActionListener()

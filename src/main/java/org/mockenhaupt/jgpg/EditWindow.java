@@ -1,13 +1,14 @@
 package org.mockenhaupt.jgpg;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -15,22 +16,30 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
 import java.awt.BorderLayout;
+import java.awt.Checkbox;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -38,11 +47,11 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.OK_OPTION;
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CHARSET;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_DEFAULT_RID;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_POST_COMMAND;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_USE_ASCII;
@@ -55,23 +64,23 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         PasswordGenerator.PasswordInsertListener
 {
     private JDialog editWindow;
-    private JEditorPane editorPane;
+    private JTextArea textArea;
     private JTextArea textAreaStatus;
     private JComboBox<String> comboBoxDirectories;
     private JTextField textFieldFilename;
-    private JLabel labelRID = new JLabel("RID");
+    private final JLabel labelRID = new JLabel("RID");
     private JTextField textFieldRID;
     final private JGPGProcess jgpgProcess;
     private boolean modified = false;
-    private JButton cancelButton;
     private JButton saveButton;
+    private JCheckBox cbSkipPost;
     final private JFrame parentWindow;
 
     private String recipientId = "";
 
     final private List<String> directories = new ArrayList<>();
 
-    private PasswordGenerator passwordGenerator;
+    private final PasswordGenerator passwordGenerator;
 
     public EditWindow (JFrame parent, JGPGProcess jgpgProcess)
     {
@@ -107,19 +116,14 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         if (comboBoxDirectories.getModel().getSize() > 0) comboBoxDirectories.setSelectedIndex(0);
     }
 
-    public List<String> getDirectories ()
-    {
-        return directories;
-    }
-
     public void setText (String text, String status, String filename)
     {
-        if (editorPane == null)
+        if (textArea == null)
         {
             return;
         }
 
-        editorPane.setText(text);
+        textArea.setText(text);
         setModified(false);
         textFieldFilename.setText(filename);
         textFieldRID.setText(getRecipient(new File(filename)));
@@ -134,9 +138,10 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
     public void setModified (boolean modified)
     {
         this.saveButton.setEnabled(modified);
-//        this.saveButton.setE(modified);
         this.modified = modified;
     }
+
+    private final UndoManager undo = new UndoManager();
 
     private void init (JFrame parent)
     {
@@ -148,18 +153,66 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
             URL url = this.getClass().getResource("kgpg_identity.png");
             editWindow.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 
-            editorPane = new JEditorPane();
-            editorPane.setFont(new Font("monospaced", Font.PLAIN,
+            textArea = new JTextArea();
+            Document doc = textArea.getDocument();
+            doc.addUndoableEditListener(new UndoableEditListener()
+            {
+                public void undoableEditHappened (UndoableEditEvent evt)
+                {
+                    undo.addEdit(evt.getEdit());
+                }
+            });
+
+            textArea.getActionMap().put("Undo",
+                    new AbstractAction("Undo")
+                    {
+                        public void actionPerformed (ActionEvent evt)
+                        {
+                            try
+                            {
+                                if (undo.canUndo())
+                                {
+                                    undo.undo();
+                                }
+                            }
+                            catch (CannotUndoException e)
+                            {
+                            }
+                        }
+                    });
+
+            textArea.getInputMap().put(KeyStroke.getKeyStroke("control Z"), "Undo");
+
+            textArea.getActionMap().put("Redo",
+                    new AbstractAction("Redo")
+                    {
+                        public void actionPerformed (ActionEvent evt)
+                        {
+                            try
+                            {
+                                if (undo.canRedo())
+                                {
+                                    undo.redo();
+                                }
+                            }
+                            catch (CannotRedoException e)
+                            {
+                            }
+                        }
+                    });
+
+            textArea.getInputMap().put(KeyStroke.getKeyStroke("control Y"), "Redo");
+
+
+            textArea.setFont(new Font("monospaced", Font.PLAIN,
                     JgpgPreferences.get().get(PREF_TEXTAREA_FONT_SIZE, 14)));
 
-            editorPane.setContentType("text/plain; charset="+ JgpgPreferences.get().get(PREF_CHARSET)+";");
-
-            JScrollPane editorScrollPane = new JScrollPane(editorPane);
-            editorPane.setBorder(BorderFactory.createLineBorder(Color.BLUE));
+            JScrollPane editorScrollPane = new JScrollPane(textArea);
+            textArea.setBorder(BorderFactory.createLineBorder(Color.BLUE));
 
 
-            editorPane.setPreferredSize(new Dimension(800, 600));
-            editorPane.getDocument()
+            textArea.setPreferredSize(new Dimension(800, 600));
+            textArea.getDocument()
                     .addDocumentListener(new DocumentListener()
                     {
                         @Override
@@ -180,6 +233,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
                             setModified(true);
                         }
                     });
+
 
             editWindow.setLayout(new BorderLayout());
             editWindow.add(editorScrollPane, BorderLayout.CENTER);
@@ -204,6 +258,8 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
     {
         Point location = MouseInfo.getPointerInfo().getLocation();
         editWindow.setLocation(location);
+        SwingUtilities.invokeLater(()->textArea.requestFocus());
+
         editWindow.setVisible(true);
     }
 
@@ -211,9 +267,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
     {
         JDialog directoryChooser = new JDialog(parentWindow, "JGPG New Password", true);
         directoryChooser.getRootPane().registerKeyboardAction(e ->
-        {
-            directoryChooser.dispose();
-        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+                directoryChooser.dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
         directoryChooser.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         directoryChooser.setLayout(new BorderLayout());
 
@@ -233,7 +287,8 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         JComboBox<String> comboBoxDirectories = new JComboBox<>();
         comboBoxDirectories.setMaximumSize(new Dimension(500, 35));
 
-        comboBoxDirectories.setModel(new DefaultComboBoxModel<String>(){
+        comboBoxDirectories.setModel(new DefaultComboBoxModel<String>()
+        {
             @Override
             public int getSize ()
             {
@@ -248,9 +303,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         });
         JTextField fileNameResulting = new JTextField("");
         JTextField fileNameText = new JTextField();
-        comboBoxDirectories.addActionListener(actionEvent -> {
-            updateFilenamePreview(comboBoxDirectories, fileNameResulting, fileNameText);
-        });
+        comboBoxDirectories.addActionListener(actionEvent -> updateFilenamePreview(comboBoxDirectories, fileNameResulting, fileNameText));
         if (comboBoxDirectories.getModel().getSize() > 0)
         {
             comboBoxDirectories.setSelectedIndex(0);
@@ -274,6 +327,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
             {
                 update();
             }
+
             private void update ()
             {
                 updateFilenamePreview(comboBoxDirectories, fileNameResulting, fileNameText);
@@ -334,19 +388,19 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
             @Override
             public void insertUpdate (DocumentEvent documentEvent)
             {
-             handleChange();
+                handleChange();
             }
 
             @Override
             public void removeUpdate (DocumentEvent documentEvent)
             {
-             handleChange();
+                handleChange();
             }
 
             @Override
             public void changedUpdate (DocumentEvent documentEvent)
             {
-             handleChange();
+                handleChange();
             }
 
             void handleChange ()
@@ -361,6 +415,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
 
         Point location = MouseInfo.getPointerInfo().getLocation();
         directoryChooser.setLocation(location);
+        SwingUtilities.invokeLater(() -> fileNameText.requestFocus());
         directoryChooser.setVisible(true);
     }
 
@@ -404,8 +459,12 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         GroupLayout gl = new GroupLayout(jToolBar);
         jToolBar.setLayout(gl);
 
+
+        gl.setAutoCreateGaps(true);
+        gl.setAutoCreateContainerGaps(true);
+
         // Button: Cancel
-        cancelButton = new JButton("Cancel / Close");
+        JButton cancelButton = new JButton("Cancel / Close");
         cancelButton.setMnemonic(KeyEvent.VK_C);
         cancelButton.addActionListener(actionEvent ->
         {
@@ -424,20 +483,17 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         saveButton.setMnemonic(KeyEvent.VK_S);
         saveButton.addActionListener(actionEvent -> doEncrypt());
 
-
-//        JButton passwordGenerator = new JButton("Random Password");
-//        passwordGenerator.setMnemonic(KeyEvent.VK_R);
-//        passwordGenerator.addActionListener(ae -> {
-//            new PasswordGenerator(parentWindow);
-//        });
-
+        cbSkipPost = new JCheckBox("Skip post");
+        cbSkipPost.setToolTipText("Do not execute the post command defined in the settings");
+        cbSkipPost.setVisible(!JgpgPreferences.get().get(PREF_GPG_POST_COMMAND).isEmpty());
+        cbSkipPost.setMnemonic('k');
 
         textFieldFilename = new JTextField();
         textFieldFilename.setEnabled(false);
 
         textFieldRID = new JTextField();
-        textFieldRID.setMinimumSize(new Dimension(200,30));
-        textFieldRID.setPreferredSize(new Dimension(200,30));
+        textFieldRID.setMinimumSize(new Dimension(200, 30));
+        textFieldRID.setPreferredSize(new Dimension(200, 30));
 
         comboBoxDirectories = new JComboBox<>();
         comboBoxDirectories.setVisible(false);
@@ -448,32 +504,26 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
                         .addComponent(cancelButton)
                         .addComponent(saveButton)
                         .addComponent(comboBoxDirectories)
-                        .addComponent(textFieldFilename)
+                        .addComponent(textFieldFilename, 100, 100, 300)
                         .addComponent(labelRID)
                         .addComponent(textFieldRID)
+                        .addComponent(cbSkipPost)
                 )
                 .addComponent(passwordGeneratorPanel)
         );
 
         gl.setVerticalGroup(gl.createSequentialGroup()
-                .addGroup(gl.createParallelGroup()
+                .addGroup(gl.createParallelGroup(GroupLayout.Alignment.CENTER)
                         .addComponent(cancelButton)
                         .addComponent(saveButton)
                         .addComponent(comboBoxDirectories)
                         .addComponent(textFieldFilename)
                         .addComponent(labelRID)
                         .addComponent(textFieldRID)
-                       )
+                        .addComponent(cbSkipPost)
+                )
                 .addComponent(passwordGeneratorPanel)
         );
-//        jToolBar.add(cancelButton);
-//        jToolBar.add(saveButton);
-//        jToolBar.add(comboBoxDirectories);
-//        jToolBar.add(textFieldFilename);
-//        jToolBar.add(new JLabel("RID:"));
-//        jToolBar.add(textFieldRID);
-
-//        jToolBar.add(passwordGenerator.getGeneratorPanel());
 
         return jToolBar;
     }
@@ -511,7 +561,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
 
     private void doEncrypt ()
     {
-        File file = new File(textFieldFilename.getText());
+//        File file = new File(textFieldFilename.getText());
 //        if (!file.exists())
 //        {
 //            JOptionPane.showMessageDialog(editWindow, "file does not exist", "JGPG WARNING", WARNING_MESSAGE);
@@ -527,7 +577,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         }
 
         this.recipientId = rid;
-        jgpgProcess.encrypt(textFieldFilename.getText(), editorPane.getText(), rid, EditWindow.this);
+        jgpgProcess.encrypt(textFieldFilename.getText(), textArea.getText(), rid, EditWindow.this);
     }
 
     @Override
@@ -545,7 +595,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
                 String status = "Successfully encrypted " + filename + rid;
                 setText("", status, filename);
                 String postCommand = JgpgPreferences.get().get(PREF_GPG_POST_COMMAND);
-                if (postCommand != null && !postCommand.isEmpty())
+                if (postCommand != null && !postCommand.isEmpty() && !cbSkipPost.isSelected())
                 {
                     jgpgProcess.command(postCommand, filename, this);
                     editWindow.dispose();
@@ -570,20 +620,20 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
     {
         switch (propertyChangeEvent.getPropertyName())
         {
-            case PREF_CHARSET:
-                if (editorPane != null)
-                {
-                    editorPane.setContentType("text/plain; charset="+ JgpgPreferences.get().get(PREF_CHARSET)+";");
-                }
-                break;
-
             case PREF_TEXTAREA_FONT_SIZE:
-                if (editorPane != null)
+                if (textArea != null)
                 {
-                    editorPane.setFont(new Font("monospaced", Font.PLAIN,
+                    textArea.setFont(new Font("monospaced", Font.PLAIN,
                             JgpgPreferences.get().get(PREF_TEXTAREA_FONT_SIZE, 14)));
                 }
                 break;
+            case PREF_GPG_POST_COMMAND:
+                if (cbSkipPost != null)
+                {
+                    cbSkipPost.setVisible(!JgpgPreferences.get().get(PREF_GPG_POST_COMMAND).isEmpty());
+                }
+                break;
+
         }
     }
 
@@ -605,7 +655,8 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
     {
         try
         {
-            editorPane.getDocument().insertString(editorPane.getCaretPosition(), password, null);
+            textArea.getDocument().insertString(textArea.getCaretPosition(), password, null);
+            textArea.requestFocus();
         }
         catch (BadLocationException e)
         {
