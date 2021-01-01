@@ -208,10 +208,9 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
                     JgpgPreferences.get().get(PREF_TEXTAREA_FONT_SIZE, 14)));
 
             JScrollPane editorScrollPane = new JScrollPane(textArea);
-            textArea.setBorder(BorderFactory.createLineBorder(Color.BLUE));
+            editorScrollPane.setViewportView(textArea);
 
-
-            textArea.setPreferredSize(new Dimension(800, 600));
+            editorScrollPane.setPreferredSize(new Dimension(800, 600));
             textArea.getDocument()
                     .addDocumentListener(new DocumentListener()
                     {
