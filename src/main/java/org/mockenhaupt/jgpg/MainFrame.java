@@ -139,12 +139,15 @@ public class MainFrame extends JFrame implements
     private JProgressBar progressClearTimer;
     private JProgressBar progressPassTimer;
     private JTextField textFilter;
+    private JScrollPane scrollPaneSecrets;
     private JSplitPane jSplitPaneLR;
     private JPanelTextArea jPanelTextArea;
     private JLabel labelSecretInfo;
-
+    private JPanel jToolBarPanel;
+    private JToolBar jToolBarMainFunctions;
     private boolean prefUseFavoriteList = true;
     private boolean prefFilterFavoriteList = true;
+    private boolean editMode = false;
 
 
     /**
@@ -682,7 +685,7 @@ public class MainFrame extends JFrame implements
                 }
                 startPassTimer();
 
-                if (e.getClickCount() == 2)
+                if (e.getClickCount() == 2 && !editMode)
                 {
                     decrypt();
                 }
@@ -690,7 +693,7 @@ public class MainFrame extends JFrame implements
 
             public void mousePressed (MouseEvent e)
             {
-                if (SwingUtilities.isRightMouseButton(e) || e.getButton() == 2)
+                if ((SwingUtilities.isRightMouseButton(e) || e.getButton() == 2) && !editMode)
                 {
                     JList list = (JList) e.getSource();
                     int row = list.locationToIndex(e.getPoint());
@@ -717,7 +720,7 @@ public class MainFrame extends JFrame implements
 
             private void maybeShowPopup (MouseEvent e)
             {
-                if (e.isPopupTrigger())
+                if (e.isPopupTrigger() && !editMode)
                 {
                     if (jList.getSelectedValue() != null)
                     {
@@ -759,6 +762,11 @@ public class MainFrame extends JFrame implements
 
     public JPopupMenu getSecretsPopupMenu ()
     {
+        if (editMode)
+        {
+            return new JPopupMenu();
+        }
+
         JList jList = jListSecrets;
         JPopupMenu popupMenu = new JPopupMenu();
         boolean hasEntries = false;
@@ -778,7 +786,7 @@ public class MainFrame extends JFrame implements
             JMenuItem miCompressFavs = new JMenuItem("Compress favorites");
             miCompressFavs.addActionListener(actionEvent ->
             {
-                compressFavorites();
+                if (!editMode)compressFavorites();
             });
             popupMenu.add(miCompressFavs);
         }
@@ -1130,14 +1138,45 @@ public class MainFrame extends JFrame implements
             if (CLIENTDATA_EDIT.equals(clientData))
             {
                 editWindow.setText(out, "Loaded for editing " + filename, filename);
-//                editWindow.show();
-                jSplitPaneLR.setRightComponent(editWindow.getTextArea());
+                setEditMode(true);
                 buttonClearTextareaActionPerformed(null);
             }
             else
             {
-                jSplitPaneLR.setRightComponent(jPanelTextArea);
+                setEditMode(false);
             }
+        }
+    }
+
+    private void setEditMode (boolean editMode)
+    {
+        this.editMode = editMode;
+        if (editMode)
+        {
+            jSplitPaneLR.setRightComponent(editWindow.getTextArea());
+        }
+        else
+        {
+            jSplitPaneLR.setRightComponent(jPanelTextArea);
+        }
+        setEnabledHierachy(jToolBarMainFunctions, !editMode);
+//        jToolBarMainFunctions.setEnabled(!editMode);
+        setEnabledHierachy(scrollPaneSecrets, !editMode);
+    }
+
+    private void setEnabledHierachy (Component c, boolean enabled)
+    {
+        if (c instanceof Container && ((Container)c).getComponents().length > 0)
+        {
+            for (Component cc : ((Container) c).getComponents())
+            {
+                c.setEnabled(enabled);
+                setEnabledHierachy(cc, enabled);
+            }
+        }
+        else
+        {
+            c.setEnabled(enabled);
         }
     }
 
@@ -1153,7 +1192,7 @@ public class MainFrame extends JFrame implements
 
 
     private void setUsePasswordDialog(boolean mode)
-    {                      
+    {
         updateClearPassVisibility();
         progressPassTimer.setVisible(mode);
     }
@@ -1169,14 +1208,14 @@ public class MainFrame extends JFrame implements
         jSplitPaneLR = new JSplitPane();
         JPanel panelList = new JPanel();
         textFilter = new JTextField();
-        JScrollPane scrollPaneSecrets = new JScrollPane();
+        scrollPaneSecrets = new JScrollPane();
 
         // gpg files and favorite gpg files
 
         labelSecretInfo = new JLabel();
         jListSecrets = new JList();
-        JPanel jToolBarPanel = new JPanel(new BorderLayout());
-        JToolBar jToolBarMainFunctions = new JToolBar();
+        jToolBarPanel = new JPanel(new BorderLayout());
+        jToolBarMainFunctions = new JToolBar();
         buttonClearPass = new JButton();
         buttonClearFavorites = new JButton();
         buttonClearPass.setMnemonic(KeyEvent.VK_P);
@@ -1242,7 +1281,7 @@ public class MainFrame extends JFrame implements
 
         jPanelTextArea = new JPanelTextArea(this);
 
-        jSplitPaneLR.setRightComponent(jPanelTextArea);
+        setEditMode(false);
 
         getContentPane().add(jSplitPaneLR, java.awt.BorderLayout.CENTER);
 
@@ -1597,12 +1636,12 @@ public class MainFrame extends JFrame implements
     @Override
     public void handleFinished ()
     {
-        jSplitPaneLR.setRightComponent(jPanelTextArea);
+        setEditMode(false);
     }
 
     @Override
     public void handleNewFile (String fname)
     {
-        jSplitPaneLR.setRightComponent(editWindow.getTextArea());
+        setEditMode(true);
     }
 }
