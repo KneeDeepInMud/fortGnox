@@ -2,6 +2,7 @@ package org.mockenhaupt.jgpg;
 
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -26,6 +27,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.beans.PropertyChangeEvent;
@@ -200,6 +202,34 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
         textPane.setEditable(false);
         textPane.setContentType("text/html");
 
+
+        textPane.addMouseListener(new MouseAdapter()
+        {
+
+            @Override
+            public void mousePressed (MouseEvent e)
+            {
+                super.mousePressed(e);
+                maybeShowPopup(e);
+            }
+
+            @Override
+            public void mouseReleased (MouseEvent e)
+            {
+                super.mouseReleased(e);
+                maybeShowPopup(e);
+            }
+
+            private void maybeShowPopup (MouseEvent e)
+            {
+                if (e.isPopupTrigger())
+                {
+                    JPopupMenu popupMenu = mainFrame.getSecretsPopupMenu();
+                    if (popupMenu.getComponentCount() > 0)
+                        popupMenu.show(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+        });
 
         textPane.addMouseMotionListener(new MouseMotionAdapter()
         {

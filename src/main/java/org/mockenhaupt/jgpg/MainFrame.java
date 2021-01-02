@@ -95,7 +95,8 @@ public class MainFrame extends JFrame implements
         JGPGProcess.SecretListListener,
         JGPGProcess.ResultListListener,
         ActionListener,
-        PropertyChangeListener
+        PropertyChangeListener,
+        EditWindow.EditHandler
 {
 
     private JGPGProcess gpgProcess;
@@ -114,7 +115,6 @@ public class MainFrame extends JFrame implements
     private final int PASSWORD_SECONDS_DEFAULT = 60 * 5;
     private final int MIN_TIMER_VALUE = 1;
     private String toDecode = "";
-    private JList lastActionList;
     private int NUMBER_FAVORITES = 8;
     private boolean prefShowFavoritesCount = false;
 
@@ -138,6 +138,7 @@ public class MainFrame extends JFrame implements
     private JProgressBar progressClearTimer;
     private JProgressBar progressPassTimer;
     private JTextField textFilter;
+    private JSplitPane jSplitPaneLR;
     private JPanelTextArea jPanelTextArea;
     private JLabel labelSecretInfo;
 
@@ -436,7 +437,7 @@ public class MainFrame extends JFrame implements
 
     private void decrypt ()
     {
-        this.decrypt(lastActionList == null ? jListSecrets : lastActionList);
+        this.decrypt(jListSecrets);
     }
 
     private void decrypt (JList jList)
@@ -447,12 +448,12 @@ public class MainFrame extends JFrame implements
     }
     private void decrypt (boolean toClipboard)
     {
-        this.decrypt(toClipboard, lastActionList == null ? jListSecrets : lastActionList, null);
+        this.decrypt(toClipboard, jListSecrets, null);
     }
 
     private void decrypt (Object clientData)
     {
-        this.decrypt(false, lastActionList == null ? jListSecrets : lastActionList, clientData);
+        this.decrypt(false, jListSecrets, clientData);
     }
 
     private boolean clipboard = false;
@@ -608,7 +609,7 @@ public class MainFrame extends JFrame implements
         gpgProcess = new JGPGProcess();
         loadPreferences();
 
-        editWindow = new EditWindow(this, gpgProcess);
+        editWindow = new EditWindow(this, gpgProcess, this);
 
         gpgProcess.addSecretListListener(this);
         gpgProcess.addResultListener(this);
@@ -643,7 +644,6 @@ public class MainFrame extends JFrame implements
                 super.keyReleased(e);
                 if (e.getKeyCode() == KeyEvent.VK_ENTER)
                 {
-                    lastActionList = jList;
                     decrypt();
                 }
                 else if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
@@ -661,7 +661,6 @@ public class MainFrame extends JFrame implements
             @Override
             public void mouseClicked (MouseEvent e)
             {
-                lastActionList = jList;
                 super.mouseClicked(e);
                 if (clearTimer.isRunning())
                 {
@@ -708,7 +707,7 @@ public class MainFrame extends JFrame implements
                 {
                     if (jList.getSelectedValue() != null)
                     {
-                        JPopupMenu popupMenu = getSecretsPopupMenu(jList);
+                        JPopupMenu popupMenu = getSecretsPopupMenu();
                         popupMenu.show(e.getComponent(), e.getX(), e.getY());
                     }
                 }
@@ -744,8 +743,9 @@ public class MainFrame extends JFrame implements
         });
     }
 
-    private JPopupMenu getSecretsPopupMenu (JList jList)
+    public JPopupMenu getSecretsPopupMenu ()
     {
+        JList jList = jListSecrets;
         JPopupMenu popupMenu = new JPopupMenu();
         boolean hasEntries = false;
         if (favorites.containsKey(jList.getSelectedValue()))
@@ -774,13 +774,15 @@ public class MainFrame extends JFrame implements
             popupMenu.add(new JSeparator());
         }
 
-        JMenuItem miEdit = new JMenuItem("Edit " + jList.getSelectedValue());
-        miEdit.addActionListener(actionEvent ->
+        if (jList.getSelectedValue() != null)
         {
-            decrypt(CLIENTDATA_EDIT);
-        });
-        popupMenu.add(miEdit);
-
+            JMenuItem miEdit = new JMenuItem("Edit " + jList.getSelectedValue());
+            miEdit.addActionListener(actionEvent ->
+            {
+                decrypt(CLIENTDATA_EDIT);
+            });
+            popupMenu.add(miEdit);
+        }
         return popupMenu;
     }
 
@@ -1114,8 +1116,13 @@ public class MainFrame extends JFrame implements
             if (CLIENTDATA_EDIT.equals(clientData))
             {
                 editWindow.setText(out, "Loaded for editing " + filename, filename);
-                editWindow.show();
+//                editWindow.show();
+                jSplitPaneLR.setRightComponent(editWindow.getTextArea());
                 buttonClearTextareaActionPerformed(null);
+            }
+            else
+            {
+                jSplitPaneLR.setRightComponent(jPanelTextArea);
             }
         }
     }
@@ -1146,7 +1153,7 @@ public class MainFrame extends JFrame implements
     private void initComponents()
     {
 
-        JSplitPane jSplitPane1 = new JSplitPane();
+        jSplitPaneLR = new JSplitPane();
         JPanel panelList = new JPanel();
         textFilter = new JTextField();
         JScrollPane scrollPaneSecrets = new JScrollPane();
@@ -1186,9 +1193,9 @@ public class MainFrame extends JFrame implements
         setTitle("JGPG");
         setMinimumSize(new java.awt.Dimension(800, 600));
 
-        jSplitPane1.setBackground(new java.awt.Color(204, 204, 204));
-        jSplitPane1.setMinimumSize(new java.awt.Dimension(200, 102));
-        jSplitPane1.setPreferredSize(new java.awt.Dimension(400, 400));
+        jSplitPaneLR.setBackground(new java.awt.Color(204, 204, 204));
+        jSplitPaneLR.setMinimumSize(new java.awt.Dimension(200, 102));
+        jSplitPaneLR.setPreferredSize(new java.awt.Dimension(400, 400));
 
         panelList.setMinimumSize(new java.awt.Dimension(200, 20));
         panelList.setPreferredSize(new java.awt.Dimension(250, 246));
@@ -1223,13 +1230,13 @@ public class MainFrame extends JFrame implements
         panelList.add(labelSecretInfo, BorderLayout.SOUTH);
         labelSecretInfo.setVisible(false);
 
-        jSplitPane1.setLeftComponent(panelList);
+        jSplitPaneLR.setLeftComponent(panelList);
 
         jPanelTextArea = new JPanelTextArea(this);
 
-        jSplitPane1.setRightComponent(jPanelTextArea);
+        jSplitPaneLR.setRightComponent(jPanelTextArea);
 
-        getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
+        getContentPane().add(jSplitPaneLR, java.awt.BorderLayout.CENTER);
 
         jToolBarMainFunctions.setRollover(true);
 
@@ -1622,5 +1629,17 @@ public class MainFrame extends JFrame implements
                 break;
         }
         SwingUtilities.invokeLater(() -> updateClearPassVisibility());
+    }
+
+    @Override
+    public void handleFinished ()
+    {
+        jSplitPaneLR.setRightComponent(jPanelTextArea);
+    }
+
+    @Override
+    public void handleNewFile (String fname)
+    {
+        jSplitPaneLR.setRightComponent(editWindow.getTextArea());
     }
 }

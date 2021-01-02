@@ -82,10 +82,12 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
 
     private final PasswordGenerator passwordGenerator;
 
-    public EditWindow (JFrame parent, JGPGProcess jgpgProcess)
+    EditHandler editHandler;
+    public EditWindow (JFrame parent, JGPGProcess jgpgProcess, EditHandler editHandler)
     {
         this.jgpgProcess = jgpgProcess;
         this.parentWindow = parent;
+        this.editHandler = editHandler;
         passwordGenerator = new PasswordGenerator(this);
         init(parent);
         jgpgProcess.addEncryptionListener(this);
@@ -93,6 +95,11 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         JgpgPreferences.get().addPropertyChangeListener(this);
     }
 
+    interface EditHandler
+    {
+        void handleFinished ();
+        void handleNewFile (String fname);
+    }
 
     public void setDirectories (List<String> directories)
     {
@@ -252,6 +259,11 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         }
     }
 
+    public Container getTextArea ()
+    {
+        SwingUtilities.invokeLater(()->textArea.requestFocus());
+        return editWindow.getRootPane();
+    }
 
     public void show ()
     {
@@ -268,6 +280,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         directoryChooser.getRootPane().registerKeyboardAction(e ->
                 directoryChooser.dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
         directoryChooser.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+
         directoryChooser.setLayout(new BorderLayout());
 
 
@@ -376,10 +389,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         buttonCancel.addActionListener(actionEvent -> directoryChooser.dispose());
         buttonCreate.addActionListener(actionEvent ->
         {
-            String file = getNewFilename(comboBoxDirectories, fileNameText);
-            setText("", "Enter new file " + file, file);
-            directoryChooser.dispose();
-            show();
+            handleButtonNewFileSelected(directoryChooser, comboBoxDirectories, fileNameText);
         });
 
         fileNameText.getDocument().addDocumentListener(new DocumentListener()
@@ -408,14 +418,44 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
                 File ftestFile = new File(ftest);
                 buttonCreate.setEnabled(!ftestFile.exists() && !fileNameText.getText().isEmpty());
             }
+
+
+
         });
 
         buttonCreate.setEnabled(false);
+
+
+
+        directoryChooser.getRootPane().registerKeyboardAction(e ->
+                {
+                    if (buttonCreate.isEnabled())
+                    {
+                        handleButtonNewFileSelected(directoryChooser, comboBoxDirectories, fileNameText);
+                    }
+                },
+                KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+
 
         Point location = MouseInfo.getPointerInfo().getLocation();
         directoryChooser.setLocation(location);
         SwingUtilities.invokeLater(() -> fileNameText.requestFocus());
         directoryChooser.setVisible(true);
+    }
+
+    private void handleButtonNewFileSelected (JDialog directoryChooser, JComboBox<String> comboBoxDirectories, JTextField fileNameText)
+    {
+        String file = getNewFilename(comboBoxDirectories, fileNameText);
+        setText("", "Enter new file " + file, file);
+        directoryChooser.dispose();
+        if (editHandler != null)
+        {
+            editHandler.handleNewFile(file);
+        }
+        else
+        {
+            show();
+        }
     }
 
     private void updateFilenamePreview (JComboBox<String> comboBoxDirectories, JTextField fileNameResulting, JTextField fileNameText)
@@ -471,8 +511,15 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
                     "File is modified, close discarding changes?",
                     "JGPG Close Confirmation", OK_CANCEL_OPTION))
             {
-                editWindow.setVisible(false);
-                editWindow.dispose();
+                if (editWindow.isVisible())
+                {
+                    editWindow.setVisible(false);
+                    editWindow.dispose();
+                }
+                if (editHandler != null)
+                {
+                    editHandler.handleFinished();
+                }
             }
         });
 
@@ -491,8 +538,8 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         textFieldFilename.setEnabled(false);
 
         textFieldRID = new JTextField();
-        textFieldRID.setMinimumSize(new Dimension(200, 30));
-        textFieldRID.setPreferredSize(new Dimension(200, 30));
+//        textFieldRID.setMinimumSize(new Dimension(200, 30));
+//        textFieldRID.setPreferredSize(new Dimension(200, 30));
 
         comboBoxDirectories = new JComboBox<>();
         comboBoxDirectories.setVisible(false);
@@ -502,10 +549,10 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
                 .addGroup(gl.createSequentialGroup()
                         .addComponent(cancelButton)
                         .addComponent(saveButton)
-                        .addComponent(comboBoxDirectories)
+                        .addComponent(comboBoxDirectories, 100, 200, 300)
                         .addComponent(textFieldFilename, 100, 100, 300)
                         .addComponent(labelRID)
-                        .addComponent(textFieldRID)
+                        .addComponent(textFieldRID, 20, 100, 200)
                         .addComponent(cbSkipPost)
                 )
                 .addComponent(passwordGeneratorPanel)
@@ -603,12 +650,20 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
                 {
                     editWindow.dispose();
                     JOptionPane.showMessageDialog(editWindow, status, "JGPG INFO", JOptionPane.INFORMATION_MESSAGE);
+                    if (editHandler != null)
+                    {
+                        editHandler.handleFinished();
+                    }
                 }
             }
             else
             {
                 textAreaStatus.setText("Failure encrypting " + filename + rid + ", " + err);
                 JOptionPane.showMessageDialog(editWindow, err, "JGPG WARNING", JOptionPane.ERROR_MESSAGE);
+                if (editHandler != null)
+                {
+                    editHandler.handleFinished();
+                }
             }
         });
     }
@@ -646,6 +701,10 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         else
         {
             JOptionPane.showMessageDialog(editWindow, out + err, "JGPG POST", JOptionPane.INFORMATION_MESSAGE);
+        }
+        if (editHandler != null)
+        {
+            editHandler.handleFinished();
         }
     }
 

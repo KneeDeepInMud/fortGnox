@@ -296,12 +296,13 @@ public class PasswordGenerator
 
             handleEnabled();
             gl.setHorizontalGroup(
-                    gl.createParallelGroup()
+                    gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
                             .addGroup(gl.createSequentialGroup()
                                     .addComponent(cbUpper)
                                     .addComponent(cbLower)
                                     .addComponent(cbDigit)
                                     .addComponent(cbSpecial)
+                                    .addGap(10)
                                     .addComponent(textFieldLength, 20, 40, 60)
                                     .addComponent(buttonGenerate)
                             )
@@ -316,7 +317,7 @@ public class PasswordGenerator
 
             gl.setVerticalGroup(
                     gl.createSequentialGroup()
-                            .addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                            .addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
                                     .addComponent(cbUpper)
                                     .addComponent(cbLower)
                                     .addComponent(cbDigit)
