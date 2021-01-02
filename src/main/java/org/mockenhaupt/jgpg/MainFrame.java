@@ -546,7 +546,6 @@ public class MainFrame extends JFrame implements
                         setMinimumSize(new java.awt.Dimension(600, 400));
                         setPreferredSize(new java.awt.Dimension(800, 525));
                         jListSecrets.setFont(new java.awt.Font("Times New Roman", Font.PLAIN, 14)); // NOI18N
-//                        jListFavoriteSecrets.setFont(new java.awt.Font("Times New Roman", Font.PLAIN, 14)); // NOI18N
                     }
                     
                     UIManager.setLookAndFeel(info.getClassName());
@@ -1008,7 +1007,7 @@ public class MainFrame extends JFrame implements
         filteredFavorites.addAll(
                 getConfiguredNumberFavorites()
                 .stream()
-                .filter(s -> !prefFilterFavoriteList || filterFile(s))
+                .filter(s -> (!prefFilterFavoriteList || filterFile(s)) && new File(s).exists())
                 .collect(Collectors.toList()));
 
         secretListModel.clear();
