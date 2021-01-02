@@ -136,7 +136,6 @@ public class MainFrame extends JFrame implements
     private JButton buttonClearFavorites;
     private JButton buttonNew;
     private JList jListSecrets;
-    private JToolBar.Separator jSeparator1;
     private JProgressBar progressClearTimer;
     private JProgressBar progressPassTimer;
     private JTextField textFilter;
@@ -146,16 +145,6 @@ public class MainFrame extends JFrame implements
 
     private boolean prefUseFavoriteList = true;
     private boolean prefFilterFavoriteList = true;
-
-    class TbSeparator extends  JToolBar.Separator
-    {
-        public TbSeparator ()
-        {
-//            this.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-        }
-    };
-
-
 
 
     /**
@@ -1160,7 +1149,6 @@ public class MainFrame extends JFrame implements
     private void updateClearPassVisibility ()
     {
         buttonClearPass.setVisible(gpgProcess.isPrefUsePasswordDialog() || gpgProcess.isPrefConnectToGpgAgent());
-        jSeparator1.setVisible(buttonClearPass.isVisible());
     }
 
 
@@ -1194,19 +1182,15 @@ public class MainFrame extends JFrame implements
         buttonClearPass.setMnemonic(KeyEvent.VK_P);
         JButton buttonClearTextarea = new JButton();
         buttonClearTextarea.setMnemonic(KeyEvent.VK_L);
-        TbSeparator jSeparator01 = new TbSeparator();
-        jSeparator1 = new TbSeparator();
         JButton buttonExit = new JButton();
         JToggleButton buttonOptions = new JToggleButton();
         JButton buttonAbout = new JButton();
         buttonExit.setMnemonic(KeyEvent.VK_X);
         buttonOptions.setMnemonic(KeyEvent.VK_O);
-        TbSeparator jSeparator2 = new TbSeparator();
         JButton jButtonSettings = new JButton();
         jButtonSettings.setMnemonic(KeyEvent.VK_S);
         JButton jButtonClipboard = new JButton();
         jButtonClipboard.setMnemonic(KeyEvent.VK_C);
-        TbSeparator jSeparator3 = new TbSeparator();
         buttonNew = new JButton();
         JPanel statusBarPanel = new JPanel();
         progressClearTimer = new JProgressBar();
@@ -1297,7 +1281,6 @@ public class MainFrame extends JFrame implements
         });
 //        jToolBar1.add(jButtonClipboard);
 
-        jSeparator01.setRequestFocusEnabled(false);
 
 
         // ---------------------------------
@@ -1316,7 +1299,6 @@ public class MainFrame extends JFrame implements
             }
         });
         jToolBarMainFunctions.add(buttonClearTextarea);
-        jToolBarMainFunctions.add(jSeparator01);
 
 
         // ---------------------------------
@@ -1360,8 +1342,6 @@ public class MainFrame extends JFrame implements
         // ---------------------------------
 
 
-        jSeparator1.setRequestFocusEnabled(false);
-        jToolBarMainFunctions.add(jSeparator1);
 
         buttonExit.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346509462_exit.png"))); // NOI18N
         buttonExit.setText("EXIT");
@@ -1394,10 +1374,7 @@ public class MainFrame extends JFrame implements
 
         jToolBarMainFunctions.add(jButtonSettings);
 
-        jSeparator2.setRequestFocusEnabled(false);
-        jToolBarMainFunctions.add(jSeparator2);
         jToolBarMainFunctions.add(buttonOptions);
-        jToolBarMainFunctions.add(jSeparator2);
         jToolBarMainFunctions.add(buttonExit);
 
         jButtonSettings.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/Settings-icon.png"))); // NOI18N
@@ -1416,8 +1393,6 @@ public class MainFrame extends JFrame implements
 
 
 
-        jSeparator3.setRequestFocusEnabled(false);
-        jToolBarMainFunctions.add(jSeparator3);
 
         buttonAbout.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/icons8-info-30.png"))); // NOI18N
         buttonAbout.setText("");
