@@ -55,6 +55,7 @@ import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_DEFAULT_RID;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_POST_COMMAND;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_USE_ASCII;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_LOOK_AND_FEEL;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_TEXTAREA_FONT_SIZE;
 
@@ -686,6 +687,9 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
                 {
                     cbSkipPost.setVisible(!JgpgPreferences.get().get(PREF_GPG_POST_COMMAND).isEmpty());
                 }
+                break;
+            case PREF_LOOK_AND_FEEL:
+                LAFChooser.get().set((String)propertyChangeEvent.getNewValue(),editWindow);
                 break;
 
         }

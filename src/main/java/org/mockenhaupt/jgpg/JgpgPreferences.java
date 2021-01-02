@@ -42,6 +42,9 @@ public class JgpgPreferences
     public static final String PREF_GPG_PASS_SPECIAL = "PREF_GPG_PASS_SPECIAL";
     public static final String PREF_GPG_PASS_LENGTH = "PREF_GPG_PASS_LENGTH";
 
+    public static final String PREF_LOOK_AND_FEEL = "PREF_LOOK_AND_FEEL";
+
+
     public static PreferencesAccess get ()
     {
         return PreferencesAccess.getInstance(PREFERENCE_NODE);

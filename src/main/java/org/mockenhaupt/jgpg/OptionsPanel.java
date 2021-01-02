@@ -7,15 +7,24 @@
 package org.mockenhaupt.jgpg;
 
 
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.ScrollPane;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -34,6 +43,7 @@ import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_HOMEDIR;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_POST_COMMAND;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_RID_FILE;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_USE_ASCII;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_LOOK_AND_FEEL;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_MASK_FIRST_LINE;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_NUMBER_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_MASK_PATTERNS;
@@ -93,22 +103,27 @@ public class OptionsPanel extends javax.swing.JDialog
     private javax.swing.JTextField jTextGpgHome;
     private javax.swing.JTextField jTextSecretDirs;
     private javax.swing.JFormattedTextField jFormattedTextTextAreaFontSize;
+    private JComboBox<String> lookAndFeelInfoJComboBox;
     // End of variables declaration
-
 
     public OptionsPanel (MainFrame parent)
     {
         super(parent, "JGPG Settings", true);
+        this.setPreferredSize(new Dimension(960, 640));
         optionsPanel = new JPanel();
+        gpgPanel = new JPanel();
         buttonPanel = new JPanel(new FlowLayout());
-        jTabbedPane.add("General", optionsPanel);
-        jTabbedPane.add("GPG", gpgPanel = new JPanel());
-        
+
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(jTabbedPane, BorderLayout.CENTER);
         getContentPane().add(buttonPanel, BorderLayout.SOUTH);
         initComponents();
         initGpgSettings();
+
+        JScrollPane scrollPaneGeneral = new JScrollPane(optionsPanel);
+        jTabbedPane.add("General", scrollPaneGeneral);
+        JScrollPane scrollPaneGpg = new JScrollPane(gpgPanel);
+        jTabbedPane.add("GPG", scrollPaneGpg);
     }
 
     void initPreferences ()
@@ -139,6 +154,8 @@ public class OptionsPanel extends javax.swing.JDialog
         this.jTexfFieldGpgRIDFile.setText(pa.get(PREF_GPG_RID_FILE, ".gpg-id"));
         this.jTexfFieldGpgDefaultRID.setText(pa.get(PREF_GPG_DEFAULT_RID, ""));
         this.jCheckBoxGpgUseAsciiFormat.setSelected(pa.getBoolean(PREF_GPG_USE_ASCII));
+
+        this.lookAndFeelInfoJComboBox.setSelectedItem(pa.get(PREF_LOOK_AND_FEEL));
 
     }
 
@@ -178,13 +195,13 @@ public class OptionsPanel extends javax.swing.JDialog
                                     .addComponent(labelGpgPostCommand)
                             )
                             .addGroup(gl.createParallelGroup()
-                                    .addComponent(jTextGpgExe)
-                                    .addComponent(jTexfFieldGpgConf)
-                                    .addComponent(jTextGpgHome)
-                                    .addComponent(jTextSecretDirs)
-                                    .addComponent(jTexfFieldGpgRIDFile)
-                                    .addComponent(jTexfFieldGpgDefaultRID)
-                                    .addComponent(jTextGpgPostCommand)
+                                    .addComponent(jTextGpgExe, 10, 300, 600)
+                                    .addComponent(jTexfFieldGpgConf, 10, 300, 600)
+                                    .addComponent(jTextGpgHome, 10, 300, 600)
+                                    .addComponent(jTextSecretDirs, 10, 300, 600)
+                                    .addComponent(jTexfFieldGpgRIDFile, 10, 300, 600)
+                                    .addComponent(jTexfFieldGpgDefaultRID, 10, 300, 600)
+                                    .addComponent(jTextGpgPostCommand, 10, 300, 600)
                             )
                     )
                     .addComponent(jCheckBoxGpgUseAsciiFormat)
@@ -200,13 +217,48 @@ public class OptionsPanel extends javax.swing.JDialog
                     .addGroup(gl.createParallelGroup().addComponent(labelDefaultRID).addComponent(jTexfFieldGpgDefaultRID))
                     .addGroup(gl.createParallelGroup().addComponent(labelGpgPostCommand).addComponent(jTextGpgPostCommand))
                     .addComponent(jCheckBoxGpgUseAsciiFormat)
-                    .addGap(1000)
+                    .addGap(200)
                     );
 
 
     }
 
 
+    private void updateLafList ()
+    {
+        UIManager.LookAndFeelInfo[] lookAndFeelInfos = LAFChooser.get().getLafs();
+
+        lookAndFeelInfoJComboBox.setModel(new DefaultComboBoxModel<String>()
+        {
+            @Override
+            public int getSize ()
+            {
+                return lookAndFeelInfos.length;
+            }
+
+            @Override
+            public String getElementAt (int index)
+            {
+                return lookAndFeelInfos[index].getClassName();
+            }
+        });
+
+        lookAndFeelInfoJComboBox.setRenderer(new DefaultListCellRenderer(){
+            @Override
+            public Component getListCellRendererComponent (JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+            {
+                if (value instanceof UIManager.LookAndFeelInfo)
+                {
+                    return super.getListCellRendererComponent(list, ((UIManager.LookAndFeelInfo)value).getName(),
+                            index, isSelected, cellHasFocus);
+                }
+                else
+                {
+                    return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                }
+            }
+        });
+    }
 
     private void initComponents()
     {
@@ -235,6 +287,21 @@ public class OptionsPanel extends javax.swing.JDialog
         jFormattedTextFieldResetMaskButton = new javax.swing.JFormattedTextField();
         jFormattedTextFieldNumberFavorites = new javax.swing.JFormattedTextField();
         jFormattedTextTextAreaFontSize = new javax.swing.JFormattedTextField();
+        lookAndFeelInfoJComboBox = new JComboBox<>();
+        lookAndFeelInfoJComboBox.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed (ActionEvent actionEvent)
+            {
+                String selected = (String)lookAndFeelInfoJComboBox.getSelectedItem();
+                if (LAFChooser.get().set(selected,  OptionsPanel.this))
+                {
+                    JgpgPreferences.get().putPreference(PREF_LOOK_AND_FEEL, selected);
+                }
+            }
+        });
+
+        updateLafList();
 
         GroupLayout gl = new GroupLayout(optionsPanel);
         optionsPanel.setLayout(gl);
@@ -269,6 +336,7 @@ public class OptionsPanel extends javax.swing.JDialog
 
         JLabel labelUsernamePatterns = new JLabel("Username patterns (\"|\" separated)");
         textFieldUsernamePatterns = new JTextField();
+        JLabel labelLAF = new JLabel("Application \"Look and Feel\"");
 
         jCheckBoxUsePassDialog.setText("Show password dialog (might not be required with GPG agent)");
         jCheckBoxPasswordShortcuts.setText("Show password shortcut bar");
@@ -318,6 +386,7 @@ public class OptionsPanel extends javax.swing.JDialog
                                                 .addComponent(labelCharset)
                                                 .addComponent(jLabelFontSize)
                                                 .addComponent(labelUsernamePatterns)
+                                                .addComponent(labelLAF)
                                                 .addComponent(jCheckBoxUsePassDialog)
                                                 .addComponent(jCheckboxReloadAgent)
                                                 .addComponent(jCheckBoxUseFavorites)
@@ -334,6 +403,7 @@ public class OptionsPanel extends javax.swing.JDialog
                                                 .addComponent(comboBoxCharset)
                                                 .addComponent(jFormattedTextTextAreaFontSize)
                                                 .addComponent(textFieldUsernamePatterns)
+                                                .addComponent(lookAndFeelInfoJComboBox)
                                                 .addComponent(jCheckBoxPasswordShortcuts)
                                                 .addComponent(jCheckboxMastFirstLine)
                                                 .addComponent(jCheckBoxFilterFavorites)
@@ -354,6 +424,7 @@ public class OptionsPanel extends javax.swing.JDialog
                         .addGroup(gl.createParallelGroup().addComponent(labelCharset).addComponent(comboBoxCharset))
                         .addGroup(gl.createParallelGroup().addComponent(jLabelFontSize).addComponent(jFormattedTextTextAreaFontSize))
                         .addGroup(gl.createParallelGroup().addComponent(labelUsernamePatterns).addComponent(textFieldUsernamePatterns))
+                        .addGroup(gl.createParallelGroup().addComponent(labelLAF).addComponent(lookAndFeelInfoJComboBox))
                         .addGroup(gl.createParallelGroup().addComponent(jCheckBoxUsePassDialog).addComponent(jCheckBoxPasswordShortcuts))
                         .addGroup(gl.createParallelGroup().addComponent(jCheckboxReloadAgent).addComponent(jCheckboxMastFirstLine))
                         .addGroup(gl.createParallelGroup().addComponent(jCheckBoxUseFavorites).addComponent(jCheckBoxFilterFavorites))
@@ -494,6 +565,7 @@ public class OptionsPanel extends javax.swing.JDialog
     @Override
     public void setVisible(boolean b) {
         initPreferences();
+
         super.setVisible(b);
     }
 

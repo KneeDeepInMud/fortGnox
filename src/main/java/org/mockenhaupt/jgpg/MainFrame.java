@@ -12,6 +12,7 @@ package org.mockenhaupt.jgpg;
 
 
 import javax.swing.AbstractListModel;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -36,6 +37,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Font;
@@ -82,6 +84,7 @@ import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLIP_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES_SHOW_COUNT;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FILTER_FAVORITES;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_LOOK_AND_FEEL;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_NUMBER_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
@@ -131,7 +134,6 @@ public class MainFrame extends JFrame implements
     public static final String CLIENTDATA_EDIT = "editGpg";
     private JButton buttonClearPass;
     private JButton buttonClearFavorites;
-    private JButton buttonLAF;
     private JButton buttonNew;
     private JList jListSecrets;
     private JToolBar.Separator jSeparator1;
@@ -144,6 +146,17 @@ public class MainFrame extends JFrame implements
 
     private boolean prefUseFavoriteList = true;
     private boolean prefFilterFavoriteList = true;
+
+    class TbSeparator extends  JToolBar.Separator
+    {
+        public TbSeparator ()
+        {
+//            this.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        }
+    };
+
+
+
 
     /**
      * @param args the command line arguments
@@ -216,6 +229,21 @@ public class MainFrame extends JFrame implements
                 }
 
                 INSTANCE = new MainFrame();
+
+                String lafPref = JgpgPreferences.get().get(PREF_LOOK_AND_FEEL);
+                if (lafPref == null || lafPref.isEmpty())
+                {
+                    if (!LAFChooser.get().set("windows", INSTANCE))
+                    {
+                        LAFChooser.get().set("gtk", INSTANCE);
+                    }
+                    JgpgPreferences.get().putPreference(PREF_LOOK_AND_FEEL, LAFChooser.get().getCurrentLAF().getClassName());
+                }
+                else
+                {
+                    LAFChooser.get().set(lafPref, INSTANCE);
+                }
+
                 INSTANCE.setVisible(true);
 
             }
@@ -488,8 +516,6 @@ public class MainFrame extends JFrame implements
         }
     }
     
-    private UIManager.LookAndFeelInfo[] lafs;
-    private int currLafIX = 0;
 
     private OptionsPanel optionsPanel;
 
@@ -533,51 +559,51 @@ public class MainFrame extends JFrame implements
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 
 
-        lafs = UIManager.getInstalledLookAndFeels();
-        try
-        {
-            for (currLafIX = 0; currLafIX < lafs.length; ++currLafIX)
-            {
-                UIManager.LookAndFeelInfo info = lafs[currLafIX];
-                if (info.getName().toLowerCase().contains("gtk") || info.getName().toLowerCase().contains("windows"))
-                {
-                    if (info.getName().toLowerCase().contains("windows"))
-                    {                        
-                        setMinimumSize(new java.awt.Dimension(600, 400));
-                        setPreferredSize(new java.awt.Dimension(800, 525));
-                        jListSecrets.setFont(new java.awt.Font("Times New Roman", Font.PLAIN, 14)); // NOI18N
-                    }
-                    
-                    UIManager.setLookAndFeel(info.getClassName());
-                    SwingUtilities.updateComponentTreeUI(this);
-                    break;
-                }
-//                if (info.getName().toLowerCase().contains("gnome")) {
+//        lafs = UIManager.getInstalledLookAndFeels();
+//        try
+//        {
+//            for (currLafIX = 0; currLafIX < lafs.length; ++currLafIX)
+//            {
+//                UIManager.LookAndFeelInfo info = lafs[currLafIX];
+//                if (info.getName().toLowerCase().contains("gtk") || info.getName().toLowerCase().contains("windows"))
+//                {
+//                    if (info.getName().toLowerCase().contains("windows"))
+//                    {
+//                        setMinimumSize(new java.awt.Dimension(600, 400));
+//                        setPreferredSize(new java.awt.Dimension(800, 525));
+//                        jListSecrets.setFont(new java.awt.Font("Times New Roman", Font.PLAIN, 14)); // NOI18N
+//                    }
+//
 //                    UIManager.setLookAndFeel(info.getClassName());
 //                    SwingUtilities.updateComponentTreeUI(this);
 //                    break;
 //                }
-//                if (info.getName().toLowerCase().contains("nimbus")) {
-//                    UIManager.setLookAndFeel(info.getClassName());
-//                    SwingUtilities.updateComponentTreeUI(this);
-//                    break;
-//                }
-            }
-            if (currLafIX < lafs.length)
-            {
-                buttonLAF.setText(
-                        "Change Look and Feel, current: " + lafs[currLafIX].getName());
-            }
-
-        }
-        catch (ClassNotFoundException | InstantiationException | UnsupportedLookAndFeelException | IllegalAccessException ex)
-        {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null,
-                                                            ex);
-        }
-
-        buttonLAF.setVisible(false);
-//        buttonLAF.setMnemonic('L');
+////                if (info.getName().toLowerCase().contains("gnome")) {
+////                    UIManager.setLookAndFeel(info.getClassName());
+////                    SwingUtilities.updateComponentTreeUI(this);
+////                    break;
+////                }
+////                if (info.getName().toLowerCase().contains("nimbus")) {
+////                    UIManager.setLookAndFeel(info.getClassName());
+////                    SwingUtilities.updateComponentTreeUI(this);
+////                    break;
+////                }
+//            }
+//            if (currLafIX < lafs.length)
+//            {
+//                buttonLAF.setText(
+//                        "Change Look and Feel, current: " + lafs[currLafIX].getName());
+//            }
+//
+//        }
+//        catch (ClassNotFoundException | InstantiationException | UnsupportedLookAndFeelException | IllegalAccessException ex)
+//        {
+//            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null,
+//                                                            ex);
+//        }
+//
+////        buttonLAF.setVisible(false);
+////        buttonLAF.setMnemonic('L');
         
         progressClearTimer.setMaximum(CLEAR_SECONDS);
         progressPassTimer.setMaximum(PASSWORD_SECONDS);
@@ -1168,20 +1194,19 @@ public class MainFrame extends JFrame implements
         buttonClearPass.setMnemonic(KeyEvent.VK_P);
         JButton buttonClearTextarea = new JButton();
         buttonClearTextarea.setMnemonic(KeyEvent.VK_L);
-        JToolBar.Separator jSeparator01 = new JToolBar.Separator();
-        jSeparator1 = new JToolBar.Separator();
+        TbSeparator jSeparator01 = new TbSeparator();
+        jSeparator1 = new TbSeparator();
         JButton buttonExit = new JButton();
         JToggleButton buttonOptions = new JToggleButton();
         JButton buttonAbout = new JButton();
         buttonExit.setMnemonic(KeyEvent.VK_X);
         buttonOptions.setMnemonic(KeyEvent.VK_O);
-        JToolBar.Separator jSeparator2 = new JToolBar.Separator();
+        TbSeparator jSeparator2 = new TbSeparator();
         JButton jButtonSettings = new JButton();
         jButtonSettings.setMnemonic(KeyEvent.VK_S);
         JButton jButtonClipboard = new JButton();
         jButtonClipboard.setMnemonic(KeyEvent.VK_C);
-        JToolBar.Separator jSeparator3 = new JToolBar.Separator();
-        buttonLAF = new JButton();
+        TbSeparator jSeparator3 = new TbSeparator();
         buttonNew = new JButton();
         JPanel statusBarPanel = new JPanel();
         progressClearTimer = new JProgressBar();
@@ -1273,7 +1298,6 @@ public class MainFrame extends JFrame implements
 //        jToolBar1.add(jButtonClipboard);
 
         jSeparator01.setRequestFocusEnabled(false);
-        jSeparator01.setSeparatorSize(new java.awt.Dimension(30, 4));
 
 
         // ---------------------------------
@@ -1337,7 +1361,6 @@ public class MainFrame extends JFrame implements
 
 
         jSeparator1.setRequestFocusEnabled(false);
-        jSeparator1.setSeparatorSize(new java.awt.Dimension(30, 4));
         jToolBarMainFunctions.add(jSeparator1);
 
         buttonExit.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346509462_exit.png"))); // NOI18N
@@ -1372,7 +1395,6 @@ public class MainFrame extends JFrame implements
         jToolBarMainFunctions.add(jButtonSettings);
 
         jSeparator2.setRequestFocusEnabled(false);
-        jSeparator2.setSeparatorSize(new java.awt.Dimension(30, 4));
         jToolBarMainFunctions.add(jSeparator2);
         jToolBarMainFunctions.add(buttonOptions);
         jToolBarMainFunctions.add(jSeparator2);
@@ -1395,22 +1417,7 @@ public class MainFrame extends JFrame implements
 
 
         jSeparator3.setRequestFocusEnabled(false);
-        jSeparator3.setSeparatorSize(new java.awt.Dimension(30, 4));
         jToolBarMainFunctions.add(jSeparator3);
-
-        buttonLAF.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346515642_gnome-settings-theme.png"))); // NOI18N
-        buttonLAF.setText("Change theme");
-        buttonLAF.setFocusable(false);
-        buttonLAF.setHorizontalTextPosition(SwingConstants.RIGHT);
-        buttonLAF.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                buttonLAFActionPerformed(evt);
-            }
-        });
-        jToolBarMainFunctions.add(buttonLAF);
-
 
         buttonAbout.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/icons8-info-30.png"))); // NOI18N
         buttonAbout.setText("");
@@ -1519,27 +1526,6 @@ public class MainFrame extends JFrame implements
 
 
 
-    private void buttonLAFActionPerformed(java.awt.event.ActionEvent evt) {
-        try
-        {
-            currLafIX++;
-            if (currLafIX >= lafs.length)
-            {
-                currLafIX = 0;
-            }
-            UIManager.setLookAndFeel(lafs[currLafIX].getClassName());
-            SwingUtilities.updateComponentTreeUI(this);
-            buttonLAF.setText(
-                    "Change Look and Feel, current: " + lafs[currLafIX].getName());
-
-        }
-        catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex)
-        {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null,
-                                                            ex);
-        }
-    }
-
     private void jButtonSettingsActionPerformed(java.awt.event.ActionEvent evt)
     {
 
@@ -1625,6 +1611,9 @@ public class MainFrame extends JFrame implements
             case PREF_FAVORITES_SHOW_COUNT:
                 prefShowFavoritesCount = (Boolean) propertyChangeEvent.getNewValue();
                 refreshFavorites();
+                break;
+            case PREF_LOOK_AND_FEEL:
+                LAFChooser.get().set((String)propertyChangeEvent.getNewValue(), INSTANCE);
                 break;
         }
         SwingUtilities.invokeLater(() -> updateClearPassVisibility());
