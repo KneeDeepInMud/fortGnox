@@ -332,6 +332,7 @@ public class PasswordGenerator
                                     .addComponent(buttonReset)
                             )
             );
+            LAFChooser.setPreferenceLaf(generatorPanel);
 
         }
         return generatorPanel;

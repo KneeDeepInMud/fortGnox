@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_LOOK_AND_FEEL;
+
 public class LAFChooser
 {
     private UIManager.LookAndFeelInfo[] lafs;
@@ -18,6 +20,12 @@ public class LAFChooser
     private LAFChooser ()
     {
         init();
+    }
+
+
+    public static boolean setPreferenceLaf (Component c)
+    {
+        return get().set(JgpgPreferences.get().get(PREF_LOOK_AND_FEEL), c);
     }
 
     public static LAFChooser get()

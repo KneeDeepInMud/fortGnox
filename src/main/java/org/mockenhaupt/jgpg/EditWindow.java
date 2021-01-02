@@ -257,6 +257,9 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
             editWindow.setVisible(false);
             setModified(false);
             setDirectories(jgpgProcess.getSecretdirs());
+            LAFChooser.setPreferenceLaf(textArea);
+
+            LAFChooser.setPreferenceLaf(editWindow.getRootPane());
         }
     }
 
