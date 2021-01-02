@@ -11,9 +11,6 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -22,7 +19,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.Vector;
 
 public class PasswordGenerator
 {
@@ -34,13 +30,14 @@ public class PasswordGenerator
     private final List<Character> special = new ArrayList<>();
     private final JComboBox<String> comboBoxPasswords = new JComboBox<>();
     private final JFormattedTextField textFieldLength = new JFormattedTextField();
-    private final JCheckBoxPersistent cbUpper = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_UPPER, "Uppercase");
-    private final JCheckBoxPersistent cbLower = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_LOWER, "Lowercase");
-    private final JCheckBoxPersistent cbDigit = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_DIGITS, "Digits");
-    private final JCheckBoxPersistent cbSpecial = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_SPECIAL, "Special");
+    private final JCheckBoxPersistent cbUpper = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_UPPER, "Uppercase", ()->handleEnabled());
+    private final JCheckBoxPersistent cbLower = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_LOWER, "Lowercase", ()->handleEnabled());
+    private final JCheckBoxPersistent cbDigit = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_DIGITS, "Digits", ()->handleEnabled());
+    private final JCheckBoxPersistent cbSpecial = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_SPECIAL, "Special", ()->handleEnabled());
     private final JButton buttonGenerate = new JButton("Generate Password");
     private final JButton buttonInsert = new JButton("Insert");
     private final JButton buttonCopy = new JButton("Clipboard");
+    private final JButton buttonReset = new JButton("Reset");
     private final List<String> passwordList = new ArrayList<>();
 
     private final PasswordInsertListener passwordInsertListener;
@@ -186,16 +183,39 @@ public class PasswordGenerator
         if (comboBoxPasswords.getModel().getSize() > 0)
         {
             comboBoxPasswords.setSelectedIndex(0);
+            buttonReset.setEnabled(true);
         }
-
-        handleEnabled();
     }
+
+
+    private void resetPasswords ()
+    {
+        passwordList.clear();
+        comboBoxPasswords.setModel(new DefaultComboBoxModel<String>()
+        {
+            @Override
+            public int getSize ()
+            {
+                return passwordList.size();
+            }
+
+            @Override
+            public String getElementAt (int index)
+            {
+                return passwordList.get(passwordList.size() - index - 1);
+            }
+        });
+        buttonReset.setEnabled(false);
+    }
+
 
     private void handleEnabled ()
     {
-        boolean enabled = !(comboBoxPasswords.getSelectedItem() == null || comboBoxPasswords.getSelectedItem().toString().isEmpty());
-//        buttonCopy.setEnabled(enabled);
-//        buttonInsert.setEnabled(enabled);
+        boolean enabled = cbDigit.isSelected() || cbLower.isSelected() || cbUpper.isSelected() || cbSpecial.isSelected();
+//        boolean enabled = !(comboBoxPasswords.getSelectedItem() == null || comboBoxPasswords.getSelectedItem().toString().isEmpty());
+        buttonCopy.setEnabled(enabled);
+        buttonInsert.setEnabled(enabled);
+        buttonGenerate.setEnabled(enabled);
     }
 
 
@@ -212,6 +232,8 @@ public class PasswordGenerator
 //            gl.setAutoCreateContainerGaps(true);
 
 
+            buttonReset.setEnabled(false);
+            buttonReset.addActionListener(a -> resetPasswords());
             buttonGenerate.addActionListener(actionEvent -> generatePassword());
             buttonGenerate.setMnemonic(KeyEvent.VK_G);
 
@@ -236,29 +258,6 @@ public class PasswordGenerator
             buttonInsert.setMnemonic(KeyEvent.VK_I);
 
             comboBoxPasswords.setMaximumSize(new Dimension(300, 40));
-            comboBoxPasswords.getModel().addListDataListener(new ListDataListener()
-            {
-                @Override
-                public void intervalAdded (ListDataEvent listDataEvent)
-                {
-                    handleEnabled();
-
-                }
-
-                @Override
-                public void intervalRemoved (ListDataEvent listDataEvent)
-                {
-                    handleEnabled();
-
-                }
-
-                @Override
-                public void contentsChanged (ListDataEvent listDataEvent)
-                {
-                    handleEnabled();
-                }
-            });
-
 
             cbUpper.setMnemonic('u');
             cbLower.setMnemonic('o');
@@ -310,6 +309,7 @@ public class PasswordGenerator
                                     .addComponent(comboBoxPasswords, 20, 100, 400)
                                     .addComponent(buttonInsert)
                                     .addComponent(buttonCopy)
+                                    .addComponent(buttonReset)
                             )
             );
 
@@ -328,6 +328,7 @@ public class PasswordGenerator
                                     .addComponent(comboBoxPasswords)
                                     .addComponent(buttonInsert)
                                     .addComponent(buttonCopy)
+                                    .addComponent(buttonReset)
                             )
             );
 
