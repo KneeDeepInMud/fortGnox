@@ -228,7 +228,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
             {
                 if (e.isPopupTrigger())
                 {
-                    JPopupMenu popupMenu = mainFrame.getSecretsPopupMenu();
+                    JPopupMenu popupMenu = mainFrame.getSecretsPopupMenu(true);
                     if (popupMenu.getComponentCount() > 0)
                         popupMenu.show(e.getComponent(), e.getX(), e.getY());
                 }

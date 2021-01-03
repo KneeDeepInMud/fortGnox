@@ -457,27 +457,27 @@ public class MainFrame extends JFrame implements
 
     private void decrypt ()
     {
-        this.decrypt(jListSecrets);
+        this.decrypt(jListSecrets.getSelectedValue());
     }
 
     private void decrypt (JList jList)
     {
         JGPGProcess.clearClipboardIfNotChanged();
-        this.decrypt(false, jList, null);
+        this.decrypt(false, jList.getSelectedValue(), null);
         jPanelTextArea.requestFocus();
     }
     private void decrypt (boolean toClipboard)
     {
-        this.decrypt(toClipboard, jListSecrets, null);
+        this.decrypt(toClipboard, jListSecrets.getSelectedValue(), null);
     }
 
     private void decrypt (Object clientData)
     {
-        this.decrypt(false, jListSecrets, clientData);
+        this.decrypt(false, jListSecrets.getSelectedValue(), clientData);
     }
 
     private boolean clipboard = false;
-    private void decrypt (boolean toClipboard, JList jList, Object clientData)
+    private void decrypt (boolean toClipboard, Object filename, Object clientData)
     {
         this.clipboard = toClipboard;
         boolean isPassDialog = gpgProcess.isPrefUsePasswordDialog();
@@ -488,16 +488,16 @@ public class MainFrame extends JFrame implements
         }
         if (!passDlg.getPassPhrase().isEmpty() || !isPassDialog)
         {
-            if (jList.getSelectedValue() instanceof String)
+            if (filename instanceof String && !((String)filename).isEmpty())
             {
-                toDecode = (String) jList.getSelectedValue();
+                toDecode = (String)filename;
                 if (toDecode == null || toDecode.isEmpty())
                 {
                     handleGpgResult("","Nothing selected to decode ...");
                     return;
                 }
                 handleGpgResult("","Decoding " + toDecode + "...");
-                String decryptEntry = (String) jList.getSelectedValue();
+                String decryptEntry = (String)filename;
                 handleForFavoritesList(decryptEntry);
 
                 gpgProcess.decrypt(decryptEntry, passDlg.getPassPhrase(),
@@ -762,6 +762,11 @@ public class MainFrame extends JFrame implements
 
     public JPopupMenu getSecretsPopupMenu ()
     {
+        return getSecretsPopupMenu(false);
+    }
+
+    public JPopupMenu getSecretsPopupMenu (boolean useDisplayedFile)
+    {
         if (editMode)
         {
             return new JPopupMenu();
@@ -796,12 +801,13 @@ public class MainFrame extends JFrame implements
             popupMenu.add(new JSeparator());
         }
 
-        if (jList.getSelectedValue() != null)
+        String editEntry = useDisplayedFile ? toDecode : jList.getSelectedValue().toString();
+        if (editEntry != null)
         {
-            JMenuItem miEdit = new JMenuItem("Edit " + jList.getSelectedValue());
+            JMenuItem miEdit = new JMenuItem("Edit " + editEntry);
             miEdit.addActionListener(actionEvent ->
             {
-                decrypt(CLIENTDATA_EDIT);
+                decrypt(false, editEntry, CLIENTDATA_EDIT);
             });
             popupMenu.add(miEdit);
         }
