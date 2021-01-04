@@ -699,11 +699,11 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
     }
 
     @Override
-    public void handleGpgCommandResult (String out, String err, String filename, Object clientData)
+    public void handleGpgCommandResult (String out, String err, String filename, Object clientData, int exitCode)
     {
-        if (err != null && !err.isEmpty())
+        if (exitCode != 0)
         {
-            JOptionPane.showMessageDialog(editWindow, out + err, "JGPG POST", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(editWindow, "Output:" + out + " Error:" + err, "JGPG POST", JOptionPane.ERROR_MESSAGE);
         }
         else
         {

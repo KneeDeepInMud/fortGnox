@@ -113,7 +113,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
 
     interface CommandListener
     {
-        void handleGpgCommandResult (String out, String err, String filename, Object clientData);
+        void handleGpgCommandResult (String out, String err, String filename, Object clientData, int exitCode);
     }
 
     abstract class GpgRunnable implements Runnable
@@ -277,12 +277,12 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         }
     }
 
-    private void notifyCommandListeners (String out, String err, String filename, Object clientData)
+    private void notifyCommandListeners (String out, String err, String filename, Object clientData, int exitCode)
     {
         Iterator<CommandListener> iter = commandListeners.iterator();
         while (iter.hasNext())
         {
-            iter.next().handleGpgCommandResult(out, err, filename, clientData);
+            iter.next().handleGpgCommandResult(out, err, filename, clientData, exitCode);
         }
     }
     private void handleSecretPreferenceChanged ()
@@ -1005,7 +1005,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                 DebugWindow.get().debug(DebugWindow.Category.GPG, cmdArgList.toString());
                 String[] cmds = cmdArgList.toArray(new String[]{});
 
-                int exitValue = 0;
+                int exitValue = 1;
 
 
                 Process gpgProcess;
@@ -1016,7 +1016,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                 catch (IOException e)
                 {
                     e.printStackTrace();
-                    notifyCommandListeners("", e.toString(), getFilename(), getClientData());
+                    notifyCommandListeners("", e.toString(), getFilename(), getClientData(), 1);
                     return;
                 }
 
@@ -1056,7 +1056,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                         }
                         catch (InterruptedException ex)
                         {
-                            notifyCommandListeners(output, error, fname, clientData);
+                            notifyCommandListeners(output, error, fname, clientData, 1);
                             break;
                         }
                     }
@@ -1065,7 +1065,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                 }
                 catch (IOException ex)
                 {
-                    notifyCommandListeners("", ex.toString(), fname, clientData);
+                    notifyCommandListeners("", ex.toString(), fname, clientData, exitValue);
                 }
                 catch (IllegalThreadStateException ex)
                 {
@@ -1083,7 +1083,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                 {
                     error = "failure in post command, " + error;
                 }
-                notifyCommandListeners(output, error, getFilename(), getClientData());
+                notifyCommandListeners(output, error, getFilename(), getClientData(), exitValue);
             }
         });
 
@@ -1093,7 +1093,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         }
         catch (Exception ex)
         {
-            notifyCommandListeners("", ex.toString(), fname, clientData);
+            notifyCommandListeners("", ex.toString(), fname, clientData, 1);
         }
     }
 
