@@ -103,6 +103,15 @@ public class PreferencesAccess
             }
             return (T) Boolean.valueOf(INSTANCE.preferences.getBoolean(name, (Boolean) defaultValue));
         }
+        else if (defaultValue instanceof Float)
+        {
+            Float got = INSTANCE.preferences.getFloat(name, (Float) defaultValue);
+            if (got.equals(defaultValue))
+            {
+                putPreference(name, defaultValue);
+            }
+            return (T) Float.valueOf(INSTANCE.preferences.getFloat(name, (Float) defaultValue));
+        }
 
         throw new IllegalArgumentException("unsupported preference type " + defaultValue.getClass());
     }

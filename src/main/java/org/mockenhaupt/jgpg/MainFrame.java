@@ -88,6 +88,8 @@ import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_LOOK_AND_FEEL;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_NUMBER_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIR_SORTING;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_TEXTAREA_FONT_SIZE;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_FAVORITES;
 
 /**
@@ -545,7 +547,7 @@ public class MainFrame extends JFrame implements
         JgpgPreferences.get().addPropertyChangeListener(this);
         initComponents();
 
-        initSecretListCellRenderer(jListSecrets);
+        initSecretListCellRenderer();
 
         URL url = this.getClass().getResource("kgpg_identity.png");
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
@@ -765,7 +767,7 @@ public class MainFrame extends JFrame implements
         return getSecretsPopupMenu(false);
     }
 
-    public JPopupMenu getSecretsPopupMenu (boolean useDisplayedFile)
+    public JPopupMenu getSecretsPopupMenu (boolean launchedFromEditor)
     {
         if (editMode)
         {
@@ -775,25 +777,37 @@ public class MainFrame extends JFrame implements
         JList jList = jListSecrets;
         JPopupMenu popupMenu = new JPopupMenu();
         boolean hasEntries = false;
-        if (favorites.containsKey(jList.getSelectedValue()))
+        if (!launchedFromEditor)
         {
-            hasEntries = true;
-            JMenuItem miRemoveFavorites = new JMenuItem("Remove selected entry from favorites");
-            miRemoveFavorites.addActionListener(actionEvent ->
+            if (favorites.containsKey(jList.getSelectedValue()))
             {
-                favorites.remove(jList.getSelectedValue());
-                refreshFavorites();
-                jList.setSelectedIndex(-1);
-                JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
-            });
-            popupMenu.add(miRemoveFavorites);
+                hasEntries = true;
+                JMenuItem miRemoveFavorites = new JMenuItem("Remove selected entry from favorites");
+                miRemoveFavorites.addActionListener(actionEvent ->
+                {
+                    favorites.remove(jList.getSelectedValue());
+                    refreshFavorites();
+                    jList.setSelectedIndex(-1);
+                    JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
+                });
+                popupMenu.add(miRemoveFavorites);
 
-            JMenuItem miCompressFavs = new JMenuItem("Compress favorites");
-            miCompressFavs.addActionListener(actionEvent ->
+                JMenuItem miCompressFavs = new JMenuItem("Compress favorites");
+                miCompressFavs.addActionListener(actionEvent ->
+                {
+                    if (!editMode) compressFavorites();
+                });
+                popupMenu.add(miCompressFavs);
+            }
+
+
+            JMenuItem miToggleSort = new JMenuItem("Toggle sort order of list");
+            miToggleSort.addActionListener(a ->
             {
-                if (!editMode)compressFavorites();
+                boolean sortReverse = JgpgPreferences.get().getBoolean(PREF_SECRETDIR_SORTING);
+                JgpgPreferences.get().put(PREF_SECRETDIR_SORTING, !sortReverse);
             });
-            popupMenu.add(miCompressFavs);
+            popupMenu.add(miToggleSort);
         }
 
         if (hasEntries)
@@ -801,8 +815,8 @@ public class MainFrame extends JFrame implements
             popupMenu.add(new JSeparator());
         }
 
-        String editEntry = useDisplayedFile ? toDecode : jList.getSelectedValue().toString();
-        if (editEntry != null)
+        String editEntry = launchedFromEditor ? toDecode : jList.getSelectedValue().toString();
+        if (editEntry != null && !editEntry.isEmpty())
         {
             JMenuItem miEdit = new JMenuItem("Edit " + editEntry);
             miEdit.addActionListener(actionEvent ->
@@ -814,9 +828,9 @@ public class MainFrame extends JFrame implements
         return popupMenu;
     }
 
-    private void initSecretListCellRenderer (JList list)
+    private void initSecretListCellRenderer ()
     {
-        list.setCellRenderer(new DefaultListCellRenderer(){
+        jListSecrets.setCellRenderer(new DefaultListCellRenderer(){
 
             @Override
             public Component getListCellRendererComponent (
@@ -1043,54 +1057,48 @@ public class MainFrame extends JFrame implements
         secretListModel.addAll(Arrays.asList(list).stream().filter(s -> filterFile(s)).collect(Collectors.toList()));
 
         String secretListInfo = "";
-        if (secretListModel != null)
-        {
-            secretListInfo = " " + secretListModel.size() + " entries";
-            jListSecrets.setModel(new AbstractListModel()
-            {
-                public int getSize ()
-                {
-                    int size;
-                    if (prefUseFavoriteList)
-                    {
-                        size = secretListModel.size() + filteredFavorites.size() + (filteredFavorites.size() > 0 ? 1 : 0);
-                    }
-                    else
-                    {
-                        size = secretListModel.size();
-                    }
 
-                    dbg(LIST,"model size secret list: " + size);
-                    return size;
+        secretListInfo = " " + secretListModel.size() + " entries";
+        jListSecrets.setModel(new AbstractListModel()
+        {
+            public int getSize ()
+            {
+                int size;
+                if (prefUseFavoriteList)
+                {
+                    size = secretListModel.size() + filteredFavorites.size() + (filteredFavorites.size() > 0 ? 1 : 0);
+                }
+                else
+                {
+                    size = secretListModel.size();
                 }
 
-                public Object getElementAt (int i)
-                {
-                    Object val;
-                    try
-                    {
-                        if (prefUseFavoriteList)
-                        {
-                            int favSize = filteredFavorites.size();
+                dbg(LIST, "model size secret list: " + size);
+                return size;
+            }
 
-                            if (favSize > 0)
+            public Object getElementAt (int i)
+            {
+                Object val;
+                try
+                {
+                    if (prefUseFavoriteList)
+                    {
+                        int favSize = filteredFavorites.size();
+
+                        if (favSize > 0)
+                        {
+                            if (i == favSize)
                             {
-                                if (i == favSize)
-                                {
-                                    val = new JSeparator(JSeparator.HORIZONTAL);
-                                }
-                                else if (i < favSize)
-                                {
-                                    val = filteredFavorites.get(i);
-                                }
-                                else
-                                {
-                                    val = secretListModel.get(i - favSize - 1);
-                                }
+                                val = new JSeparator(JSeparator.HORIZONTAL);
+                            }
+                            else if (i < favSize)
+                            {
+                                val = filteredFavorites.get(i);
                             }
                             else
                             {
-                                val = secretListModel.get(i);
+                                val = secretListModel.get(i - favSize - 1);
                             }
                         }
                         else
@@ -1098,18 +1106,23 @@ public class MainFrame extends JFrame implements
                             val = secretListModel.get(i);
                         }
                     }
-                    catch (Exception e)
+                    else
                     {
-                        return "ix:" + i + " " + e.getMessage();
+                        val = secretListModel.get(i);
                     }
-                    dbg(LIST, "list ix: " + i + " value: " + val);
-                    return val;
-
                 }
-            });
+                catch (Exception e)
+                {
+                    return "ix:" + i + " " + e.getMessage();
+                }
+                dbg(LIST, "list ix: " + i + " value: " + val);
+                return val;
 
-            updateSecretListInfo("");
-        }
+            }
+        });
+
+        updateSecretListInfo("");
+
 
         updateSecretListInfo(secretListInfo);
     }
@@ -1274,7 +1287,7 @@ public class MainFrame extends JFrame implements
 
         panelList.add(textFilterPanel, java.awt.BorderLayout.NORTH);
 
-        jListSecrets.setFont(new java.awt.Font("DejaVu Sans Mono", Font.PLAIN, 14)); // NOI18N
+        jListSecrets.setFont(new java.awt.Font("DejaVu Sans Mono", Font.PLAIN, 14));
         jListSecrets.setToolTipText("Press CTRL+C to decode first line to clipboard");
 
 
@@ -1482,6 +1495,14 @@ public class MainFrame extends JFrame implements
 
         pack();
     }
+
+//    private void setListSecretFontSize ()
+//    {
+//        float fontSize = JgpgPreferences.get().get(PREF_TEXTAREA_FONT_SIZE, jListSecrets.getFont().getSize());
+//        jListSecrets.setFont(jListSecrets.getFont().deriveFont(fontSize));
+//        jListSecrets.revalidate();
+//        initSecretListCellRenderer();
+//    }
 
 
     private void buttonClearTextareaActionPerformed(java.awt.event.ActionEvent evt) {

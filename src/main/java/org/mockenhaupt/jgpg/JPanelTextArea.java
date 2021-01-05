@@ -97,7 +97,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
     private boolean prefOpenUrls = true;
     private boolean prefClipboardToolbarVisible = true;
     private boolean prefMaskFirstLine = true;
-    private int prefTextAreaFontSize = 14;
+    private float prefTextAreaFontSize = 14;
     private final AtomicReference<String> oldStatusText = new AtomicReference<>("");
     // stores the text position of search hits
     final private List<Integer> hitList = new ArrayList<>();

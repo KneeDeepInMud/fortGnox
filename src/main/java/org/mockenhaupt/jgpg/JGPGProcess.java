@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CHARSET;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPGCONF_COMMAND;
@@ -42,6 +43,7 @@ import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_COMMAND;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_HOMEDIR;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_USE_ASCII;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIR_SORTING;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_GPG_AGENT;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_PASS_DIALOG;
 
@@ -92,7 +94,9 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
             case PREF_USE_GPG_AGENT:
                 prefConnectToGpgAgent = (Boolean)propertyChangeEvent.getNewValue();
                 break;
-
+            case PREF_SECRETDIR_SORTING:
+                rebuildSecretList();
+                break;
         }
     }
 
@@ -297,7 +301,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
 
         if (!parsedDirectories.directoryList.isEmpty())
         {
-            secretdirs.addAll(parsedDirectories.directoryList);
+            secretdirs.addAll(parsedDirectories.directoryList.stream().sorted().collect(Collectors.toList()));
             preferences.put(PREF_SECRETDIRS, parsedDirectories.revisedList);
         }
         else
@@ -447,8 +451,8 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                     dir += "/";
                 }
 //                String ddir = dir.isEmpty() ? shortName : shortName + " (" + dir + ")";
-                String ddir = dir + shortName;
-                fileMap.put(fList[i].getAbsolutePath(), ddir);
+                String displayDir = dir + shortName;
+                fileMap.put(fList[i].getAbsolutePath(), displayDir);
                 folderToPathKeysMap.computeIfAbsent(dir, d ->  new ArrayList<>()).add(fList[i].getAbsolutePath());
             }
         }
@@ -457,8 +461,9 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         secretList = new String[secretsSize];
 
         AtomicInteger ix = new AtomicInteger();
+        int sortReverse =  JgpgPreferences.get().getBoolean(PREF_SECRETDIR_SORTING)?1:-1;
         folderToPathKeysMap.keySet().stream().sorted(
-                (s, t1) -> s.toLowerCase().compareTo(t1.toLowerCase()) * -1)
+                (s, t1) -> s.toLowerCase().compareTo(t1.toLowerCase()) * sortReverse)
                 .forEach(
                 dir -> {
                     folderToPathKeysMap.get(dir).stream().sorted((a,b) -> {

@@ -642,10 +642,15 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
             }
             if (err == null || err.isEmpty())
             {
-                String status = "Successfully encrypted " + filename + rid;
-                setText("", status, filename);
                 String postCommand = JgpgPreferences.get().get(PREF_GPG_POST_COMMAND);
-                if (postCommand != null && !postCommand.isEmpty() && !cbSkipPost.isSelected())
+                boolean doPostCommand = postCommand != null && !postCommand.isEmpty() && !cbSkipPost.isSelected();
+                String status = "Successfully encrypted " + filename + rid;
+                if (doPostCommand)
+                {
+                    status += "\nExecuting post command " + postCommand;
+                }
+                setText("", status, filename);
+                if (doPostCommand)
                 {
                     jgpgProcess.command(postCommand, filename, this);
                     editWindow.dispose();

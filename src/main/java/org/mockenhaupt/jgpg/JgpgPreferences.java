@@ -11,6 +11,8 @@ public class JgpgPreferences
     public static final String PREF_URL_OPEN_COMMAND = "browser_open_command";
     public static final String PREF_CHARSET = "charset";
     public static final String PREF_SECRETDIRS = "secretdir";
+    public static final String PREF_SECRETDIR_SORTING = "PREF_SECRETDIR_SORTING";
+
     public static final String PREF_IS_WINDOWS = "iswindows";
     public static final String PREF_USE_PASS_DIALOG = "passDialog";
     public static final String PREF_SHOW_PASSWORD_SHORTCUT_BAR = "passwordShortcutToolbar";

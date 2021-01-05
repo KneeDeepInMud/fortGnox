@@ -71,7 +71,7 @@ public class GpgFileUtils
                     if (dir != null)
                     {
                         File f = new File(dir);
-                        if (f.exists())
+                        if (f.exists() && f.isDirectory())
                         {
                             ret.directoryList.add(f.getAbsolutePath());
                             revisedProp += dir;
