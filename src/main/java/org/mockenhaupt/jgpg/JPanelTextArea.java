@@ -1,5 +1,7 @@
 package org.mockenhaupt.jgpg;
 
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -23,6 +25,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -47,6 +50,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.awt.FlowLayout.CENTER;
+import static java.awt.FlowLayout.LEFT;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CHARSET;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_RESET_MASK_BUTTON_SECONDS;
@@ -69,7 +74,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
     private JTextArea textAreaError;
     private JTextField searchTextField;
     private MainFrame mainFrame;
-    private JToolBar buttonToolbar;
+    private JPanel buttonToolbar;
     private Timer resetMaskButtonTimer;
 
 
@@ -458,8 +463,8 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
 
         add(searchAndTextPanel, BorderLayout.CENTER);
 
-        buttonToolbar = new JToolBar();
-        buttonToolbar.setRollover(true);
+        buttonToolbar = new JPanel(new FlowLayout(LEFT, 1, 1));
+//        buttonToolbar.setRollover(true);
 
         // ---------------------------------------------------------------------
         maskToggleButton = new JToggleButton(TXT_MASK_ALL_PASSWORDS);
@@ -597,7 +602,14 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
         jToggleButtonSet.stream().forEach(jToggleButton -> jToggleButton.setPreferredSize(finalButtonSize));
 
         this.add(scrollPaneTextAreaError, BorderLayout.SOUTH);
-        this.add(buttonToolbar, BorderLayout.NORTH);
+        JPanel toolBarPanel = new JPanel(new BorderLayout());
+        JToggleButton buttonTbVisible = new JToggleButton();
+        buttonTbVisible.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/toolbar_small.png")));
+        buttonTbVisible.addActionListener(a -> buttonToolbar.setVisible(buttonTbVisible.isSelected()));
+        toolBarPanel.add(buttonTbVisible, BorderLayout.WEST);
+        toolBarPanel.add(buttonToolbar, BorderLayout.CENTER);
+//        this.add(buttonToolbar, BorderLayout.NORTH);
+        this.add(toolBarPanel, BorderLayout.NORTH);
         this.add(clipToolbar, BorderLayout.EAST);
         updateCheckboxSelectAll();
 

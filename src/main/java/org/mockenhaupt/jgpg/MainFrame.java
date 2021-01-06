@@ -1428,11 +1428,12 @@ public class MainFrame extends JFrame implements
                 buttonOptionsActionPerformed(evt);
             }
         });
+
         jPanelTextArea.setButtonToolbarVisible(buttonOptions.isSelected());
 
         jToolBarMainFunctions.add(jButtonSettings);
 
-        jToolBarMainFunctions.add(buttonOptions);
+//        jToolBarMainFunctions.add(buttonOptions);
         jToolBarMainFunctions.add(buttonExit);
 
         jButtonSettings.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/Settings-icon.png"))); // NOI18N
