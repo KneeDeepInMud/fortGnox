@@ -65,13 +65,17 @@ public class LAFChooser
 
     public boolean set (UIManager.LookAndFeelInfo laf, Component c)
     {
+        if (laf == null || c == null)
+        {
+            return false;
+        }
         try
         {
             UIManager.setLookAndFeel(laf.getClassName());
             SwingUtilities.updateComponentTreeUI(c);
             return true;
         }
-        catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e)
+        catch (Exception e)
         {
             e.printStackTrace();
             return false;
