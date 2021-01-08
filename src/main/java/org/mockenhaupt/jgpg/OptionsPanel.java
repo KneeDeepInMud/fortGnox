@@ -12,7 +12,6 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -24,7 +23,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.ScrollPane;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -34,6 +32,7 @@ import java.beans.PropertyChangeListener;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CHARSET;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLEAR_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLIP_SECONDS;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES_MIN_HIT_COUNT;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES_SHOW_COUNT;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FILTER_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPGCONF_COMMAND;
@@ -87,6 +86,7 @@ public class OptionsPanel extends javax.swing.JDialog
     private javax.swing.JFormattedTextField jFormattedTextareaClipTimeout;
     private javax.swing.JFormattedTextField jFormattedTextFieldResetMaskButton;
     private javax.swing.JFormattedTextField jFormattedTextFieldNumberFavorites;
+    private javax.swing.JFormattedTextField jFormattedTextFieldMinFavoriteCount;
     private javax.swing.JLabel labelDataDirs;
     private javax.swing.JLabel labelGpgHome;
     private javax.swing.JLabel jLabelPassClearTimeout;
@@ -147,6 +147,7 @@ public class OptionsPanel extends javax.swing.JDialog
         this.jFormattedTextareaClipTimeout.setText(String.format("%d", pa.getInt(PREF_CLIP_SECONDS)));
         this.jFormattedTextFieldResetMaskButton.setText(String.format("%d", pa.getInt(PREF_RESET_MASK_BUTTON_SECONDS)));
         this.jFormattedTextFieldNumberFavorites.setText(String.format("%d", pa.getInt(PREF_NUMBER_FAVORITES)));
+        this.jFormattedTextFieldMinFavoriteCount.setText(String.format("%d", pa.getInt(PREF_FAVORITES_MIN_HIT_COUNT)));
         this.jFormattedTextTextAreaFontSize.setText(String.format("%d", pa.getInt(PREF_TEXTAREA_FONT_SIZE)));
         this.textFieldPassPatterns.setText(pa.get(PREF_PASSWORD_MASK_PATTERNS));
         this.comboBoxCharset.setSelectedItem(pa.get(PREF_CHARSET));
@@ -286,6 +287,7 @@ public class OptionsPanel extends javax.swing.JDialog
         jFormattedTextareaClipTimeout = new javax.swing.JFormattedTextField();
         jFormattedTextFieldResetMaskButton = new javax.swing.JFormattedTextField();
         jFormattedTextFieldNumberFavorites = new javax.swing.JFormattedTextField();
+        jFormattedTextFieldMinFavoriteCount = new javax.swing.JFormattedTextField();
         jFormattedTextTextAreaFontSize = new javax.swing.JFormattedTextField();
         lookAndFeelInfoJComboBox = new JComboBox<>();
         lookAndFeelInfoJComboBox.addActionListener(new ActionListener()
@@ -324,6 +326,10 @@ public class OptionsPanel extends javax.swing.JDialog
 
         JLabel jLabelNumberFavorites = new JLabel("Number favorites (< 0 unlimited)");
         jFormattedTextFieldNumberFavorites.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
+
+        JLabel jLabelMinFavoriteCount = new JLabel("Minimal selections of an entry to become a favorite");
+        jFormattedTextFieldMinFavoriteCount.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
+
         JLabel jLabelPassPatterns = new JLabel("Password patterns (\"|\" separated)");
         textFieldPassPatterns = new JTextField();
 
@@ -382,6 +388,7 @@ public class OptionsPanel extends javax.swing.JDialog
                                                 .addComponent(jLabelClipboardTimeout)
                                                 .addComponent(jLabelResetMaskTimeout)
                                                 .addComponent(jLabelNumberFavorites)
+                                                .addComponent(jLabelMinFavoriteCount)
                                                 .addComponent(jLabelPassPatterns)
                                                 .addComponent(labelCharset)
                                                 .addComponent(jLabelFontSize)
@@ -399,6 +406,7 @@ public class OptionsPanel extends javax.swing.JDialog
                                                 .addComponent(jFormattedTextareaClipTimeout)
                                                 .addComponent(jFormattedTextFieldResetMaskButton)
                                                 .addComponent(jFormattedTextFieldNumberFavorites)
+                                                .addComponent(jFormattedTextFieldMinFavoriteCount)
                                                 .addComponent(textFieldPassPatterns)
                                                 .addComponent(comboBoxCharset)
                                                 .addComponent(jFormattedTextTextAreaFontSize)
@@ -420,6 +428,7 @@ public class OptionsPanel extends javax.swing.JDialog
                         .addGroup(gl.createParallelGroup().addComponent(jLabelClipboardTimeout).addComponent(jFormattedTextareaClipTimeout))
                         .addGroup(gl.createParallelGroup().addComponent(jLabelResetMaskTimeout).addComponent(jFormattedTextFieldResetMaskButton))
                         .addGroup(gl.createParallelGroup().addComponent(jLabelNumberFavorites).addComponent(jFormattedTextFieldNumberFavorites))
+                        .addGroup(gl.createParallelGroup().addComponent(jLabelMinFavoriteCount).addComponent(jFormattedTextFieldMinFavoriteCount))
                         .addGroup(gl.createParallelGroup().addComponent(jLabelPassPatterns).addComponent(textFieldPassPatterns))
                         .addGroup(gl.createParallelGroup().addComponent(labelCharset).addComponent(comboBoxCharset))
                         .addGroup(gl.createParallelGroup().addComponent(jLabelFontSize).addComponent(jFormattedTextTextAreaFontSize))
@@ -473,6 +482,7 @@ public class OptionsPanel extends javax.swing.JDialog
         Integer passTimeout;
         Integer resetMaskButtonTimeout;
         Integer numberFavorites;
+        Integer minNumberFavoritesCount;
         Integer textAreaFontSize;
 
         try
@@ -513,6 +523,18 @@ public class OptionsPanel extends javax.swing.JDialog
         {
             numberFavorites = Integer.parseInt(jFormattedTextFieldNumberFavorites.getText());
             JgpgPreferences.get().put(PREF_NUMBER_FAVORITES, numberFavorites);
+        }
+        catch (NumberFormatException ex)
+        {
+            // live with invalid defaults
+        }
+
+        try
+        {
+            minNumberFavoritesCount = Integer.parseInt(jFormattedTextFieldMinFavoriteCount.getText());
+            minNumberFavoritesCount = Math.max(minNumberFavoritesCount, 0);
+            jFormattedTextFieldMinFavoriteCount.setValue(minNumberFavoritesCount);
+            JgpgPreferences.get().put(PREF_FAVORITES_MIN_HIT_COUNT, minNumberFavoritesCount);
         }
         catch (NumberFormatException ex)
         {

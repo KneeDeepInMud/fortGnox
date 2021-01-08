@@ -12,7 +12,6 @@ package org.mockenhaupt.jgpg;
 
 
 import javax.swing.AbstractListModel;
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -33,11 +32,8 @@ import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Font;
@@ -65,8 +61,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -82,6 +76,7 @@ import static org.mockenhaupt.jgpg.DebugWindow.Category.LIST;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLEAR_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLIP_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES;
+import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES_MIN_HIT_COUNT;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES_SHOW_COUNT;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FILTER_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_LOOK_AND_FEEL;
@@ -89,7 +84,6 @@ import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_NUMBER_FAVORITES;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIR_SORTING;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_TEXTAREA_FONT_SIZE;
 import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_FAVORITES;
 
 /**
@@ -121,6 +115,7 @@ public class MainFrame extends JFrame implements
     private final int MIN_TIMER_VALUE = 1;
     private String toDecode = "";
     private int NUMBER_FAVORITES = 8;
+    private int prefFavoritesMinHitCount = 2;
     private boolean prefShowFavoritesCount = false;
 
     private String[] allSecretFiles = new String[]{""};
@@ -264,6 +259,7 @@ public class MainFrame extends JFrame implements
         CLIP_SECONDS = preferences.get(PREF_CLIP_SECONDS, CLIP_SECONDS_DEFAULT);
         PASSWORD_SECONDS = preferences.get(PREF_PASSWORD_SECONDS, PASSWORD_SECONDS_DEFAULT);
         NUMBER_FAVORITES = preferences.get(PREF_NUMBER_FAVORITES, NUMBER_FAVORITES);
+        prefFavoritesMinHitCount = preferences.get(PREF_FAVORITES_MIN_HIT_COUNT, prefFavoritesMinHitCount);
         prefShowFavoritesCount = preferences.get(PREF_FAVORITES_SHOW_COUNT, prefShowFavoritesCount);
         prefFilterFavoriteList = preferences.get(PREF_FILTER_FAVORITES, prefFilterFavoriteList);
         setPrefUseFavorites(preferences.get(PREF_USE_FAVORITES, prefUseFavoriteList));
@@ -954,7 +950,7 @@ public class MainFrame extends JFrame implements
     {
         final LinkedHashMap<String, Integer> newFavorites = new LinkedHashMap<>(favorites);
 
-        AtomicInteger i = new AtomicInteger(newFavorites.size() + 1);
+        AtomicInteger i = new AtomicInteger(newFavorites.size() + 1 + prefFavoritesMinHitCount);
 
         favorites.clear();
 
@@ -987,11 +983,19 @@ public class MainFrame extends JFrame implements
         favoritesList.addAll(favorites.keySet()
                 .stream()
                 .filter(s -> {
-                    return gpgProcess.getSecretdirs().stream().filter(s1 -> s.startsWith(s1)).findFirst().isPresent();
+                    boolean isFav = isFavoritesPrefMinHits(s);
+                    // ensure to show only favorites from one of the secret dirs
+                    // which may have changed in preferences
+                    return isFav && gpgProcess.getSecretdirs().stream().filter(s1 -> s.startsWith(s1)).findFirst().isPresent();
                 })
                 .collect(Collectors.toList())
         );
         refreshSecretList();
+    }
+
+    private boolean isFavoritesPrefMinHits (String file)
+    {
+        return favorites.get(file) >= prefFavoritesMinHitCount;
     }
 
     public void refreshSecretList ()
@@ -1040,6 +1044,7 @@ public class MainFrame extends JFrame implements
             return favoritesList.subList(0, Math.min(favoritesList.size(), NUMBER_FAVORITES));
         }
     }
+
 
     @Override
     public void handleSecretList (String[] list)
@@ -1642,6 +1647,10 @@ public class MainFrame extends JFrame implements
                 break;
             case PREF_PASSWORD_SECONDS:
                 setPASSWORD_SECONDS((Integer) propertyChangeEvent.getNewValue());
+                break;
+            case PREF_FAVORITES_MIN_HIT_COUNT:
+                prefFavoritesMinHitCount = (Integer) propertyChangeEvent.getNewValue();
+                SwingUtilities.invokeLater(() -> refreshFavorites());
                 break;
             case PREF_NUMBER_FAVORITES:
                 NUMBER_FAVORITES = (Integer) propertyChangeEvent.getNewValue();

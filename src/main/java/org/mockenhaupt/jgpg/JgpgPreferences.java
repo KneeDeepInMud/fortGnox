@@ -27,6 +27,7 @@ public class JgpgPreferences
     public static final String PREF_FAVORITES = "favorites";
     public static final String PREF_RESET_MASK_BUTTON_SECONDS = "reset_mask_button_seconds";
     public static final String PREF_NUMBER_FAVORITES = "number_favorites";
+    public static final String PREF_FAVORITES_MIN_HIT_COUNT = "PREF_FAVORITES_MIN_HIT_COUNT";
     public static final String PREF_CLEAR_SECONDS = "clear_seconds";
     public static final String PREF_PASSWORD_SECONDS = "password_seconds";
     public static final String PREF_PASSWORD_MASK_PATTERNS = "password_mask_patterns";
