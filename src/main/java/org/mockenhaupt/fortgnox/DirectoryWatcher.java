@@ -1,7 +1,6 @@
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
@@ -13,7 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
-import static org.mockenhaupt.jgpg.DebugWindow.Category.DIR;
+import static org.mockenhaupt.fortgnox.DebugWindow.Category.DIR;
 
 public class DirectoryWatcher
 {

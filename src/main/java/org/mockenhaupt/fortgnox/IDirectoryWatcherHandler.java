@@ -1,4 +1,4 @@
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 import java.nio.file.WatchEvent;
 

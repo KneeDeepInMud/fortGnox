@@ -8,7 +8,7 @@
  *
  * Created on 26.02.2011, 18:47:39
  */
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 
 import javax.swing.AbstractListModel;
@@ -68,37 +68,37 @@ import java.util.stream.Collectors;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.OK_OPTION;
-import static org.mockenhaupt.jgpg.DebugWindow.Category.DIR;
-import static org.mockenhaupt.jgpg.DebugWindow.Category.FAV;
-import static org.mockenhaupt.jgpg.DebugWindow.Category.FILTER;
-import static org.mockenhaupt.jgpg.DebugWindow.Category.GPG;
-import static org.mockenhaupt.jgpg.DebugWindow.Category.LIST;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLEAR_SECONDS;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLIP_SECONDS;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES_MIN_HIT_COUNT;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES_SHOW_COUNT;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FILTER_FAVORITES;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_LOOK_AND_FEEL;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_NUMBER_FAVORITES;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIR_SORTING;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_FAVORITES;
+import static org.mockenhaupt.fortgnox.DebugWindow.Category.DIR;
+import static org.mockenhaupt.fortgnox.DebugWindow.Category.FAV;
+import static org.mockenhaupt.fortgnox.DebugWindow.Category.FILTER;
+import static org.mockenhaupt.fortgnox.DebugWindow.Category.GPG;
+import static org.mockenhaupt.fortgnox.DebugWindow.Category.LIST;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CLEAR_SECONDS;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CLIP_SECONDS;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES_MIN_HIT_COUNT;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES_SHOW_COUNT;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FILTER_FAVORITES;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_LOOK_AND_FEEL;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_NUMBER_FAVORITES;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_PASSWORD_SECONDS;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIRS;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIR_SORTING;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_FAVORITES;
 
 /**
  *
  * @author fmoc
  */
 public class MainFrame extends JFrame implements
-        JGPGProcess.SecretListListener,
-        JGPGProcess.ResultListListener,
+        FgGPGProcess.SecretListListener,
+        FgGPGProcess.ResultListListener,
         ActionListener,
         PropertyChangeListener,
         EditWindow.EditHandler
 {
 
-    private JGPGProcess gpgProcess;
+    private FgGPGProcess gpgProcess;
     private EditWindow editWindow;
 //    private PassphraseDialog passDlg;
     private PassphraseDialog passDlg;
@@ -219,14 +219,14 @@ public class MainFrame extends JFrame implements
 
                 INSTANCE = new MainFrame();
 
-                String lafPref = JgpgPreferences.get().get(PREF_LOOK_AND_FEEL);
+                String lafPref = FgPreferences.get().get(PREF_LOOK_AND_FEEL);
                 if (lafPref == null || lafPref.isEmpty())
                 {
                     if (!LAFChooser.get().set("windows", INSTANCE))
                     {
                         LAFChooser.get().set("gtk", INSTANCE);
                     }
-                    JgpgPreferences.get().putPreference(PREF_LOOK_AND_FEEL, LAFChooser.get().getCurrentLAF().getClassName());
+                    FgPreferences.get().putPreference(PREF_LOOK_AND_FEEL, LAFChooser.get().getCurrentLAF().getClassName());
                 }
                 else
                 {
@@ -253,7 +253,7 @@ public class MainFrame extends JFrame implements
         this.setTitle(this.getClass().getPackage().getName().toUpperCase() + " " +
                 getVersionFromManifest().computeIfAbsent(VERSION_PROJECT, k -> "UNKNOWN"));
 
-        PreferencesAccess preferences = JgpgPreferences.get();
+        PreferencesAccess preferences = FgPreferences.get();
 
         CLEAR_SECONDS = preferences.get(PREF_CLEAR_SECONDS, CLEAR_SECONDS_DEFAULT);
         CLIP_SECONDS = preferences.get(PREF_CLIP_SECONDS, CLIP_SECONDS_DEFAULT);
@@ -331,7 +331,7 @@ public class MainFrame extends JFrame implements
 
     public static void toClipboard (String clipBoardText, String whatInfo, boolean startTimer)
     {
-        JGPGProcess.clip(clipBoardText);
+        FgGPGProcess.clip(clipBoardText);
         MainFrame.getInstance().setUserTextareaStatus("Copied " + whatInfo + " to clipboard");
         if (startTimer)
         {
@@ -395,7 +395,7 @@ public class MainFrame extends JFrame implements
             clearUserTextArea("Cleared " + toDecode);
         }
         progressClearTimer.setVisible(false);
-        JGPGProcess.clearClipboardIfNotChanged();
+        FgGPGProcess.clearClipboardIfNotChanged();
         this.clipboard = false;
 
     }
@@ -460,7 +460,7 @@ public class MainFrame extends JFrame implements
 
     private void decrypt (JList jList)
     {
-        JGPGProcess.clearClipboardIfNotChanged();
+        FgGPGProcess.clearClipboardIfNotChanged();
         this.decrypt(false, jList.getSelectedValue(), null);
         jPanelTextArea.requestFocus();
     }
@@ -513,7 +513,7 @@ public class MainFrame extends JFrame implements
     private Map<String, String> getVersionFromManifest ()
     {
         Map<String, String> result = new HashMap<>();
-        URL url = this.getClass().getResource("/org/mockenhaupt/jgpg/version.txt");
+        URL url = this.getClass().getResource("/org/mockenhaupt/fortgnox/version.txt");
         Pattern fieldPattern = Pattern.compile("^\\s*([^:]*)\\s*:\\s*(.*)\\s*$", Pattern.CASE_INSENSITIVE);
         try
         {
@@ -540,7 +540,7 @@ public class MainFrame extends JFrame implements
      */
     private MainFrame()
     {
-        JgpgPreferences.get().addPropertyChangeListener(this);
+        FgPreferences.get().addPropertyChangeListener(this);
         initComponents();
 
         initSecretListCellRenderer();
@@ -621,7 +621,7 @@ public class MainFrame extends JFrame implements
 
         initSecretListEventHandling(jListSecrets);
 
-        gpgProcess = new JGPGProcess();
+        gpgProcess = new FgGPGProcess();
         loadPreferences();
 
         editWindow = new EditWindow(this, gpgProcess, this);
@@ -712,7 +712,7 @@ public class MainFrame extends JFrame implements
                     favorites.remove(jList.getSelectedValue());
                     refreshFavorites();
                     jList.setSelectedIndex(-1);
-                    JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
+                    FgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
                 }
             }
 
@@ -784,7 +784,7 @@ public class MainFrame extends JFrame implements
                     favorites.remove(jList.getSelectedValue());
                     refreshFavorites();
                     jList.setSelectedIndex(-1);
-                    JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
+                    FgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
                 });
                 popupMenu.add(miRemoveFavorites);
 
@@ -800,8 +800,8 @@ public class MainFrame extends JFrame implements
             JMenuItem miToggleSort = new JMenuItem("Toggle sort order of list");
             miToggleSort.addActionListener(a ->
             {
-                boolean sortReverse = JgpgPreferences.get().getBoolean(PREF_SECRETDIR_SORTING);
-                JgpgPreferences.get().put(PREF_SECRETDIR_SORTING, !sortReverse);
+                boolean sortReverse = FgPreferences.get().getBoolean(PREF_SECRETDIR_SORTING);
+                FgPreferences.get().put(PREF_SECRETDIR_SORTING, !sortReverse);
             });
             popupMenu.add(miToggleSort);
         }
@@ -889,7 +889,7 @@ public class MainFrame extends JFrame implements
         }
 
         // rewrite loaded and filtered (missing files) favorites back to disk
-        JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
+        FgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
 
         refreshFavorites();
     }
@@ -943,7 +943,7 @@ public class MainFrame extends JFrame implements
                     favorites.put(stringIntegerEntry.getKey(), stringIntegerEntry.getValue());
                 });
 
-        JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
+        FgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
     }
 
     private void compressFavorites ()
@@ -960,7 +960,7 @@ public class MainFrame extends JFrame implements
                     favorites.put(stringIntegerEntry.getKey(), i.decrementAndGet());
                 });
         refreshFavorites();
-        JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
+        FgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
 
     }
 
@@ -1261,7 +1261,7 @@ public class MainFrame extends JFrame implements
 
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setTitle("JGPG");
+        setTitle("fortGnox");
         setMinimumSize(new java.awt.Dimension(800, 600));
 
         jSplitPaneLR.setBackground(new java.awt.Color(204, 204, 204));
@@ -1284,7 +1284,7 @@ public class MainFrame extends JFrame implements
         JButton cleanButton = new JButton();
         cleanButton.setMinimumSize(new java.awt.Dimension(30, 30));
         cleanButton.setPreferredSize(new java.awt.Dimension(30, 30));
-        ImageIcon cleanButtonIcon = new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/clean.png"));
+        ImageIcon cleanButtonIcon = new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/clean.png"));
         cleanButton.setIcon(cleanButtonIcon); // NOI18N
         textFilterPanel.add(cleanButton, BorderLayout.EAST);
 
@@ -1313,7 +1313,7 @@ public class MainFrame extends JFrame implements
 
 
 
-        buttonNew.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/new32.png")));
+        buttonNew.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/new32.png")));
         buttonNew.setText("New");
         buttonNew.setMnemonic('n');
         buttonNew.setFocusable(false);
@@ -1329,7 +1329,7 @@ public class MainFrame extends JFrame implements
         });
         jToolBarMainFunctions.add(buttonNew);
 
-        jButtonClipboard.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/icons8-clipboard-30.png"))); // NOI18N
+        jButtonClipboard.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/icons8-clipboard-30.png"))); // NOI18N
         jButtonClipboard.setText("Clipboard First Line");
         jButtonClipboard.setToolTipText("Save the first line of decoded file to clipboard");
         jButtonClipboard.setFocusable(false);
@@ -1347,7 +1347,7 @@ public class MainFrame extends JFrame implements
 
 
         // ---------------------------------
-        buttonClearTextarea.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346509543_edit-clear.png"))); // NOI18N
+        buttonClearTextarea.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/1346509543_edit-clear.png"))); // NOI18N
         buttonClearTextarea.setText("Clear Textarea");
         buttonClearTextarea.setToolTipText("Clears the textarea and the clipboard in case a password has been stored there");
         buttonClearTextarea.setBorderPainted(false);
@@ -1365,7 +1365,7 @@ public class MainFrame extends JFrame implements
 
 
         // ---------------------------------
-        buttonClearPass.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346509520_preferences-desktop-cryptography.png"))); // NOI18N
+        buttonClearPass.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/1346509520_preferences-desktop-cryptography.png"))); // NOI18N
         buttonClearPass.setText("Clear Passphrase");
         buttonClearPass.setToolTipText("Clears the internally stored passphrase and optionally the GPG agenty password (see Settings)");
         buttonClearPass.setBorderPainted(false);
@@ -1381,7 +1381,7 @@ public class MainFrame extends JFrame implements
         });
         jToolBarMainFunctions.add(buttonClearPass);
         // ---------------------------------
-        buttonClearFavorites.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/favs32.png"))); // NOI18N
+        buttonClearFavorites.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/favs32.png"))); // NOI18N
         buttonClearFavorites.setText("Clear Favorites");
         buttonClearFavorites.setToolTipText("Clears the favorites list");
         buttonClearFavorites.setBorderPainted(false);
@@ -1392,10 +1392,10 @@ public class MainFrame extends JFrame implements
         {
             public void actionPerformed (java.awt.event.ActionEvent evt)
             {
-                if (OK_OPTION == JOptionPane.showConfirmDialog(MainFrame.this, "Really delete all favorites?", "JGPG Delete Favorites", OK_CANCEL_OPTION))
+                if (OK_OPTION == JOptionPane.showConfirmDialog(MainFrame.this, "Really delete all favorites?", "fortGnox Delete Favorites", OK_CANCEL_OPTION))
                 {
                     favorites.clear();
-                    JgpgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
+                    FgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
                     refreshFavorites();
                 }
             }
@@ -1406,7 +1406,7 @@ public class MainFrame extends JFrame implements
 
 
 
-        buttonExit.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346509462_exit.png"))); // NOI18N
+        buttonExit.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/1346509462_exit.png"))); // NOI18N
         buttonExit.setText("EXIT");
         buttonExit.setBorderPainted(false);
         buttonExit.setFocusable(false);
@@ -1420,7 +1420,7 @@ public class MainFrame extends JFrame implements
             }
         });
 
-        buttonOptions.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/toolbar.png"))); // NOI18N
+        buttonOptions.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/toolbar.png"))); // NOI18N
         buttonOptions.setText("Text Options");
         buttonOptions.setBorderPainted(false);
         buttonOptions.setFocusable(false);
@@ -1441,8 +1441,8 @@ public class MainFrame extends JFrame implements
 //        jToolBarMainFunctions.add(buttonOptions);
         jToolBarMainFunctions.add(buttonExit);
 
-        jButtonSettings.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/Settings-icon.png"))); // NOI18N
-        jButtonSettings.setText("JGPG Settings");
+        jButtonSettings.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/Settings-icon.png"))); // NOI18N
+        jButtonSettings.setText("Settings");
         jButtonSettings.setFocusable(false);
         jButtonSettings.setHorizontalTextPosition(SwingConstants.CENTER);
         jButtonSettings.setVerticalTextPosition(SwingConstants.BOTTOM);
@@ -1458,7 +1458,7 @@ public class MainFrame extends JFrame implements
 
 
 
-        buttonAbout.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/icons8-info-30.png"))); // NOI18N
+        buttonAbout.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/icons8-info-30.png"))); // NOI18N
         buttonAbout.setText("");
         buttonAbout.setBorderPainted(false);
         buttonAbout.setFocusable(false);
@@ -1496,19 +1496,12 @@ public class MainFrame extends JFrame implements
         focusComponentVector.add(textFilter);
         focusComponentVector.add(jListSecrets);
         focusComponentVector.add(jPanelTextArea.getFocusComponent());
-        JgpgFocusTraversalPolicy jgpgFocusTraversalPolicy = new JgpgFocusTraversalPolicy(focusComponentVector);
-        this.setFocusTraversalPolicy(jgpgFocusTraversalPolicy);
+        FgFocusTraversalPolicy fgFocusTraversalPolicy = new FgFocusTraversalPolicy(focusComponentVector);
+        this.setFocusTraversalPolicy(fgFocusTraversalPolicy);
 
         pack();
     }
 
-//    private void setListSecretFontSize ()
-//    {
-//        float fontSize = JgpgPreferences.get().get(PREF_TEXTAREA_FONT_SIZE, jListSecrets.getFont().getSize());
-//        jListSecrets.setFont(jListSecrets.getFont().deriveFont(fontSize));
-//        jListSecrets.revalidate();
-//        initSecretListCellRenderer();
-//    }
 
 
     private void buttonClearTextareaActionPerformed(java.awt.event.ActionEvent evt) {
@@ -1517,7 +1510,7 @@ public class MainFrame extends JFrame implements
     }
 
     private void buttonExitActionPerformed(java.awt.event.ActionEvent evt) {
-        JGPGProcess.clearClipboardIfNotChanged();
+        FgGPGProcess.clearClipboardIfNotChanged();
         this.clipboard = false;
         System.exit(1);
     }
@@ -1533,7 +1526,7 @@ public class MainFrame extends JFrame implements
     private void buttonClearPassActionPerformed(java.awt.event.ActionEvent evt) {
         passDlg.setPassPhrase("");
         jPanelTextArea.clear("Cleared");
-        JGPGProcess.clearClipboardIfNotChanged();
+        FgGPGProcess.clearClipboardIfNotChanged();
         this.clipboard = false;
         stopClearTimer();
         stopPassTimer();
@@ -1546,7 +1539,7 @@ public class MainFrame extends JFrame implements
     private void buttonAboutActionPerformed (java.awt.event.ActionEvent evt)
     {
 
-        URL is = getClass().getResource("/org/mockenhaupt/jgpg/about.txt");
+        URL is = getClass().getResource("/org/mockenhaupt/fortgnox/about.txt");
 
         StringBuilder sb = new StringBuilder();
         try
@@ -1555,7 +1548,7 @@ public class MainFrame extends JFrame implements
             while (br.ready())
             {
                 sb.append(br.readLine());
-                sb.append(JGPGProcess.LINE_SEP);
+                sb.append(FgGPGProcess.LINE_SEP);
             }
         }
         catch (IOException ex)
@@ -1566,9 +1559,9 @@ public class MainFrame extends JFrame implements
 
         JOptionPane.showMessageDialog(this,
                 sb.toString(),
-                "About JGPG " + getVersionFromManifest().computeIfAbsent(VERSION_PROJECT, k -> "UNKNOWN"),
+                "About fortGnox " + getVersionFromManifest().computeIfAbsent(VERSION_PROJECT, k -> "UNKNOWN"),
                 JOptionPane.INFORMATION_MESSAGE,
-                new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/icons8-info-30.png")));
+                new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/icons8-info-30.png")));
     }
 
 

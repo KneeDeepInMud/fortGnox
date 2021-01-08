@@ -1,4 +1,4 @@
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -135,7 +135,7 @@ public class DebugWindow
     {
         if (debugFrame == null)
         {
-            debugFrame = new JFrame("JGPG Debug");
+            debugFrame = new JFrame("fortgnox Debug");
             URL url = this.getClass().getResource("kgpg_identity.png");
             debugFrame.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 

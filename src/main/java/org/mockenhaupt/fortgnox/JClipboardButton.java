@@ -1,4 +1,4 @@
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 import javax.swing.JButton;
 import java.awt.event.ActionEvent;

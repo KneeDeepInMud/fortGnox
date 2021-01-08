@@ -1,14 +1,14 @@
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 import java.awt.*;
 import java.util.Vector;
 
-public class JgpgFocusTraversalPolicy extends FocusTraversalPolicy
+public class FgFocusTraversalPolicy extends FocusTraversalPolicy
 {
 
     private final Vector<Component> order;
 
-    public JgpgFocusTraversalPolicy (Vector<Component> order)
+    public FgFocusTraversalPolicy (Vector<Component> order)
     {
         this.order = new Vector<>(order.size());
         this.order.addAll(order);

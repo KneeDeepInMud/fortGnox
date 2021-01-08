@@ -8,7 +8,7 @@
  *
  * Created on 26.02.2011, 21:47:00
  */
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;

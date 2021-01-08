@@ -1,12 +1,12 @@
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static org.mockenhaupt.jgpg.DebugWindow.Category.FAV;
-import static org.mockenhaupt.jgpg.DebugWindow.Category.FILTER;
-import static org.mockenhaupt.jgpg.DebugWindow.Category.GPG;
+import static org.mockenhaupt.fortgnox.DebugWindow.Category.FAV;
+import static org.mockenhaupt.fortgnox.DebugWindow.Category.FILTER;
+import static org.mockenhaupt.fortgnox.DebugWindow.Category.GPG;
 
 class DebugWindowTest
 {

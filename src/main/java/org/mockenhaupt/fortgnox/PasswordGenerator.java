@@ -1,4 +1,4 @@
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
@@ -30,10 +30,10 @@ public class PasswordGenerator
     private final List<Character> special = new ArrayList<>();
     private final JComboBox<String> comboBoxPasswords = new JComboBox<>();
     private final JFormattedTextField textFieldLength = new JFormattedTextField();
-    private final JCheckBoxPersistent cbUpper = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_UPPER, "Uppercase", ()->handleEnabled());
-    private final JCheckBoxPersistent cbLower = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_LOWER, "Lowercase", ()->handleEnabled());
-    private final JCheckBoxPersistent cbDigit = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_DIGITS, "Digits", ()->handleEnabled());
-    private final JCheckBoxPersistent cbSpecial = new JCheckBoxPersistent(JgpgPreferences.PREF_GPG_PASS_SPECIAL, "Special", ()->handleEnabled());
+    private final JCheckBoxPersistent cbUpper = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_UPPER, "Uppercase", ()->handleEnabled());
+    private final JCheckBoxPersistent cbLower = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_LOWER, "Lowercase", ()->handleEnabled());
+    private final JCheckBoxPersistent cbDigit = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_DIGITS, "Digits", ()->handleEnabled());
+    private final JCheckBoxPersistent cbSpecial = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_SPECIAL, "Special", ()->handleEnabled());
     private final JButton buttonGenerate = new JButton("Generate Password");
     private final JButton buttonInsert = new JButton("Insert");
     private final JButton buttonCopy = new JButton("Clipboard");
@@ -242,7 +242,7 @@ public class PasswordGenerator
                 {
                     generatePassword();
                 }
-                JGPGProcess.clip(comboBoxPasswords.getSelectedItem().toString());
+                FgGPGProcess.clip(comboBoxPasswords.getSelectedItem().toString());
             });
             buttonInsert.addActionListener(actionEvent ->
             {
@@ -266,13 +266,13 @@ public class PasswordGenerator
             buttonCopy.setMnemonic('l');
 
             textFieldLength.setMinimumSize(new Dimension(40, 10));
-            textFieldLength.setValue(JgpgPreferences.get().getPreference(JgpgPreferences.PREF_GPG_PASS_LENGTH, 18));
+            textFieldLength.setValue(FgPreferences.get().getPreference(FgPreferences.PREF_GPG_PASS_LENGTH, 18));
             textFieldLength.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
             textFieldLength.getDocument().addDocumentListener(new DocumentListener()
             {
                 void updatePreference ()
                 {
-                    JgpgPreferences.get().putPreference(JgpgPreferences.PREF_GPG_PASS_LENGTH, textFieldLength.getText());
+                    FgPreferences.get().putPreference(FgPreferences.PREF_GPG_PASS_LENGTH, textFieldLength.getText());
                 }
 
                 @Override

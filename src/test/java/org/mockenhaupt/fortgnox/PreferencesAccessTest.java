@@ -1,4 +1,4 @@
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 import org.junit.jupiter.api.BeforeEach;
 

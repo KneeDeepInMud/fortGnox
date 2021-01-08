@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 
 import javax.swing.DefaultComboBoxModel;
@@ -29,33 +29,33 @@ import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CHARSET;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLEAR_SECONDS;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CLIP_SECONDS;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES_MIN_HIT_COUNT;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FAVORITES_SHOW_COUNT;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_FILTER_FAVORITES;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPGCONF_COMMAND;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_COMMAND;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_DEFAULT_RID;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_HOMEDIR;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_POST_COMMAND;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_RID_FILE;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_USE_ASCII;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_LOOK_AND_FEEL;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_MASK_FIRST_LINE;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_NUMBER_FAVORITES;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_MASK_PATTERNS;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_RESET_MASK_BUTTON_SECONDS;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_TEXTAREA_FONT_SIZE;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_URL_OPEN_COMMAND;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USERNAME_MASK_PATTERNS;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_FAVORITES;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_GPG_AGENT;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_PASS_DIALOG;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CHARSET;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CLEAR_SECONDS;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CLIP_SECONDS;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES_MIN_HIT_COUNT;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES_SHOW_COUNT;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FILTER_FAVORITES;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPGCONF_COMMAND;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_COMMAND;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_DEFAULT_RID;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_HOMEDIR;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_POST_COMMAND;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_RID_FILE;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_USE_ASCII;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_LOOK_AND_FEEL;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_MASK_FIRST_LINE;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_NUMBER_FAVORITES;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_PASSWORD_MASK_PATTERNS;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_PASSWORD_SECONDS;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_RESET_MASK_BUTTON_SECONDS;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIRS;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_TEXTAREA_FONT_SIZE;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_URL_OPEN_COMMAND;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USERNAME_MASK_PATTERNS;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_FAVORITES;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_GPG_AGENT;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_PASS_DIALOG;
 
 /**
  *
@@ -108,7 +108,7 @@ public class OptionsPanel extends javax.swing.JDialog
 
     public OptionsPanel (MainFrame parent)
     {
-        super(parent, "JGPG Settings", true);
+        super(parent, "fortGnox Settings", true);
         this.setPreferredSize(new Dimension(960, 640));
         optionsPanel = new JPanel();
         gpgPanel = new JPanel();
@@ -128,7 +128,7 @@ public class OptionsPanel extends javax.swing.JDialog
 
     void initPreferences ()
     {
-        PreferencesAccess pa = JgpgPreferences.get();
+        PreferencesAccess pa = FgPreferences.get();
         this.jTextGpgExe.setText(pa.get(PREF_GPG_COMMAND));
         this.jTextGpgPostCommand.setText(pa.get(PREF_GPG_POST_COMMAND));
         this.jTextGpgHome.setText(pa.get(PREF_GPG_HOMEDIR));
@@ -298,7 +298,7 @@ public class OptionsPanel extends javax.swing.JDialog
                 String selected = (String)lookAndFeelInfoJComboBox.getSelectedItem();
                 if (LAFChooser.get().set(selected,  OptionsPanel.this))
                 {
-                    JgpgPreferences.get().putPreference(PREF_LOOK_AND_FEEL, selected);
+                    FgPreferences.get().putPreference(PREF_LOOK_AND_FEEL, selected);
                 }
             }
         });
@@ -490,7 +490,7 @@ public class OptionsPanel extends javax.swing.JDialog
             textAreaFontSize = Integer.parseInt(jFormattedTextTextAreaFontSize.getText());
             textAreaFontSize = Math.max(textAreaFontSize, 8);
             textAreaFontSize = Math.min(textAreaFontSize, 60);
-            JgpgPreferences.get().put(PREF_TEXTAREA_FONT_SIZE, textAreaFontSize);
+            FgPreferences.get().put(PREF_TEXTAREA_FONT_SIZE, textAreaFontSize);
         }
         catch (NumberFormatException ex)
         {
@@ -501,7 +501,7 @@ public class OptionsPanel extends javax.swing.JDialog
         try
         {
             clipTimeout = Integer.parseInt(jFormattedTextareaClipTimeout.getText());
-            JgpgPreferences.get().put(PREF_CLIP_SECONDS, clipTimeout);
+            FgPreferences.get().put(PREF_CLIP_SECONDS, clipTimeout);
         }
         catch (NumberFormatException ex)
         {
@@ -512,7 +512,7 @@ public class OptionsPanel extends javax.swing.JDialog
         try
         {
             resetMaskButtonTimeout = Integer.parseInt(jFormattedTextFieldResetMaskButton.getText());
-            JgpgPreferences.get().put(PREF_RESET_MASK_BUTTON_SECONDS, resetMaskButtonTimeout);
+            FgPreferences.get().put(PREF_RESET_MASK_BUTTON_SECONDS, resetMaskButtonTimeout);
         }
         catch (NumberFormatException ex)
         {
@@ -522,7 +522,7 @@ public class OptionsPanel extends javax.swing.JDialog
         try
         {
             numberFavorites = Integer.parseInt(jFormattedTextFieldNumberFavorites.getText());
-            JgpgPreferences.get().put(PREF_NUMBER_FAVORITES, numberFavorites);
+            FgPreferences.get().put(PREF_NUMBER_FAVORITES, numberFavorites);
         }
         catch (NumberFormatException ex)
         {
@@ -534,7 +534,7 @@ public class OptionsPanel extends javax.swing.JDialog
             minNumberFavoritesCount = Integer.parseInt(jFormattedTextFieldMinFavoriteCount.getText());
             minNumberFavoritesCount = Math.max(minNumberFavoritesCount, 0);
             jFormattedTextFieldMinFavoriteCount.setValue(minNumberFavoritesCount);
-            JgpgPreferences.get().put(PREF_FAVORITES_MIN_HIT_COUNT, minNumberFavoritesCount);
+            FgPreferences.get().put(PREF_FAVORITES_MIN_HIT_COUNT, minNumberFavoritesCount);
         }
         catch (NumberFormatException ex)
         {
@@ -544,7 +544,7 @@ public class OptionsPanel extends javax.swing.JDialog
         try
         {
             clearTimeout = Integer.parseInt(jFormattedTextareaClearTimeout.getText());
-            JgpgPreferences.get().put(PREF_CLEAR_SECONDS, clearTimeout);
+            FgPreferences.get().put(PREF_CLEAR_SECONDS, clearTimeout);
         }
         catch (NumberFormatException ex)
         {
@@ -553,32 +553,32 @@ public class OptionsPanel extends javax.swing.JDialog
         try
         {
             passTimeout = Integer.parseInt(jFormattedTextPassClearTimeout.getText());
-            JgpgPreferences.get().put(PREF_PASSWORD_SECONDS, passTimeout);
+            FgPreferences.get().put(PREF_PASSWORD_SECONDS, passTimeout);
         }
         catch (NumberFormatException ex)
         {
             // live with invalid defaults
         }
 
-        JgpgPreferences.get().put(PREF_PASSWORD_MASK_PATTERNS, textFieldPassPatterns.getText());
-        JgpgPreferences.get().put(PREF_USERNAME_MASK_PATTERNS, textFieldUsernamePatterns.getText());
-        JgpgPreferences.get().put(PREF_GPG_COMMAND, jTextGpgExe.getText());
-        JgpgPreferences.get().put(JgpgPreferences.PREF_SECRETDIRS, jTextSecretDirs.getText());
-        JgpgPreferences.get().put(JgpgPreferences.PREF_GPG_HOMEDIR, jTextGpgHome.getText());
-        JgpgPreferences.get().put(JgpgPreferences.PREF_GPGCONF_COMMAND, jTexfFieldGpgConf.getText());
-        JgpgPreferences.get().put(PREF_URL_OPEN_COMMAND, jTexfFieldBrowserOpen.getText());
-        JgpgPreferences.get().put(JgpgPreferences.PREF_USE_PASS_DIALOG, jCheckBoxUsePassDialog.isSelected());
-        JgpgPreferences.get().put(PREF_SHOW_PASSWORD_SHORTCUT_BAR, jCheckBoxPasswordShortcuts.isSelected());
-        JgpgPreferences.get().put(JgpgPreferences.PREF_USE_GPG_AGENT, jCheckboxReloadAgent.isSelected());
-        JgpgPreferences.get().put(PREF_MASK_FIRST_LINE, jCheckboxMastFirstLine.isSelected());
-        JgpgPreferences.get().put(PREF_USE_FAVORITES, jCheckBoxUseFavorites.isSelected());
-        JgpgPreferences.get().put(PREF_FILTER_FAVORITES, jCheckBoxFilterFavorites.isSelected());
-        JgpgPreferences.get().put(PREF_FAVORITES_SHOW_COUNT, jCheckBoxShowFavoritesCount.isSelected());
-        JgpgPreferences.get().put(PREF_CHARSET, comboBoxCharset.getSelectedItem());
-        JgpgPreferences.get().put(PREF_GPG_RID_FILE, jTexfFieldGpgRIDFile.getText());
-        JgpgPreferences.get().put(PREF_GPG_DEFAULT_RID, jTexfFieldGpgDefaultRID.getText());
-        JgpgPreferences.get().put(PREF_GPG_USE_ASCII, jCheckBoxGpgUseAsciiFormat.isSelected());
-        JgpgPreferences.get().put(PREF_GPG_POST_COMMAND, jTextGpgPostCommand.getText());
+        FgPreferences.get().put(PREF_PASSWORD_MASK_PATTERNS, textFieldPassPatterns.getText());
+        FgPreferences.get().put(PREF_USERNAME_MASK_PATTERNS, textFieldUsernamePatterns.getText());
+        FgPreferences.get().put(PREF_GPG_COMMAND, jTextGpgExe.getText());
+        FgPreferences.get().put(FgPreferences.PREF_SECRETDIRS, jTextSecretDirs.getText());
+        FgPreferences.get().put(FgPreferences.PREF_GPG_HOMEDIR, jTextGpgHome.getText());
+        FgPreferences.get().put(FgPreferences.PREF_GPGCONF_COMMAND, jTexfFieldGpgConf.getText());
+        FgPreferences.get().put(PREF_URL_OPEN_COMMAND, jTexfFieldBrowserOpen.getText());
+        FgPreferences.get().put(FgPreferences.PREF_USE_PASS_DIALOG, jCheckBoxUsePassDialog.isSelected());
+        FgPreferences.get().put(PREF_SHOW_PASSWORD_SHORTCUT_BAR, jCheckBoxPasswordShortcuts.isSelected());
+        FgPreferences.get().put(FgPreferences.PREF_USE_GPG_AGENT, jCheckboxReloadAgent.isSelected());
+        FgPreferences.get().put(PREF_MASK_FIRST_LINE, jCheckboxMastFirstLine.isSelected());
+        FgPreferences.get().put(PREF_USE_FAVORITES, jCheckBoxUseFavorites.isSelected());
+        FgPreferences.get().put(PREF_FILTER_FAVORITES, jCheckBoxFilterFavorites.isSelected());
+        FgPreferences.get().put(PREF_FAVORITES_SHOW_COUNT, jCheckBoxShowFavoritesCount.isSelected());
+        FgPreferences.get().put(PREF_CHARSET, comboBoxCharset.getSelectedItem());
+        FgPreferences.get().put(PREF_GPG_RID_FILE, jTexfFieldGpgRIDFile.getText());
+        FgPreferences.get().put(PREF_GPG_DEFAULT_RID, jTexfFieldGpgDefaultRID.getText());
+        FgPreferences.get().put(PREF_GPG_USE_ASCII, jCheckBoxGpgUseAsciiFormat.isSelected());
+        FgPreferences.get().put(PREF_GPG_POST_COMMAND, jTextGpgPostCommand.getText());
 
         setVisible(false);
     }

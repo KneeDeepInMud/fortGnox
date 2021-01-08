@@ -1,8 +1,8 @@
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
-public class JgpgPreferences
+public class FgPreferences
 {
-    public static final String PREFERENCE_NODE = "org.fmoc.jgpg";
+    public static final String PREFERENCE_NODE = "org.fmoc.fortgnox";
 
     public static final String PREF_GPG_HOMEDIR = "homedir";
     public static final String PREF_GPG_COMMAND = "gpg";

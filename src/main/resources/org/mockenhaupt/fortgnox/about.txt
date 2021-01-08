@@ -1,0 +1,7 @@
+fortGnox ${project.version}
+
+Build: ${buildNumber}
+
+Java password manager based on GPG encryption.
+
+Author: Frank Mockenhaupt 2021

@@ -1,9 +1,8 @@
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.UUID;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -140,6 +139,17 @@ public class PreferencesAccess
             Integer oldVal = INSTANCE.preferences.getInt(name, invalid);
 
             INSTANCE.preferences.putInt(name, (Integer) value);
+            if (!oldVal.equals(value))
+            {
+                fireEvent(name, null, value);
+            }
+        }
+        else if (value instanceof Float)
+        {
+            Float invalid = Float.MIN_VALUE;
+            Float oldVal = INSTANCE.preferences.getFloat(name, invalid);
+
+            INSTANCE.preferences.putFloat(name, (Float) value);
             if (!oldVal.equals(value))
             {
                 fireEvent(name, null, value);

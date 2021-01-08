@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 
 import javax.swing.SwingUtilities;
@@ -37,23 +37,23 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CHARSET;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPGCONF_COMMAND;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_COMMAND;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_HOMEDIR;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_USE_ASCII;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIR_SORTING;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_GPG_AGENT;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_USE_PASS_DIALOG;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CHARSET;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPGCONF_COMMAND;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_COMMAND;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_HOMEDIR;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_USE_ASCII;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIRS;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIR_SORTING;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_GPG_AGENT;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_PASS_DIALOG;
 
 /**
  *
  * @author fmoc
  */
-public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHandler
+public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHandler
 {
-    private final static Logger LOGGER = Logger.getLogger(JGPGProcess.class.getName());
+    private final static Logger LOGGER = Logger.getLogger(FgGPGProcess.class.getName());
 
     public static final String LINE_SEP = System.lineSeparator();
     private String prefCharset = "ISO-8859-15";
@@ -291,13 +291,13 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
     }
     private void handleSecretPreferenceChanged ()
     {
-        PreferencesAccess preferences = JgpgPreferences.get();
+        PreferencesAccess preferences = FgPreferences.get();
         File f = new File(prefSecretDirsString);
         secretdirs.clear();
         directoryWatchers.values().stream().forEach(s -> s.stop());
         directoryWatchers.clear();
 
-        GpgFileUtils.ParsedDirectories parsedDirectories = GpgFileUtils.splitDirectoryString(prefSecretDirsString);
+        FileUtils.ParsedDirectories parsedDirectories = FileUtils.splitDirectoryString(prefSecretDirsString);
 
         if (!parsedDirectories.directoryList.isEmpty())
         {
@@ -317,7 +317,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         {
             directoryWatchers.computeIfAbsent(sd, s ->
             {
-                DirectoryWatcher dw = new DirectoryWatcher(JGPGProcess.this);
+                DirectoryWatcher dw = new DirectoryWatcher(FgGPGProcess.this);
                 dw.init(s);
                 return dw;
             });
@@ -327,31 +327,31 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
     }
 
     //  protected Preferences preferences;
-    public JGPGProcess ()
+    public FgGPGProcess ()
     {
 
-        PreferencesAccess preferences = JgpgPreferences.get();
+        PreferencesAccess preferences = FgPreferences.get();
         preferences.addPropertyChangeListener(this);
 
-        File defaultFileLocation = new File("gpg");
-        prefGpgExeLocation = preferences.get(JgpgPreferences.PREF_GPG_COMMAND, defaultFileLocation.getAbsolutePath());
+        String defaultFileLocation = "gpg";
+        prefGpgExeLocation = preferences.get(FgPreferences.PREF_GPG_COMMAND, defaultFileLocation);
 
         prefCharset = preferences.get(PREF_CHARSET, prefCharset);
         charset = Charset.forName(prefCharset);
 
-        defaultFileLocation = new File("gnupg");
-        prefGpgHome = preferences.get(PREF_GPG_HOMEDIR, defaultFileLocation.getAbsolutePath());
+        defaultFileLocation = "/";
+        prefGpgHome = preferences.get(PREF_GPG_HOMEDIR, defaultFileLocation);
 
-        prefGpgConfCommand = preferences.get(JgpgPreferences.PREF_GPGCONF_COMMAND, "gpgconf");
+        prefGpgConfCommand = preferences.get(FgPreferences.PREF_GPGCONF_COMMAND, "gpgconf");
 
-        defaultFileLocation = new File("/secret/password");
-        prefSecretDirsString = preferences.get(JgpgPreferences.PREF_SECRETDIRS, defaultFileLocation.getAbsolutePath());
+        defaultFileLocation = "/";
+        prefSecretDirsString = preferences.get(FgPreferences.PREF_SECRETDIRS, defaultFileLocation);
         handleSecretPreferenceChanged();
 
-        isWindows = preferences.get(JgpgPreferences.PREF_IS_WINDOWS, true);
+        isWindows = preferences.get(FgPreferences.PREF_IS_WINDOWS, true);
 
-        this.prefUsePasswordDialog = preferences.get(JgpgPreferences.PREF_USE_PASS_DIALOG, prefUsePasswordDialog);
-        this.prefConnectToGpgAgent = preferences.get(JgpgPreferences.PREF_USE_GPG_AGENT, prefConnectToGpgAgent);
+        this.prefUsePasswordDialog = preferences.get(FgPreferences.PREF_USE_PASS_DIALOG, prefUsePasswordDialog);
+        this.prefConnectToGpgAgent = preferences.get(FgPreferences.PREF_USE_GPG_AGENT, prefConnectToGpgAgent);
     }
 
     String[] secretList;
@@ -461,7 +461,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         secretList = new String[secretsSize];
 
         AtomicInteger ix = new AtomicInteger();
-        int sortReverse =  JgpgPreferences.get().getBoolean(PREF_SECRETDIR_SORTING)?1:-1;
+        int sortReverse =  FgPreferences.get().getBoolean(PREF_SECRETDIR_SORTING)?1:-1;
         folderToPathKeysMap.keySet().stream().sorted(
                 (s, t1) -> s.toLowerCase().compareTo(t1.toLowerCase()) * sortReverse)
                 .forEach(
@@ -554,7 +554,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
         }
         if (currentClip != null && currentClip.equals(lastClipText))
         {
-            clip("#-= FLUSHED PASSWORD FROM JGPG =-#");
+            clip("#-= FLUSHED PASSWORD FROM fortGnox =-#");
         }
         lastClipText = "";
     }
@@ -852,7 +852,7 @@ public class JGPGProcess implements PropertyChangeListener, IDirectoryWatcherHan
                 cmdArgList.add(prefGpgExeLocation);
                 cmdArgList.add("--batch");
                 cmdArgList.add("--yes");
-                if (JgpgPreferences.get().getBoolean(PREF_GPG_USE_ASCII))
+                if (FgPreferences.get().getBoolean(PREF_GPG_USE_ASCII))
                 {
                     cmdArgList.add("--armor");
                 }

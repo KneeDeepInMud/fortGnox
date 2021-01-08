@@ -3,16 +3,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.mockenhaupt</groupId>
-    <artifactId>jgpg</artifactId>
-    <name>Java GPG Client</name>
-    <version>2.0.7-snapshot
-    </version>
+    <artifactId>fortgnox</artifactId>
+    <name>fortGnox - Java GPG Password Manager</name>
+    <version>0.0.1-snapshot</version>
     <packaging>jar</packaging>
     <scm>
         <connection>scm:git:file://.</connection>
-        <!--<developerConnection>scm:git:file:///home/fmoc/work/NetbeansProjects/JGpg</developerConnection>-->
-        <!--<tag>HEAD</tag>-->
-        <!--<url>http://127.0.0.1/dummy</url>-->
     </scm>
     <dependencies>
         <dependency>
@@ -102,7 +98,7 @@
                             <addDefaultImplementationEntries>false</addDefaultImplementationEntries>
                             <addDefaultSpecificationEntries>false</addDefaultSpecificationEntries>
                             <addClasspath>false</addClasspath>
-                            <mainClass>org.mockenhaupt.jgpg.MainFrame</mainClass>
+                            <mainClass>org.mockenhaupt.fortgnox.MainFrame</mainClass>
                         </manifest>
                         <manifestEntries>
                             <implementation-version>${project.version}</implementation-version>
@@ -125,7 +121,7 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <mainClass>org.mockenhaupt.jgpg.MainFrame</mainClass>
+                                    <mainClass>org.mockenhaupt.fortgnoxgnox.MainFrame</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>

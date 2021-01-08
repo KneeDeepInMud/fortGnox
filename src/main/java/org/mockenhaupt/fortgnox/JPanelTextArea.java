@@ -1,7 +1,6 @@
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -50,11 +49,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static java.awt.FlowLayout.CENTER;
 import static java.awt.FlowLayout.LEFT;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_CHARSET;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_PASSWORD_SECONDS;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_RESET_MASK_BUTTON_SECONDS;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_RESET_MASK_BUTTON_SECONDS;
 
 public class JPanelTextArea extends JPanel implements PropertyChangeListener
 {
@@ -393,7 +389,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
 
     private void init ()
     {
-        JgpgPreferences.get().addPropertyChangeListener(this);
+        FgPreferences.get().addPropertyChangeListener(this);
         loadPreferences();
 
         scrollPaneTextArea = new JScrollPane();
@@ -604,7 +600,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
         this.add(scrollPaneTextAreaError, BorderLayout.SOUTH);
         JPanel toolBarPanel = new JPanel(new BorderLayout());
         JToggleButton buttonTbVisible = new JToggleButton();
-        buttonTbVisible.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/toolbar_small.png")));
+        buttonTbVisible.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/toolbar_small.png")));
         buttonTbVisible.addActionListener(a -> buttonToolbar.setVisible(buttonTbVisible.isSelected()));
         toolBarPanel.add(buttonTbVisible, BorderLayout.WEST);
         toolBarPanel.add(buttonToolbar, BorderLayout.CENTER);
@@ -623,7 +619,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
             resetMaskButtonTimer.stop();
         }
 
-        int timeout =  JgpgPreferences.get().get(PREF_RESET_MASK_BUTTON_SECONDS, 5) * 1000;
+        int timeout =  FgPreferences.get().get(PREF_RESET_MASK_BUTTON_SECONDS, 5) * 1000;
         if (timeout > 0)
         {
             resetMaskButtonTimer = new Timer(timeout, new ActionListener()
@@ -709,15 +705,15 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
 
     private void loadPreferences ()
     {
-        setMaskPasswordPatterns(JgpgPreferences.get().get(JgpgPreferences.PREF_PASSWORD_MASK_PATTERNS, getDefaultMaskPatterns()));
-        setMaskUsernamePatterns(JgpgPreferences.get().get(JgpgPreferences.PREF_USERNAME_MASK_PATTERNS, getDefaultMaskUsernamePatterns()));
-        prefCompressBlankLines = JgpgPreferences.get().get(JgpgPreferences.PREF_SQUEEZE_LINES, prefCompressBlankLines);
-        prefOpenUrlCommand = JgpgPreferences.get().get(JgpgPreferences.PREF_URL_OPEN_COMMAND, prefOpenUrlCommand);
-        prefOpenUrls = JgpgPreferences.get().get(JgpgPreferences.PREF_OPEN_URLS, prefOpenUrls);
-        prefClipboardToolbarVisible = JgpgPreferences.get().get(JgpgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR, prefClipboardToolbarVisible);
-        prefMaskFirstLine = JgpgPreferences.get().get(JgpgPreferences.PREF_MASK_FIRST_LINE, prefMaskFirstLine);
-        prefTextAreaFontSize = JgpgPreferences.get().get(JgpgPreferences.PREF_TEXTAREA_FONT_SIZE, 14);
-        JgpgPreferences.get().get(PREF_RESET_MASK_BUTTON_SECONDS, 5);
+        setMaskPasswordPatterns(FgPreferences.get().get(FgPreferences.PREF_PASSWORD_MASK_PATTERNS, getDefaultMaskPatterns()));
+        setMaskUsernamePatterns(FgPreferences.get().get(FgPreferences.PREF_USERNAME_MASK_PATTERNS, getDefaultMaskUsernamePatterns()));
+        prefCompressBlankLines = FgPreferences.get().get(FgPreferences.PREF_SQUEEZE_LINES, prefCompressBlankLines);
+        prefOpenUrlCommand = FgPreferences.get().get(FgPreferences.PREF_URL_OPEN_COMMAND, prefOpenUrlCommand);
+        prefOpenUrls = FgPreferences.get().get(FgPreferences.PREF_OPEN_URLS, prefOpenUrls);
+        prefClipboardToolbarVisible = FgPreferences.get().get(FgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR, prefClipboardToolbarVisible);
+        prefMaskFirstLine = FgPreferences.get().get(FgPreferences.PREF_MASK_FIRST_LINE, prefMaskFirstLine);
+        prefTextAreaFontSize = FgPreferences.get().get(FgPreferences.PREF_TEXTAREA_FONT_SIZE, 14);
+        FgPreferences.get().get(PREF_RESET_MASK_BUTTON_SECONDS, 5);
 
     }
 
@@ -739,7 +735,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
 
     public void setCompressBlankLines (boolean compressBlankLines)
     {
-        JgpgPreferences.get().put(JgpgPreferences.PREF_SQUEEZE_LINES, compressBlankLines);
+        FgPreferences.get().put(FgPreferences.PREF_SQUEEZE_LINES, compressBlankLines);
         if (compressBlankLinesButton != null)
         {
             this.compressBlankLinesButton.setSelected(compressBlankLines);
@@ -756,7 +752,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
 
     public void setOpenUrls (boolean openUrls, boolean update)
     {
-        JgpgPreferences.get().put(JgpgPreferences.PREF_OPEN_URLS, openUrls);
+        FgPreferences.get().put(FgPreferences.PREF_OPEN_URLS, openUrls);
         if (this.openUrlButton != null)
         {
             this.openUrlButton.setSelected(openUrls);
@@ -1177,31 +1173,31 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
             case PREF_RESET_MASK_BUTTON_SECONDS:
                 restoreMaskButtonStates();
                 break;
-            case JgpgPreferences.PREF_PASSWORD_MASK_PATTERNS:
+            case FgPreferences.PREF_PASSWORD_MASK_PATTERNS:
                 setMaskPasswordPatterns((String)propertyChangeEvent.getNewValue());
                 break;
-            case JgpgPreferences.PREF_USERNAME_MASK_PATTERNS:
+            case FgPreferences.PREF_USERNAME_MASK_PATTERNS:
                 setMaskUsernamePatterns((String)propertyChangeEvent.getNewValue());
                 break;
-            case JgpgPreferences.PREF_SQUEEZE_LINES:
+            case FgPreferences.PREF_SQUEEZE_LINES:
                 setCompressBlankLines((Boolean) propertyChangeEvent.getNewValue(), true);
                 break;
-            case JgpgPreferences.PREF_OPEN_URLS:
+            case FgPreferences.PREF_OPEN_URLS:
                 setOpenUrls((Boolean) propertyChangeEvent.getNewValue(), true);
                 break;
-            case JgpgPreferences.PREF_URL_OPEN_COMMAND:
-                prefOpenUrlCommand = JgpgPreferences.get().get(JgpgPreferences.PREF_URL_OPEN_COMMAND, prefOpenUrlCommand);
+            case FgPreferences.PREF_URL_OPEN_COMMAND:
+                prefOpenUrlCommand = FgPreferences.get().get(FgPreferences.PREF_URL_OPEN_COMMAND, prefOpenUrlCommand);
                 break;
-            case JgpgPreferences.PREF_MASK_FIRST_LINE:
-                prefMaskFirstLine = JgpgPreferences.get().get(JgpgPreferences.PREF_MASK_FIRST_LINE, prefMaskFirstLine);
+            case FgPreferences.PREF_MASK_FIRST_LINE:
+                prefMaskFirstLine = FgPreferences.get().get(FgPreferences.PREF_MASK_FIRST_LINE, prefMaskFirstLine);
                 restoreMaskButtonStates();
                 break;
-            case JgpgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR:
-                prefClipboardToolbarVisible = JgpgPreferences.get().get(JgpgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR, prefClipboardToolbarVisible);
+            case FgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR:
+                prefClipboardToolbarVisible = FgPreferences.get().get(FgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR, prefClipboardToolbarVisible);
                 SwingUtilities.invokeLater(() -> updateText());
                 break;
-            case JgpgPreferences.PREF_TEXTAREA_FONT_SIZE:
-                prefTextAreaFontSize = JgpgPreferences.get().get(JgpgPreferences.PREF_TEXTAREA_FONT_SIZE, prefTextAreaFontSize);
+            case FgPreferences.PREF_TEXTAREA_FONT_SIZE:
+                prefTextAreaFontSize = FgPreferences.get().get(FgPreferences.PREF_TEXTAREA_FONT_SIZE, prefTextAreaFontSize);
                 SwingUtilities.invokeLater(() -> updateText());
                 break;
         }

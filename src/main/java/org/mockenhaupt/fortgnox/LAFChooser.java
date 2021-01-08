@@ -1,4 +1,4 @@
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_LOOK_AND_FEEL;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_LOOK_AND_FEEL;
 
 public class LAFChooser
 {
@@ -25,7 +25,7 @@ public class LAFChooser
 
     public static boolean setPreferenceLaf (Component c)
     {
-        return get().set(JgpgPreferences.get().get(PREF_LOOK_AND_FEEL), c);
+        return get().set(FgPreferences.get().get(PREF_LOOK_AND_FEEL), c);
     }
 
     public static LAFChooser get()
@@ -116,7 +116,7 @@ public class LAFChooser
     }
 
 
-//        buttonLAF.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/jgpg/1346515642_gnome-settings-theme.png"))); // NOI18N
+//        buttonLAF.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/1346515642_gnome-settings-theme.png"))); // NOI18N
 //        buttonLAF.setText("Change theme");
 //        buttonLAF.setFocusable(false);
 //        buttonLAF.setHorizontalTextPosition(SwingConstants.RIGHT);

@@ -1,4 +1,4 @@
-package org.mockenhaupt.jgpg;
+package org.mockenhaupt.fortgnox;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -30,9 +30,6 @@ import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import java.awt.BorderLayout;
-import java.awt.Checkbox;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -47,21 +44,20 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.OK_OPTION;
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_DEFAULT_RID;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_POST_COMMAND;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_GPG_USE_ASCII;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_LOOK_AND_FEEL;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_SECRETDIRS;
-import static org.mockenhaupt.jgpg.JgpgPreferences.PREF_TEXTAREA_FONT_SIZE;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_DEFAULT_RID;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_POST_COMMAND;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_USE_ASCII;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_LOOK_AND_FEEL;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIRS;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_TEXTAREA_FONT_SIZE;
 
-public class EditWindow implements JGPGProcess.EncrypionListener,
+public class EditWindow implements FgGPGProcess.EncrypionListener,
         PropertyChangeListener,
-        JGPGProcess.CommandListener,
+        FgGPGProcess.CommandListener,
         PasswordGenerator.PasswordInsertListener
 {
     private JDialog editWindow;
@@ -71,7 +67,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
     private JTextField textFieldFilename;
     private final JLabel labelRID = new JLabel("RID");
     private JTextField textFieldRID;
-    final private JGPGProcess jgpgProcess;
+    final private FgGPGProcess fgGPGProcess;
     private boolean modified = false;
     private JButton saveButton;
     private JCheckBox cbSkipPost;
@@ -84,16 +80,16 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
     private final PasswordGenerator passwordGenerator;
 
     EditHandler editHandler;
-    public EditWindow (JFrame parent, JGPGProcess jgpgProcess, EditHandler editHandler)
+    public EditWindow (JFrame parent, FgGPGProcess fgGPGProcess, EditHandler editHandler)
     {
-        this.jgpgProcess = jgpgProcess;
+        this.fgGPGProcess = fgGPGProcess;
         this.parentWindow = parent;
         this.editHandler = editHandler;
         passwordGenerator = new PasswordGenerator(this);
         init(parent);
-        jgpgProcess.addEncryptionListener(this);
-        jgpgProcess.addCommandListener(this);
-        JgpgPreferences.get().addPropertyChangeListener(this);
+        fgGPGProcess.addEncryptionListener(this);
+        fgGPGProcess.addCommandListener(this);
+        FgPreferences.get().addPropertyChangeListener(this);
     }
 
     interface EditHandler
@@ -155,7 +151,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
     {
         if (editWindow == null)
         {
-            editWindow = new JDialog(parent, "JGPG Edit", true);
+            editWindow = new JDialog(parent, "fortgnox Edit", true);
             editWindow.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
             URL url = this.getClass().getResource("kgpg_identity.png");
@@ -213,7 +209,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
 
 
             textArea.setFont(new Font("monospaced", Font.PLAIN,
-                    JgpgPreferences.get().get(PREF_TEXTAREA_FONT_SIZE, 14)));
+                    FgPreferences.get().get(PREF_TEXTAREA_FONT_SIZE, 14)));
 
             JScrollPane editorScrollPane = new JScrollPane(textArea);
             editorScrollPane.setViewportView(textArea);
@@ -256,7 +252,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
             editWindow.pack();
             editWindow.setVisible(false);
             setModified(false);
-            setDirectories(jgpgProcess.getSecretdirs());
+            setDirectories(fgGPGProcess.getSecretdirs());
             LAFChooser.setPreferenceLaf(textArea);
 
             LAFChooser.setPreferenceLaf(editWindow.getRootPane());
@@ -280,7 +276,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
 
     public void showNew ()
     {
-        JDialog directoryChooser = new JDialog(parentWindow, "JGPG New Password", true);
+        JDialog directoryChooser = new JDialog(parentWindow, "fortgnox New Password", true);
         directoryChooser.getRootPane().registerKeyboardAction(e ->
                 directoryChooser.dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
         directoryChooser.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -298,8 +294,8 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         directoryChooser.setMinimumSize(directoryChooser.getPreferredSize());
 
 
-        GpgFileUtils.ParsedDirectories parsedDirectories =
-                GpgFileUtils.splitDirectoryString(JgpgPreferences.get().get(PREF_SECRETDIRS));
+        FileUtils.ParsedDirectories parsedDirectories =
+                FileUtils.splitDirectoryString(FgPreferences.get().get(PREF_SECRETDIRS));
         JComboBox<String> comboBoxDirectories = new JComboBox<>();
         comboBoxDirectories.setMaximumSize(new Dimension(500, 35));
 
@@ -484,7 +480,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
     private String getSuffix ()
     {
         String suffix;
-        if (JgpgPreferences.get().getBoolean(PREF_GPG_USE_ASCII))
+        if (FgPreferences.get().getBoolean(PREF_GPG_USE_ASCII))
         {
             suffix = ".asc";
         }
@@ -513,7 +509,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         {
             if (!modified || OK_OPTION == JOptionPane.showConfirmDialog(parentWindow,
                     "File is modified, close discarding changes?",
-                    "JGPG Close Confirmation", OK_CANCEL_OPTION))
+                    "fortGnox Close Confirmation", OK_CANCEL_OPTION))
             {
                 if (editWindow.isVisible())
                 {
@@ -535,7 +531,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
 
         cbSkipPost = new JCheckBox("Skip post");
         cbSkipPost.setToolTipText("Do not execute the post command defined in the settings");
-        cbSkipPost.setVisible(!JgpgPreferences.get().get(PREF_GPG_POST_COMMAND).isEmpty());
+        cbSkipPost.setVisible(!FgPreferences.get().get(PREF_GPG_POST_COMMAND).isEmpty());
         cbSkipPost.setMnemonic('k');
 
         textFieldFilename = new JTextField();
@@ -581,12 +577,12 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
     private String getRecipient (File gpgFile)
     {
         // password store file with recipient ID in directory
-        String ridFileName = JgpgPreferences.get().get(JgpgPreferences.PREF_GPG_RID_FILE);
+        String ridFileName = FgPreferences.get().get(FgPreferences.PREF_GPG_RID_FILE);
         File ridFile = new File(gpgFile.getParent() + File.separator + ridFileName);
         if (ridFile.exists() && ridFileName != null && !ridFileName.isEmpty())
         {
             DebugWindow.dbg(DebugWindow.Category.GPG, "Found " + ridFile);
-            String rid = GpgFileUtils.getFileContent(ridFile.getAbsolutePath());
+            String rid = FileUtils.getFileContent(ridFile.getAbsolutePath());
             if (rid != null)
             {
                 return rid.trim();
@@ -595,7 +591,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
         else
         {
             // Try to use RID from directories
-            GpgFileUtils.ParsedDirectories parsedDirectories = GpgFileUtils.splitDirectoryString(JgpgPreferences.get().get(JgpgPreferences.PREF_SECRETDIRS));
+            FileUtils.ParsedDirectories parsedDirectories = FileUtils.splitDirectoryString(FgPreferences.get().get(FgPreferences.PREF_SECRETDIRS));
             String rid = parsedDirectories.directoryRecipientMap.get(gpgFile.getParent());
             if (rid != null)
             {
@@ -603,7 +599,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
             }
 
             // default ricipient ID
-            return JgpgPreferences.get().get(PREF_GPG_DEFAULT_RID);
+            return FgPreferences.get().get(PREF_GPG_DEFAULT_RID);
         }
         return null;
     }
@@ -614,7 +610,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
 //        File file = new File(textFieldFilename.getText());
 //        if (!file.exists())
 //        {
-//            JOptionPane.showMessageDialog(editWindow, "file does not exist", "JGPG WARNING", WARNING_MESSAGE);
+//            JOptionPane.showMessageDialog(editWindow, "file does not exist", "fortgnox WARNING", WARNING_MESSAGE);
 //            return;
 //        }
 
@@ -622,12 +618,12 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
 
         if (rid == null || rid.isEmpty())
         {
-            JOptionPane.showMessageDialog(editWindow, "Cannot determine recipient", "JGPG WARNING", WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(editWindow, "Cannot determine recipient", "fortGnox WARNING", WARNING_MESSAGE);
             return;
         }
 
         this.recipientId = rid;
-        jgpgProcess.encrypt(textFieldFilename.getText(), textArea.getText(), rid, EditWindow.this);
+        fgGPGProcess.encrypt(textFieldFilename.getText(), textArea.getText(), rid, EditWindow.this);
     }
 
     @Override
@@ -642,7 +638,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
             }
             if (err == null || err.isEmpty())
             {
-                String postCommand = JgpgPreferences.get().get(PREF_GPG_POST_COMMAND);
+                String postCommand = FgPreferences.get().get(PREF_GPG_POST_COMMAND);
                 boolean doPostCommand = postCommand != null && !postCommand.isEmpty() && !cbSkipPost.isSelected();
                 String status = "Successfully encrypted " + filename + rid;
                 if (doPostCommand)
@@ -652,13 +648,13 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
                 setText("", status, filename);
                 if (doPostCommand)
                 {
-                    jgpgProcess.command(postCommand, filename, this);
+                    fgGPGProcess.command(postCommand, filename, this);
                     editWindow.dispose();
                 }
                 else
                 {
                     editWindow.dispose();
-                    JOptionPane.showMessageDialog(editWindow, status, "JGPG INFO", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(editWindow, status, "fortGnox INFO", JOptionPane.INFORMATION_MESSAGE);
                     if (editHandler != null)
                     {
                         editHandler.handleFinished();
@@ -668,7 +664,7 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
             else
             {
                 textAreaStatus.setText("Failure encrypting " + filename + rid + ", " + err);
-                JOptionPane.showMessageDialog(editWindow, err, "JGPG WARNING", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(editWindow, err, "fortGnox WARNING", JOptionPane.ERROR_MESSAGE);
                 if (editHandler != null)
                 {
                     editHandler.handleFinished();
@@ -687,13 +683,13 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
                 if (textArea != null)
                 {
                     textArea.setFont(new Font("monospaced", Font.PLAIN,
-                            JgpgPreferences.get().get(PREF_TEXTAREA_FONT_SIZE, 14)));
+                            FgPreferences.get().get(PREF_TEXTAREA_FONT_SIZE, 14)));
                 }
                 break;
             case PREF_GPG_POST_COMMAND:
                 if (cbSkipPost != null)
                 {
-                    cbSkipPost.setVisible(!JgpgPreferences.get().get(PREF_GPG_POST_COMMAND).isEmpty());
+                    cbSkipPost.setVisible(!FgPreferences.get().get(PREF_GPG_POST_COMMAND).isEmpty());
                 }
                 break;
             case PREF_LOOK_AND_FEEL:
@@ -708,11 +704,11 @@ public class EditWindow implements JGPGProcess.EncrypionListener,
     {
         if (exitCode != 0)
         {
-            JOptionPane.showMessageDialog(editWindow, "Output:" + out + " Error:" + err, "JGPG POST", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(editWindow, "Output:" + out + " Error:" + err, "fortGnox POST", JOptionPane.ERROR_MESSAGE);
         }
         else
         {
-            JOptionPane.showMessageDialog(editWindow, out + err, "JGPG POST", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(editWindow, out + err, "fortGnox POST", JOptionPane.INFORMATION_MESSAGE);
         }
         if (editHandler != null)
         {
