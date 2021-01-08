@@ -742,7 +742,7 @@ public class MainFrame extends JFrame implements
                 if (e.getKeyCode() == KeyEvent.VK_C && e.isControlDown())
                 {
                     e.consume();
-                    decrypt(true, jList, null);
+                    decrypt(true, jList.getSelectedValue(), null);
                 }
                 else
                 {
