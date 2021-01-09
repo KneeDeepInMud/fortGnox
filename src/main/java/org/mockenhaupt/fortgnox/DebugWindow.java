@@ -136,7 +136,7 @@ public class DebugWindow
         if (debugFrame == null)
         {
             debugFrame = new JFrame("fortgnox Debug");
-            URL url = this.getClass().getResource("kgpg_identity.png");
+            URL url = this.getClass().getResource("fortGnox.png");
             debugFrame.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 
             debugTextArea = new JTextArea();

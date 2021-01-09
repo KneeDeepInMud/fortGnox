@@ -154,7 +154,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
             editWindow = new JDialog(parent, "fortgnox Edit", true);
             editWindow.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-            URL url = this.getClass().getResource("kgpg_identity.png");
+            URL url = this.getClass().getResource("fortGnox.png");
             editWindow.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 
             textArea = new JTextArea();

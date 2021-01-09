@@ -545,7 +545,7 @@ public class MainFrame extends JFrame implements
 
         initSecretListCellRenderer();
 
-        URL url = this.getClass().getResource("kgpg_identity.png");
+        URL url = this.getClass().getResource("fortGnox.png");
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 
 
