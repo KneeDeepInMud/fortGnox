@@ -250,8 +250,7 @@ public class MainFrame extends JFrame implements
 
     private void loadPreferences ()
     {
-        this.setTitle(this.getClass().getPackage().getName().toUpperCase() + " " +
-                getVersionFromManifest().computeIfAbsent(VERSION_PROJECT, k -> "UNKNOWN"));
+        this.setTitle("fortGnox " + getVersionFromManifest().computeIfAbsent(VERSION_PROJECT, k -> "UNKNOWN"));
 
         PreferencesAccess preferences = FgPreferences.get();
 
