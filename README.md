@@ -44,7 +44,7 @@ Although __fortKnox__ was mainly developed under Linux, it is already used by pe
 
           java -jar fortgnox-0.0.1.jar
 
-    - If JAR files are not directly started if selected in explorer, create a shortcut to `java.exe`, edit the hsortcut target in the shortcut properies and append the argument `-jar fortgnox-0.0.1.jar`
+    - If JAR files are not directly started on Windows when double clicked in the Windows-explorer, create a shortcut to `java.exe`, edit the shortcut target in the shortcut properies and append the argument `-jar fortgnox-0.0.1.jar`
 
     - Edit configuration in __fortGnox__
         - After first start open the `Settings` dialog and select `GPG` tab.
