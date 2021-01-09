@@ -25,7 +25,7 @@ Although __fortKnox__ was mainly developed under Linux, it is already used by pe
 ## Basic Installation ##
 
 ### Prerequisites
-- Install Java (see https://jdk.java.net/archive/)
+- Install Java (e.g. https://jdk.java.net/archive/)
 - Install GPG
     - Windows - https://www.gpg4win.de/thanks-for-download.html 
     - *ux - use distribution dependent installer (yum, apt ...)
