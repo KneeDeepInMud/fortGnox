@@ -25,6 +25,8 @@ import java.time.ZonedDateTime;
 
 import static javax.swing.text.DefaultCaret.ALWAYS_UPDATE;
 
+this is a syntax error to test workflow on GitHub
+
 public class DebugWindow
 {
     public static int CAT_FILTER = 1;
