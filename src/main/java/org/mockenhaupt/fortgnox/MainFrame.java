@@ -49,6 +49,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
@@ -1275,8 +1277,15 @@ public class MainFrame extends JFrame implements
         progressClearTimer = new JProgressBar();
         progressPassTimer = new JProgressBar();
 
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        this.addWindowListener(new WindowAdapter()
+        {
+            public void windowClosing (WindowEvent e)
+            {
+                buttonExitActionPerformed(null);
+            }
+        });
 
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setTitle("fortGnox");
         setMinimumSize(new java.awt.Dimension(800, 600));
 
@@ -1508,9 +1517,17 @@ public class MainFrame extends JFrame implements
     }
 
     private void buttonExitActionPerformed(java.awt.event.ActionEvent evt) {
-        FgGPGProcess.clearClipboardIfNotChanged();
-        this.clipboard = false;
-        System.exit(1);
+
+        boolean doTerminate = !editWindow.isModified() || JOptionPane.showConfirmDialog(this,
+                "Unsaved text in edit window, really exit fortGnox?",
+                "Confirm exit", OK_CANCEL_OPTION) == OK_OPTION;
+
+        if (doTerminate)
+        {
+            FgGPGProcess.clearClipboardIfNotChanged();
+            this.clipboard = false;
+            System.exit(1);
+        }
     }
 
     private void buttonOptionsActionPerformed (java.awt.event.ActionEvent evt)

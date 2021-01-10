@@ -519,6 +519,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
                     editWindow.setVisible(false);
                     editWindow.dispose();
                 }
+                setModified(false);
                 if (editHandler != null)
                 {
                     editHandler.handleFinished();
@@ -643,6 +644,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
             {
                 String postCommand = FgPreferences.get().get(PREF_GPG_POST_COMMAND);
                 boolean doPostCommand = postCommand != null && !postCommand.isEmpty() && !cbSkipPost.isSelected();
+                setModified(false);
                 String status = "Successfully encrypted " + filename + rid;
                 if (doPostCommand)
                 {
