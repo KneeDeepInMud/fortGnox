@@ -35,9 +35,9 @@ public class FileUtils
 
     public static class ParsedDirectories
     {
-        String revisedList = "";
-        Map<String, String> directoryRecipientMap = new HashMap<>();
-        List<String> directoryList = new ArrayList<>();
+        public String revisedList = "";
+        public Map<String, String> directoryRecipientMap = new HashMap<>();
+        public List<String> directoryList = new ArrayList<>();
     }
 
     public static ParsedDirectories splitDirectoryString (String concatDirs)
@@ -102,6 +102,10 @@ public class FileUtils
         return getScaledIcon(imageIcon, size, size);
     }
 
+    public static ImageIcon getScaledIcon (Class<?> clazz, String resource, int size)
+    {
+        return getScaledIcon(new ImageIcon(clazz.getResource(resource)), size, size);
+    }
 
     public static ImageIcon getScaledIcon (ImageIcon imageIcon, int w, int h)
     {

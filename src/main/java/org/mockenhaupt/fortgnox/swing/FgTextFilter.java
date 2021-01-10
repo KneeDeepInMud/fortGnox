@@ -1,0 +1,115 @@
+package org.mockenhaupt.fortgnox.swing;
+
+import org.mockenhaupt.fortgnox.misc.FileUtils;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
+public class FgTextFilter extends JPanel
+{
+    private JTextField textFilter;
+    private TextFilterHandler handler;
+
+    public FgTextFilter (TextFilterHandler handler)
+    {
+        if (handler == null)
+        {
+            throw new NullPointerException("TextFilterHandler must not be null");
+        }
+        this.handler = handler;
+        initialize();
+    }
+
+    public interface TextFilterHandler
+    {
+        void handleTextFilterChanged (String filter);
+    }
+
+
+    private void initialize ()
+    {
+        setLayout(new BorderLayout());
+        textFilter = new JTextField();
+        textFilter.addKeyListener(new KeyAdapter()
+        {
+            @Override
+            public void keyReleased (KeyEvent e)
+            {
+                super.keyReleased(e);
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
+                {
+                    textFilter.setText("");
+                    callHandler();
+                }
+            }
+        });
+
+        textFilter.getDocument().addDocumentListener(new DocumentListener()
+        {
+            @Override
+            public void insertUpdate (DocumentEvent e)
+            {
+                callHandler ();
+            }
+
+            @Override
+            public void removeUpdate (DocumentEvent e)
+            {
+                callHandler ();
+            }
+
+            @Override
+            public void changedUpdate (DocumentEvent e)
+            {
+                callHandler ();
+            }
+        });
+
+        JButton cleanButton = new JButton();
+        cleanButton.setMinimumSize(new java.awt.Dimension(30, 30));
+        cleanButton.setPreferredSize(new java.awt.Dimension(30, 30));
+        ImageIcon cleanButtonIcon = FileUtils.getScaledIcon(getClass(), "/org/mockenhaupt/fortgnox/cross32.png", 28);
+        cleanButton.setIcon(cleanButtonIcon);
+        cleanButton.addActionListener(this::cleanButtonActionPerformed);
+
+
+        add(textFilter, BorderLayout.CENTER);
+        add(cleanButton, BorderLayout.EAST);
+    }
+
+    @Override
+    public void requestFocus ()
+    {
+        textFilter.requestFocus();
+    }
+
+    public void setText (String text)
+    {
+         textFilter.setText(text);
+    }
+
+    public String getText ()
+    {
+        return textFilter.getText();
+    }
+
+
+    private void callHandler ()
+    {
+        handler.handleTextFilterChanged(textFilter.getText());
+    }
+
+    private void cleanButtonActionPerformed (ActionEvent evt)
+    {
+        textFilter.setText("");
+        callHandler();
+    }
+}

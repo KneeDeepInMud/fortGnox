@@ -10,14 +10,11 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
@@ -55,7 +52,7 @@ import java.util.stream.Collectors;
 import static java.awt.FlowLayout.LEFT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_RESET_MASK_BUTTON_SECONDS;
 
-public class JPanelTextArea extends JPanel implements PropertyChangeListener
+public class FgPanelTextArea extends JPanel implements PropertyChangeListener, FgTextFilter.TextFilterHandler
 {
     private JTextPane textPane;
 
@@ -71,7 +68,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
     private JToolBar clipToolbar;
     JScrollPane scrollPaneTextAreaError;
     private JTextArea textAreaError;
-    private JTextField searchTextField;
+    private FgTextFilter fgTextFilter;
     private MainFrame mainFrame;
     private JPanel buttonToolbar;
     private Timer resetMaskButtonTimer;
@@ -84,6 +81,8 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
     private static final List<String> DEFAULT_USERNAME_PATTERNS = new ArrayList(Arrays.asList(
             "account", "user", ".*id[:=]", "login", "Auftra", "benutzer", "Kunde", "telefon", ".*nummer", ".*kennung"
     ));
+
+
 
     enum LineMaskingOrder
     {
@@ -260,8 +259,8 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
                 {
                     return;
                 }
-                searchTextField.setText(searchTextField.getText() + e.getKeyChar());
-                searchTextField.requestFocus();
+                fgTextFilter.setText(fgTextFilter.getText() + e.getKeyChar());
+                fgTextFilter.requestFocus();
                 mainFrame.startTimer();
             }
 
@@ -382,7 +381,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
         }
     }
 
-    public JPanelTextArea (MainFrame mainFrame)
+    public FgPanelTextArea (MainFrame mainFrame)
     {
         super(new BorderLayout());
         initTextArea(mainFrame);
@@ -401,64 +400,9 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
 
         JPanel searchAndTextPanel = new JPanel(new BorderLayout());
         searchAndTextPanel.add(scrollPaneTextArea, BorderLayout.CENTER);
-        searchTextField = new JTextField();
-        searchAndTextPanel.add(searchTextField, BorderLayout.NORTH);
+        fgTextFilter = new FgTextFilter(this);
+        searchAndTextPanel.add(fgTextFilter, BorderLayout.NORTH);
 
-        searchTextField.addKeyListener(new SearchKeyAdapter(mainFrame));
-        searchTextField.getDocument().addDocumentListener(new DocumentListener()
-        {
-            void search ()
-            {
-                mainFrame.startTimer();
-
-                String documentText;
-                Document document = textPane.getDocument();
-                try
-                {
-                    documentText = document.getText(0, document.getLength());
-                }
-                catch (BadLocationException e)
-                {
-                    e.printStackTrace();
-                    return;
-                }
-
-
-                textPane.getHighlighter().removeAllHighlights();
-                hitList.clear();
-
-                int ix = documentText.toLowerCase().indexOf(searchTextField.getText().toLowerCase());
-                while (ix >= 0 && !searchTextField.getText().isEmpty())
-                {
-                    hitList.add(ix);
-                    ix++;
-                    ix = documentText.toLowerCase().toLowerCase().indexOf(searchTextField.getText().toLowerCase(), ix);
-                }
-                if (hitList.size() > 0)
-                {
-                    caretPointer = 0;
-                    setCaretPosition(hitList.get(caretPointer));
-                }
-            }
-
-            @Override
-            public void insertUpdate (DocumentEvent e)
-            {
-                search();
-            }
-
-            @Override
-            public void removeUpdate (DocumentEvent e)
-            {
-                search();
-            }
-
-            @Override
-            public void changedUpdate (DocumentEvent e)
-            {
-                search();
-            }
-        });
 
         add(searchAndTextPanel, BorderLayout.CENTER);
 
@@ -685,7 +629,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
     private void resetSearch ()
     {
         caretPointer = -1;
-        searchTextField.setText("");
+        fgTextFilter.setText("");
         hitList.clear();
         textPane.getHighlighter().removeAllHighlights();
     }
@@ -696,7 +640,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
         textPane.getHighlighter().removeAllHighlights();
         try
         {
-            int ex = position + searchTextField.getText().length();
+            int ex = position + fgTextFilter.getText().length();
             textPane.getHighlighter().addHighlight(position,
                     ex,
                     DefaultHighlighter.DefaultPainter);
@@ -1162,7 +1106,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
     public void clear (String info)
     {
         setText("", info);
-        searchTextField.setText("");
+        fgTextFilter.setText("");
     }
 
     public boolean isClear ()
@@ -1205,6 +1149,41 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
                 prefTextAreaFontSize = FgPreferences.get().get(FgPreferences.PREF_TEXTAREA_FONT_SIZE, prefTextAreaFontSize);
                 SwingUtilities.invokeLater(() -> updateText());
                 break;
+        }
+    }
+
+    @Override
+    public void handleTextFilterChanged (String filter)
+    {
+        mainFrame.startTimer();
+
+        String documentText;
+        Document document = textPane.getDocument();
+        try
+        {
+            documentText = document.getText(0, document.getLength());
+        }
+        catch (BadLocationException e)
+        {
+            e.printStackTrace();
+            return;
+        }
+
+
+        textPane.getHighlighter().removeAllHighlights();
+        hitList.clear();
+
+        int ix = documentText.toLowerCase().indexOf(fgTextFilter.getText().toLowerCase());
+        while (ix >= 0 && !fgTextFilter.getText().isEmpty())
+        {
+            hitList.add(ix);
+            ix++;
+            ix = documentText.toLowerCase().toLowerCase().indexOf(fgTextFilter.getText().toLowerCase(), ix);
+        }
+        if (hitList.size() > 0)
+        {
+            caretPointer = 0;
+            setCaretPosition(hitList.get(caretPointer));
         }
     }
 

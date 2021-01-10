@@ -12,7 +12,8 @@ package org.mockenhaupt.fortgnox;
 
 
 import org.mockenhaupt.fortgnox.misc.FileUtils;
-import org.mockenhaupt.fortgnox.swing.JPanelTextArea;
+import org.mockenhaupt.fortgnox.swing.FgPanelTextArea;
+import org.mockenhaupt.fortgnox.swing.FgTextFilter;
 import org.mockenhaupt.fortgnox.swing.LAFChooser;
 
 import javax.swing.AbstractListModel;
@@ -30,7 +31,6 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
-import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
@@ -69,7 +69,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.OK_OPTION;
 import static org.mockenhaupt.fortgnox.DebugWindow.Category.DIR;
@@ -83,12 +82,12 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES_MIN_HIT_COUNT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES_SHOW_COUNT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FILTER_FAVORITES;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETLIST_FONT_SIZE;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_LOOK_AND_FEEL;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_NUMBER_FAVORITES;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_PASSWORD_SECONDS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIRS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIR_SORTING;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETLIST_FONT_SIZE;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_FAVORITES;
 
 /**
@@ -100,7 +99,8 @@ public class MainFrame extends JFrame implements
         FgGPGProcess.ResultListListener,
         ActionListener,
         PropertyChangeListener,
-        EditWindow.EditHandler
+        EditWindow.EditHandler,
+        FgTextFilter.TextFilterHandler
 {
 
     private FgGPGProcess gpgProcess;
@@ -140,10 +140,10 @@ public class MainFrame extends JFrame implements
     private JList jListSecrets;
     private JProgressBar progressClearTimer;
     private JProgressBar progressPassTimer;
-    private JTextField textFilter;
+    private FgTextFilter fgTextFilter;
     private JScrollPane scrollPaneSecrets;
     private JSplitPane jSplitPaneLR;
-    private JPanelTextArea jPanelTextArea;
+    private FgPanelTextArea fgPanelTextArea;
     private JLabel labelSecretInfo;
     private JPanel jToolBarPanel;
     private JToolBar jToolBarMainFunctions;
@@ -357,7 +357,7 @@ public class MainFrame extends JFrame implements
             this.clipboard = clipboard;
         }
 
-        if (!jPanelTextArea.isClear() || this.clipboard)
+        if (!fgPanelTextArea.isClear() || this.clipboard)
         {
 
             clearSeconds = 0;
@@ -468,7 +468,7 @@ public class MainFrame extends JFrame implements
     {
         FgGPGProcess.clearClipboardIfNotChanged();
         this.decrypt(false, jList.getSelectedValue(), null);
-        jPanelTextArea.requestFocus();
+        fgPanelTextArea.requestFocus();
     }
     private void decrypt (boolean toClipboard)
     {
@@ -612,19 +612,7 @@ public class MainFrame extends JFrame implements
         passDlg = new PassphraseDialog(this, true);
         setPassStatusText();
 
-        textFilter.addKeyListener(new KeyAdapter()
-        {
-            @Override
-            public void keyReleased(KeyEvent e)
-            {
-                super.keyReleased(e);
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
-                {
-                    textFilter.setText("");
-                }
-                refreshSecretList();
-            }
-        });
+
 
         initSecretListEventHandling(jListSecrets);
 
@@ -670,9 +658,8 @@ public class MainFrame extends JFrame implements
                 }
                 else if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
                 {
-                    textFilter.setText("");
-                    refreshSecretList();
-                    textFilter.requestFocus();
+                    fgTextFilter.setText("");
+                    fgTextFilter.requestFocus();
                 }
             }
         });
@@ -1027,7 +1014,7 @@ public class MainFrame extends JFrame implements
     private Pattern pattern = Pattern.compile("^.*[^"+ sepChar+ "]+" + sepChar + "(.*$)");
     private boolean filterFile (String fileName)
     {
-        if (textFilter.getText() == null || textFilter.getText().isEmpty())
+        if (fgTextFilter.getText() == null || fgTextFilter.getText().isEmpty())
         {
             return true;
         }
@@ -1035,11 +1022,11 @@ public class MainFrame extends JFrame implements
         if (m.matches())
         {
             String baseName = m.group(1);
-            String filter = textFilter.getText();
+            String filter = fgTextFilter.getText();
             String name2 = baseName.toLowerCase().replace(".asc", "");
             name2 = name2.toLowerCase().replace(".gpg", "");
             boolean ret = name2.contains(filter.toLowerCase());
-            dbg(FILTER, textFilter.getText() + (ret?" match   ":" nomatch ")  + fileName);
+            dbg(FILTER, fgTextFilter.getText() + (ret?" match   ":" nomatch ")  + fileName);
             return ret;
         }
         else {
@@ -1159,15 +1146,14 @@ public class MainFrame extends JFrame implements
 
     private void clearUserTextArea(String err)
     {
-        jPanelTextArea.clear(err);
+        fgPanelTextArea.clear(err);
     }
 
     public void handleGpgResult (String out, String err)
     {
-        jPanelTextArea.setText(out, err);
-        {
-            startTimer();
-        }
+        fgPanelTextArea.setText(out, err);
+        startTimer();
+        SwingUtilities.invokeLater(() -> fgPanelTextArea.requestFocus());
     }
 
     @Override
@@ -1178,6 +1164,7 @@ public class MainFrame extends JFrame implements
         {
             jListSecrets.setSelectedValue(filename, true);
 
+            // edit file
             if (CLIENTDATA_EDIT.equals(clientData))
             {
                 editWindow.setText(out, "Loaded for editing " + filename, filename);
@@ -1200,7 +1187,7 @@ public class MainFrame extends JFrame implements
         }
         else
         {
-            jSplitPaneLR.setRightComponent(jPanelTextArea);
+            jSplitPaneLR.setRightComponent(fgPanelTextArea);
         }
         setEnabledHierachy(jToolBarMainFunctions, !editMode);
 //        jToolBarMainFunctions.setEnabled(!editMode);
@@ -1225,7 +1212,7 @@ public class MainFrame extends JFrame implements
 
     private void setUserTextareaStatus(String err)
     {
-        jPanelTextArea.setText(null, err);
+        fgPanelTextArea.setText(null, err);
     }
 
     private void updateClearPassVisibility ()
@@ -1261,7 +1248,6 @@ public class MainFrame extends JFrame implements
 
         jSplitPaneLR = new JSplitPane();
         JPanel panelList = new JPanel();
-        textFilter = new JTextField();
         scrollPaneSecrets = new JScrollPane();
 
         // gpg files and favorite gpg files
@@ -1302,26 +1288,9 @@ public class MainFrame extends JFrame implements
         panelList.setLayout(new java.awt.BorderLayout());
 
 
-        JPanel textFilterPanel = new JPanel(new BorderLayout());
+        fgTextFilter = new FgTextFilter(this);
+        panelList.add(fgTextFilter, java.awt.BorderLayout.NORTH);
 
-
-        textFilter.setMinimumSize(new java.awt.Dimension(150, 30));
-        textFilter.setPreferredSize(new java.awt.Dimension(150, 30));
-
-        textFilterPanel.add(textFilter, BorderLayout.CENTER);
-
-        JButton cleanButton = new JButton();
-        cleanButton.setMinimumSize(new java.awt.Dimension(30, 30));
-        cleanButton.setPreferredSize(new java.awt.Dimension(30, 30));
-        ImageIcon cleanButtonIcon = getIcon("/org/mockenhaupt/fortgnox/cross32.png", 28);
-        cleanButton.setIcon(cleanButtonIcon);
-        textFilterPanel.add(cleanButton, BorderLayout.EAST);
-
-        cleanButton.addActionListener(this::cleanButtonActionPerformed);
-
-        panelList.add(textFilterPanel, java.awt.BorderLayout.NORTH);
-
-//        jListSecrets.setFont(new java.awt.Font("DejaVu Sans Mono", Font.PLAIN, 14));
         jListSecrets.setToolTipText("Press CTRL+C to decode first line to clipboard");
 
         scrollPaneSecrets.setViewportView(jListSecrets);
@@ -1331,7 +1300,7 @@ public class MainFrame extends JFrame implements
 
         jSplitPaneLR.setLeftComponent(panelList);
 
-        jPanelTextArea = new JPanelTextArea(this);
+        fgPanelTextArea = new FgPanelTextArea(this);
 
         setEditMode(false);
 
@@ -1463,7 +1432,7 @@ public class MainFrame extends JFrame implements
             }
         });
 
-        jPanelTextArea.setButtonToolbarVisible(buttonOptions.isSelected());
+        fgPanelTextArea.setButtonToolbarVisible(buttonOptions.isSelected());
 
         jToolBarMainFunctions.add(jButtonSettings);
 
@@ -1521,9 +1490,9 @@ public class MainFrame extends JFrame implements
         getContentPane().add(statusBarPanel, java.awt.BorderLayout.PAGE_END);
 
         Vector<Component> focusComponentVector = new Vector<>();
-        focusComponentVector.add(textFilter);
+        focusComponentVector.add(fgTextFilter);
         focusComponentVector.add(jListSecrets);
-        focusComponentVector.add(jPanelTextArea.getFocusComponent());
+        focusComponentVector.add(fgPanelTextArea.getFocusComponent());
         FgFocusTraversalPolicy fgFocusTraversalPolicy = new FgFocusTraversalPolicy(focusComponentVector);
         this.setFocusTraversalPolicy(fgFocusTraversalPolicy);
 
@@ -1533,7 +1502,7 @@ public class MainFrame extends JFrame implements
 
 
     private void buttonClearTextareaActionPerformed(java.awt.event.ActionEvent evt) {
-        jPanelTextArea.clear("Cleared");
+        fgPanelTextArea.clear("Cleared");
         stopClearTimer();
     }
 
@@ -1547,13 +1516,13 @@ public class MainFrame extends JFrame implements
     {
         if (evt.getSource() instanceof JToggleButton)
         {
-            jPanelTextArea.setButtonToolbarVisible(((JToggleButton)evt.getSource()).isSelected());
+            fgPanelTextArea.setButtonToolbarVisible(((JToggleButton)evt.getSource()).isSelected());
         }
     }
 
     private void buttonClearPassActionPerformed(java.awt.event.ActionEvent evt) {
         passDlg.setPassPhrase("");
-        jPanelTextArea.clear("Cleared");
+        fgPanelTextArea.clear("Cleared");
         FgGPGProcess.clearClipboardIfNotChanged();
         this.clipboard = false;
         stopClearTimer();
@@ -1601,12 +1570,7 @@ public class MainFrame extends JFrame implements
     }
 
 
-    private void cleanButtonActionPerformed (ActionEvent evt)
-    {
-        textFilter.setText("");
-        refreshSecretList();
-        textFilter.requestFocus();
-    }
+
 
     private void jButtonClipboardActionPerformed(java.awt.event.ActionEvent evt)
     {
@@ -1709,5 +1673,11 @@ public class MainFrame extends JFrame implements
     public void handleNewFile (String fname)
     {
         setEditMode(true);
+    }
+
+    @Override
+    public void handleTextFilterChanged (String filter)
+    {
+        refreshSecretList();
     }
 }
