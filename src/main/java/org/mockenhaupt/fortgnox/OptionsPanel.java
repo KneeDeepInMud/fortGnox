@@ -42,6 +42,7 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_HOMEDIR;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_POST_COMMAND;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_RID_FILE;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_USE_ASCII;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETLIST_FONT_SIZE;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_LOOK_AND_FEEL;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_MASK_FIRST_LINE;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_NUMBER_FAVORITES;
@@ -103,6 +104,7 @@ public class OptionsPanel extends javax.swing.JDialog
     private javax.swing.JTextField jTextGpgHome;
     private javax.swing.JTextField jTextSecretDirs;
     private javax.swing.JFormattedTextField jFormattedTextTextAreaFontSize;
+    private javax.swing.JFormattedTextField jFormattedTextSecretListFontSize;
     private JComboBox<String> lookAndFeelInfoJComboBox;
     // End of variables declaration
 
@@ -149,6 +151,7 @@ public class OptionsPanel extends javax.swing.JDialog
         this.jFormattedTextFieldNumberFavorites.setText(String.format("%d", pa.getInt(PREF_NUMBER_FAVORITES)));
         this.jFormattedTextFieldMinFavoriteCount.setText(String.format("%d", pa.getInt(PREF_FAVORITES_MIN_HIT_COUNT)));
         this.jFormattedTextTextAreaFontSize.setText(String.format("%d", pa.getInt(PREF_TEXTAREA_FONT_SIZE)));
+        this.jFormattedTextSecretListFontSize.setText(String.format("%d", pa.getInt(PREF_SECRETLIST_FONT_SIZE)));
         this.textFieldPassPatterns.setText(pa.get(PREF_PASSWORD_MASK_PATTERNS));
         this.comboBoxCharset.setSelectedItem(pa.get(PREF_CHARSET));
         this.textFieldUsernamePatterns.setText(pa.get(PREF_USERNAME_MASK_PATTERNS));
@@ -289,6 +292,7 @@ public class OptionsPanel extends javax.swing.JDialog
         jFormattedTextFieldNumberFavorites = new javax.swing.JFormattedTextField();
         jFormattedTextFieldMinFavoriteCount = new javax.swing.JFormattedTextField();
         jFormattedTextTextAreaFontSize = new javax.swing.JFormattedTextField();
+        jFormattedTextSecretListFontSize = new javax.swing.JFormattedTextField();
         lookAndFeelInfoJComboBox = new JComboBox<>();
         lookAndFeelInfoJComboBox.addActionListener(new ActionListener()
         {
@@ -339,6 +343,9 @@ public class OptionsPanel extends javax.swing.JDialog
 
         JLabel jLabelFontSize = new JLabel("Font size (text area)");
         jFormattedTextTextAreaFontSize.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
+
+        JLabel jLabelSecretListFontSize = new JLabel("Font size (password list)");
+        jFormattedTextSecretListFontSize.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
 
         JLabel labelUsernamePatterns = new JLabel("Username patterns (\"|\" separated)");
         textFieldUsernamePatterns = new JTextField();
@@ -392,6 +399,7 @@ public class OptionsPanel extends javax.swing.JDialog
                                                 .addComponent(jLabelPassPatterns)
                                                 .addComponent(labelCharset)
                                                 .addComponent(jLabelFontSize)
+                                                .addComponent(jLabelSecretListFontSize)
                                                 .addComponent(labelUsernamePatterns)
                                                 .addComponent(labelLAF)
                                                 .addComponent(jCheckBoxUsePassDialog)
@@ -410,6 +418,7 @@ public class OptionsPanel extends javax.swing.JDialog
                                                 .addComponent(textFieldPassPatterns)
                                                 .addComponent(comboBoxCharset)
                                                 .addComponent(jFormattedTextTextAreaFontSize)
+                                                .addComponent(jFormattedTextSecretListFontSize)
                                                 .addComponent(textFieldUsernamePatterns)
                                                 .addComponent(lookAndFeelInfoJComboBox)
                                                 .addComponent(jCheckBoxPasswordShortcuts)
@@ -432,6 +441,7 @@ public class OptionsPanel extends javax.swing.JDialog
                         .addGroup(gl.createParallelGroup().addComponent(jLabelPassPatterns).addComponent(textFieldPassPatterns))
                         .addGroup(gl.createParallelGroup().addComponent(labelCharset).addComponent(comboBoxCharset))
                         .addGroup(gl.createParallelGroup().addComponent(jLabelFontSize).addComponent(jFormattedTextTextAreaFontSize))
+                        .addGroup(gl.createParallelGroup().addComponent(jLabelSecretListFontSize).addComponent(jFormattedTextSecretListFontSize))
                         .addGroup(gl.createParallelGroup().addComponent(labelUsernamePatterns).addComponent(textFieldUsernamePatterns))
                         .addGroup(gl.createParallelGroup().addComponent(labelLAF).addComponent(lookAndFeelInfoJComboBox))
                         .addGroup(gl.createParallelGroup().addComponent(jCheckBoxUsePassDialog).addComponent(jCheckBoxPasswordShortcuts))
@@ -484,6 +494,7 @@ public class OptionsPanel extends javax.swing.JDialog
         Integer numberFavorites;
         Integer minNumberFavoritesCount;
         Integer textAreaFontSize;
+        Integer secretListFontSize;
 
         try
         {
@@ -491,6 +502,18 @@ public class OptionsPanel extends javax.swing.JDialog
             textAreaFontSize = Math.max(textAreaFontSize, 8);
             textAreaFontSize = Math.min(textAreaFontSize, 60);
             FgPreferences.get().put(PREF_TEXTAREA_FONT_SIZE, textAreaFontSize);
+        }
+        catch (NumberFormatException ex)
+        {
+            // live with invalid defaults
+        }
+
+        try
+        {
+            secretListFontSize = Integer.parseInt(jFormattedTextSecretListFontSize.getText());
+            secretListFontSize = Math.max(secretListFontSize, 8);
+            secretListFontSize = Math.min(secretListFontSize, 60);
+            FgPreferences.get().put(PREF_SECRETLIST_FONT_SIZE, secretListFontSize);
         }
         catch (NumberFormatException ex)
         {

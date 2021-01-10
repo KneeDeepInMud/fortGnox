@@ -79,6 +79,7 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES_MIN_HIT_COUNT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES_SHOW_COUNT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FILTER_FAVORITES;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETLIST_FONT_SIZE;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_LOOK_AND_FEEL;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_NUMBER_FAVORITES;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_PASSWORD_SECONDS;
@@ -144,6 +145,7 @@ public class MainFrame extends JFrame implements
     private JToolBar jToolBarMainFunctions;
     private boolean prefUseFavoriteList = true;
     private boolean prefFilterFavoriteList = true;
+    private int prefSecretListFontSize = 12;
     private boolean editMode = false;
 
 
@@ -261,6 +263,7 @@ public class MainFrame extends JFrame implements
         prefFavoritesMinHitCount = preferences.get(PREF_FAVORITES_MIN_HIT_COUNT, prefFavoritesMinHitCount);
         prefShowFavoritesCount = preferences.get(PREF_FAVORITES_SHOW_COUNT, prefShowFavoritesCount);
         prefFilterFavoriteList = preferences.get(PREF_FILTER_FAVORITES, prefFilterFavoriteList);
+        prefSecretListFontSize = preferences.get(PREF_SECRETLIST_FONT_SIZE, prefSecretListFontSize);
         setPrefUseFavorites(preferences.get(PREF_USE_FAVORITES, prefUseFavoriteList));
         favoritesParseFromJson(preferences.get(PREF_FAVORITES, "{}"));
     }
@@ -543,6 +546,7 @@ public class MainFrame extends JFrame implements
         initComponents();
 
         initSecretListCellRenderer();
+        initSecretListFont();
 
         URL url = this.getClass().getResource("fortGnox.png");
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
@@ -757,6 +761,13 @@ public class MainFrame extends JFrame implements
         });
     }
 
+    private void initSecretListFont ()
+    {
+        jListSecrets.setFont(jListSecrets.getFont().deriveFont((float)prefSecretListFontSize));
+    }
+
+
+
     public JPopupMenu getSecretsPopupMenu ()
     {
         return getSecretsPopupMenu(false);
@@ -859,6 +870,11 @@ public class MainFrame extends JFrame implements
                 if (filteredFavorites.contains(value) && prefUseFavoriteList)
                 {
                     c.setFont(c.getFont().deriveFont(Font.BOLD));
+                }
+                else
+                {
+                    c.setFont(c.getFont().deriveFont(Font.PLAIN));
+
                 }
                 return this;
             }
@@ -1301,9 +1317,8 @@ public class MainFrame extends JFrame implements
 
         panelList.add(textFilterPanel, java.awt.BorderLayout.NORTH);
 
-        jListSecrets.setFont(new java.awt.Font("DejaVu Sans Mono", Font.PLAIN, 14));
+//        jListSecrets.setFont(new java.awt.Font("DejaVu Sans Mono", Font.PLAIN, 14));
         jListSecrets.setToolTipText("Press CTRL+C to decode first line to clipboard");
-
 
         scrollPaneSecrets.setViewportView(jListSecrets);
         panelList.add(scrollPaneSecrets, java.awt.BorderLayout.CENTER);
@@ -1668,9 +1683,17 @@ public class MainFrame extends JFrame implements
             case PREF_LOOK_AND_FEEL:
                 LAFChooser.get().set((String)propertyChangeEvent.getNewValue(), INSTANCE);
                 break;
+            case PREF_SECRETLIST_FONT_SIZE:
+                if (jListSecrets != null)
+                {
+                    prefSecretListFontSize = (Integer)propertyChangeEvent.getNewValue();
+                    initSecretListFont();
+                }
+                break;
         }
         SwingUtilities.invokeLater(() -> updateClearPassVisibility());
     }
+
 
     @Override
     public void handleFinished ()

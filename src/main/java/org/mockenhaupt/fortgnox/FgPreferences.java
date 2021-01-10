@@ -19,6 +19,7 @@ public class FgPreferences
     public static final String PREF_USE_GPG_AGENT = "connectToGpgAgent";
     public static final String PREF_MASK_FIRST_LINE = "mask_first_line";
     public static final String PREF_TEXTAREA_FONT_SIZE = "textarea_font_size";
+    public static final String PREF_SECRETLIST_FONT_SIZE = "PREF_LISTBOX_FONT_SIZE";
 
     public static final String PREF_CLIP_SECONDS = "clip_seconds";
     public static final String PREF_USE_FAVORITES = "use_favorites";
