@@ -622,7 +622,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
 
         if (rid == null || rid.isEmpty())
         {
-            JOptionPane.showMessageDialog(editWindow, "Cannot determine recipient", "fortGnox WARNING", WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(parentWindow, "Cannot determine recipient", "fortGnox WARNING", WARNING_MESSAGE);
             return;
         }
 
@@ -659,7 +659,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
                 else
                 {
                     editWindow.dispose();
-                    JOptionPane.showMessageDialog(editWindow, status, "fortGnox INFO", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(parentWindow, status, "fortGnox INFO", JOptionPane.INFORMATION_MESSAGE);
                     if (editHandler != null)
                     {
                         editHandler.handleFinished();
@@ -669,7 +669,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
             else
             {
                 textAreaStatus.setText("Failure encrypting " + filename + rid + ", " + err);
-                JOptionPane.showMessageDialog(editWindow, err, "fortGnox WARNING", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(parentWindow, err, "fortGnox WARNING", JOptionPane.ERROR_MESSAGE);
                 if (editHandler != null)
                 {
                     editHandler.handleFinished();
@@ -708,11 +708,11 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
     {
         if (exitCode != 0)
         {
-            JOptionPane.showMessageDialog(editWindow, "Output:" + out + " Error:" + err, "fortGnox POST", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(parentWindow, "Output:" + out + " Error:" + err, "fortGnox POST", JOptionPane.ERROR_MESSAGE);
         }
         else
         {
-            JOptionPane.showMessageDialog(editWindow, out + err, "fortGnox POST", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(parentWindow, out + err, "fortGnox POST", JOptionPane.INFORMATION_MESSAGE);
         }
         if (editHandler != null)
         {

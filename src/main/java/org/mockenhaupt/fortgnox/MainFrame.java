@@ -12,6 +12,7 @@ package org.mockenhaupt.fortgnox;
 
 
 import org.mockenhaupt.fortgnox.misc.FileUtils;
+import org.mockenhaupt.fortgnox.swing.FgOptionsDialog;
 import org.mockenhaupt.fortgnox.swing.FgPanelTextArea;
 import org.mockenhaupt.fortgnox.swing.FgTextFilter;
 import org.mockenhaupt.fortgnox.swing.LAFChooser;
@@ -36,7 +37,6 @@ import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.WindowConstants;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
@@ -107,7 +107,6 @@ public class MainFrame extends JFrame implements
 
     private FgGPGProcess gpgProcess;
     private EditWindow editWindow;
-//    private PassphraseDialog passDlg;
     private PassphraseDialog passDlg;
     final private Timer clearTimer;
     final private Timer passTimer;
@@ -153,6 +152,7 @@ public class MainFrame extends JFrame implements
     private boolean prefFilterFavoriteList = true;
     private int prefSecretListFontSize = 12;
     private boolean editMode = false;
+    private FgOptionsDialog fgOptionsDialog;
 
 
     /**
@@ -515,7 +515,6 @@ public class MainFrame extends JFrame implements
     }
 
 
-    private OptionsPanel optionsPanel;
 
 
     private Map<String, String> getVersionFromManifest ()
@@ -548,61 +547,17 @@ public class MainFrame extends JFrame implements
      */
     private MainFrame()
     {
+        gpgProcess = new FgGPGProcess();
+
         FgPreferences.get().addPropertyChangeListener(this);
         initComponents();
+        loadPreferences();
 
         initSecretListCellRenderer();
         initSecretListFont();
 
         URL url = this.getClass().getResource("fortGnox48.png");
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
-
-
-//        lafs = UIManager.getInstalledLookAndFeels();
-//        try
-//        {
-//            for (currLafIX = 0; currLafIX < lafs.length; ++currLafIX)
-//            {
-//                UIManager.LookAndFeelInfo info = lafs[currLafIX];
-//                if (info.getName().toLowerCase().contains("gtk") || info.getName().toLowerCase().contains("windows"))
-//                {
-//                    if (info.getName().toLowerCase().contains("windows"))
-//                    {
-//                        setMinimumSize(new java.awt.Dimension(600, 400));
-//                        setPreferredSize(new java.awt.Dimension(800, 525));
-//                        jListSecrets.setFont(new java.awt.Font("Times New Roman", Font.PLAIN, 14)); // NOI18N
-//                    }
-//
-//                    UIManager.setLookAndFeel(info.getClassName());
-//                    SwingUtilities.updateComponentTreeUI(this);
-//                    break;
-//                }
-////                if (info.getName().toLowerCase().contains("gnome")) {
-////                    UIManager.setLookAndFeel(info.getClassName());
-////                    SwingUtilities.updateComponentTreeUI(this);
-////                    break;
-////                }
-////                if (info.getName().toLowerCase().contains("nimbus")) {
-////                    UIManager.setLookAndFeel(info.getClassName());
-////                    SwingUtilities.updateComponentTreeUI(this);
-////                    break;
-////                }
-//            }
-//            if (currLafIX < lafs.length)
-//            {
-//                buttonLAF.setText(
-//                        "Change Look and Feel, current: " + lafs[currLafIX].getName());
-//            }
-//
-//        }
-//        catch (ClassNotFoundException | InstantiationException | UnsupportedLookAndFeelException | IllegalAccessException ex)
-//        {
-//            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null,
-//                                                            ex);
-//        }
-//
-////        buttonLAF.setVisible(false);
-////        buttonLAF.setMnemonic('L');
 
         progressClearTimer.setMaximum(CLEAR_SECONDS);
         progressPassTimer.setMaximum(PASSWORD_SECONDS);
@@ -614,12 +569,7 @@ public class MainFrame extends JFrame implements
         passDlg = new PassphraseDialog(this, true);
         setPassStatusText();
 
-
-
         initSecretListEventHandling(jListSecrets);
-
-        gpgProcess = new FgGPGProcess();
-        loadPreferences();
 
         editWindow = new EditWindow(this, gpgProcess, this);
 
@@ -627,9 +577,7 @@ public class MainFrame extends JFrame implements
         gpgProcess.addResultListener(this);
         setUsePasswordDialog(gpgProcess.isPrefUsePasswordDialog());
 
-        optionsPanel = new OptionsPanel(this);
-
-
+        fgOptionsDialog = new FgOptionsDialog(this);
 
         addMouseMotionListener(new MouseMotionAdapter()
         {
@@ -1584,7 +1532,7 @@ public class MainFrame extends JFrame implements
     private void jButtonSettingsActionPerformed(java.awt.event.ActionEvent evt)
     {
 
-        optionsPanel.setVisible(true);
+        fgOptionsDialog.setVisible(true);
     }
 
 

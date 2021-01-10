@@ -4,10 +4,13 @@
  * and open the template in the editor.
  */
 
-package org.mockenhaupt.fortgnox;
+package org.mockenhaupt.fortgnox.swing;
 
 
-import org.mockenhaupt.fortgnox.swing.LAFChooser;
+import org.mockenhaupt.fortgnox.DebugWindow;
+import org.mockenhaupt.fortgnox.FgPreferences;
+import org.mockenhaupt.fortgnox.MainFrame;
+import org.mockenhaupt.fortgnox.PreferencesAccess;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
@@ -25,6 +28,8 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -64,7 +69,7 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_PASS_DIALOG;
  *
  * @author fmoc
  */
-public class OptionsPanel extends javax.swing.JDialog
+public class FgOptionsDialog extends javax.swing.JDialog
 {
 
     private JTabbedPane jTabbedPane = new JTabbedPane();
@@ -110,7 +115,7 @@ public class OptionsPanel extends javax.swing.JDialog
     private JComboBox<String> lookAndFeelInfoJComboBox;
     // End of variables declaration
 
-    public OptionsPanel (MainFrame parent)
+    public FgOptionsDialog (MainFrame parent)
     {
         super(parent, "fortGnox Settings", true);
         this.setPreferredSize(new Dimension(960, 640));
@@ -302,7 +307,7 @@ public class OptionsPanel extends javax.swing.JDialog
             public void actionPerformed (ActionEvent actionEvent)
             {
                 String selected = (String)lookAndFeelInfoJComboBox.getSelectedItem();
-                if (LAFChooser.get().set(selected,  OptionsPanel.this))
+                if (LAFChooser.get().set(selected,  FgOptionsDialog.this))
                 {
                     FgPreferences.get().putPreference(PREF_LOOK_AND_FEEL, selected);
                 }
@@ -612,6 +617,9 @@ public class OptionsPanel extends javax.swing.JDialog
     @Override
     public void setVisible(boolean b) {
         initPreferences();
+
+        Point location = MouseInfo.getPointerInfo().getLocation();
+        setLocation(location);
 
         super.setVisible(b);
     }
