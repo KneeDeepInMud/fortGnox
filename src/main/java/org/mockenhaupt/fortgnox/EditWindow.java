@@ -682,8 +682,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
             case PREF_TEXTAREA_FONT_SIZE:
                 if (textArea != null)
                 {
-                    textArea.setFont(new Font("monospaced", Font.PLAIN,
-                            FgPreferences.get().get(PREF_TEXTAREA_FONT_SIZE, 14)));
+                    textArea.setFont(new Font("monospaced", Font.PLAIN, (int)propertyChangeEvent.getNewValue()));
                 }
                 break;
             case PREF_GPG_POST_COMMAND:

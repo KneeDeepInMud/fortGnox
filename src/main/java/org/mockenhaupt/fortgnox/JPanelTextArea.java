@@ -98,7 +98,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
     private boolean prefOpenUrls = true;
     private boolean prefClipboardToolbarVisible = true;
     private boolean prefMaskFirstLine = true;
-    private float prefTextAreaFontSize = 14;
+    private int prefTextAreaFontSize = 14;
     private final AtomicReference<String> oldStatusText = new AtomicReference<>("");
     // stores the text position of search hits
     final private List<Integer> hitList = new ArrayList<>();
@@ -714,7 +714,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
         prefOpenUrls = FgPreferences.get().get(FgPreferences.PREF_OPEN_URLS, prefOpenUrls);
         prefClipboardToolbarVisible = FgPreferences.get().get(FgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR, prefClipboardToolbarVisible);
         prefMaskFirstLine = FgPreferences.get().get(FgPreferences.PREF_MASK_FIRST_LINE, prefMaskFirstLine);
-        prefTextAreaFontSize = FgPreferences.get().get(FgPreferences.PREF_TEXTAREA_FONT_SIZE, 14);
+        prefTextAreaFontSize = FgPreferences.get().get(FgPreferences.PREF_TEXTAREA_FONT_SIZE, prefTextAreaFontSize);
         FgPreferences.get().get(PREF_RESET_MASK_BUTTON_SECONDS, 5);
 
     }
