@@ -1,5 +1,9 @@
+
 # fortGnox
-Java based password manager front-end on top of GPG
+![Logo](https://raw.githubusercontent.com/KneeDeepInMud/fortGnox/master/src/main/resources/org/mockenhaupt/fortgnox/fortGnox48.png "fortGnox Logo") Java based password manager front-end on top of GPG
+
+
+
 
 ## What is **fortGnox**
 
