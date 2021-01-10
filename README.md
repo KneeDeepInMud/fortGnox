@@ -14,7 +14,7 @@ __fortGnox__ is a GUI password manager written in Java. It is based on [GnuPG](h
 
 Motivation was the long year usage of command line password manager [pass](https://www.passwordstore.org/) which can be used in friendly coexistence together with __fortGnox__ on the same password store.
 
-Although __fortKnox__ was mainly developed under Linux, it is already used by people around the globe also under Windows (well ... maybe not the globe ... at least I know of a handful of people using it).
+Although __fortGnox__ was mainly developed under Linux, it is already used by people around the globe also under Windows (well ... maybe not the globe ... at least I know of a handful of people using it).
 
 ## Features ##
 - Password management (creation / random generation).
