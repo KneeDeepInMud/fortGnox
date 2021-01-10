@@ -1,5 +1,7 @@
 package org.mockenhaupt.fortgnox;
 
+import javax.swing.ImageIcon;
+import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -93,6 +95,19 @@ public class FileUtils
             ret.revisedList = concatDirs;
         }
         return ret;
+    }
+
+    public static ImageIcon getScaledIcon (ImageIcon imageIcon, int size)
+    {
+        return getScaledIcon(imageIcon, size, size);
+    }
+
+
+    public static ImageIcon getScaledIcon (ImageIcon imageIcon, int w, int h)
+    {
+        Image image = imageIcon.getImage(); // transform it
+        Image newimg = image.getScaledInstance(w, h, java.awt.Image.SCALE_SMOOTH); // scale it the smooth way
+        return new ImageIcon(newimg);  // transform it back
     }
 
 }

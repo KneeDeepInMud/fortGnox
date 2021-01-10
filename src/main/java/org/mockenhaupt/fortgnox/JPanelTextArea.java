@@ -580,7 +580,7 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
         buttonToolbar.add(openUrlButton);
         buttonToolbar.add(checkSelectAll);
 
-        Set<JToggleButton> jToggleButtonSet = new HashSet<>();
+        Set<Component> jToggleButtonSet = new HashSet<>();
         int maxWidth = Integer.MIN_VALUE;
         for (int i = 0; i < buttonToolbar.getComponentCount(); ++i)
         {
@@ -594,20 +594,22 @@ public class JPanelTextArea extends JPanel implements PropertyChangeListener
             }
         }
 
-        Dimension finalButtonSize = new Dimension(maxWidth, 30);
-        jToggleButtonSet.stream().forEach(jToggleButton -> jToggleButton.setPreferredSize(finalButtonSize));
 
         this.add(scrollPaneTextAreaError, BorderLayout.SOUTH);
         JPanel toolBarPanel = new JPanel(new BorderLayout());
         JToggleButton buttonTbVisible = new JToggleButton();
-        buttonTbVisible.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/toolbar_small.png")));
+        buttonTbVisible.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/settings24.png")));
         buttonTbVisible.addActionListener(a -> buttonToolbar.setVisible(buttonTbVisible.isSelected()));
+        buttonTbVisible.setPreferredSize(new Dimension(30, 30));
         toolBarPanel.add(buttonTbVisible, BorderLayout.WEST);
         toolBarPanel.add(buttonToolbar, BorderLayout.CENTER);
 //        this.add(buttonToolbar, BorderLayout.NORTH);
         this.add(toolBarPanel, BorderLayout.NORTH);
         this.add(clipToolbar, BorderLayout.EAST);
         updateCheckboxSelectAll();
+
+        Dimension finalButtonSize = new Dimension(maxWidth, 30);
+        jToggleButtonSet.stream().forEach(jToggleButton -> jToggleButton.setPreferredSize(finalButtonSize));
 
     }
 

@@ -294,7 +294,7 @@ public class MainFrame extends JFrame implements
     {
         return PASSWORD_SECONDS;
     }
-    
+
     private void setPASSWORD_SECONDS(int passSec)
     {
         passSec = Math.max(MIN_TIMER_VALUE, passSec);
@@ -504,7 +504,7 @@ public class MainFrame extends JFrame implements
             }
         }
     }
-    
+
 
     private OptionsPanel optionsPanel;
 
@@ -593,7 +593,7 @@ public class MainFrame extends JFrame implements
 //
 ////        buttonLAF.setVisible(false);
 ////        buttonLAF.setMnemonic('L');
-        
+
         progressClearTimer.setMaximum(CLEAR_SECONDS);
         progressPassTimer.setMaximum(PASSWORD_SECONDS);
         clearTimer = new Timer(1000, this);
@@ -1220,6 +1220,17 @@ public class MainFrame extends JFrame implements
         progressPassTimer.setVisible(mode);
     }
 
+
+    private ImageIcon getIcon (String path, int size)
+    {
+        return FileUtils.getScaledIcon(new ImageIcon(getClass().getResource(path)), size, size);
+    }
+    private ImageIcon getIcon (String path)
+    {
+        return getIcon(path, 28);
+    }
+
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -1243,7 +1254,6 @@ public class MainFrame extends JFrame implements
         buttonClearFavorites = new JButton();
         buttonClearPass.setMnemonic(KeyEvent.VK_P);
         JButton buttonClearTextarea = new JButton();
-        buttonClearTextarea.setMnemonic(KeyEvent.VK_L);
         JButton buttonExit = new JButton();
         JToggleButton buttonOptions = new JToggleButton();
         JButton buttonAbout = new JButton();
@@ -1283,8 +1293,8 @@ public class MainFrame extends JFrame implements
         JButton cleanButton = new JButton();
         cleanButton.setMinimumSize(new java.awt.Dimension(30, 30));
         cleanButton.setPreferredSize(new java.awt.Dimension(30, 30));
-        ImageIcon cleanButtonIcon = new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/clean.png"));
-        cleanButton.setIcon(cleanButtonIcon); // NOI18N
+        ImageIcon cleanButtonIcon = getIcon("/org/mockenhaupt/fortgnox/cross32.png", 28);
+        cleanButton.setIcon(cleanButtonIcon);
         textFilterPanel.add(cleanButton, BorderLayout.EAST);
 
         cleanButton.addActionListener(this::cleanButtonActionPerformed);
@@ -1312,8 +1322,8 @@ public class MainFrame extends JFrame implements
 
 
 
-        buttonNew.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/new32.png")));
-        buttonNew.setText("New");
+        buttonNew.setIcon(getIcon("/org/mockenhaupt/fortgnox/addperson48dark.png"));
+//        buttonNew.setText("New");
         buttonNew.setMnemonic('n');
         buttonNew.setFocusable(false);
         buttonNew.setToolTipText("Insert new password");
@@ -1328,8 +1338,8 @@ public class MainFrame extends JFrame implements
         });
         jToolBarMainFunctions.add(buttonNew);
 
-        jButtonClipboard.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/icons8-clipboard-30.png"))); // NOI18N
-        jButtonClipboard.setText("Clipboard First Line");
+        jButtonClipboard.setIcon(getIcon("/org/mockenhaupt/fortgnox/clipboard.png")); // NOI18N
+//        jButtonClipboard.setText("Clipboard First Line");
         jButtonClipboard.setToolTipText("Save the first line of decoded file to clipboard");
         jButtonClipboard.setFocusable(false);
         jButtonClipboard.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -1346,8 +1356,9 @@ public class MainFrame extends JFrame implements
 
 
         // ---------------------------------
-        buttonClearTextarea.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/1346509543_edit-clear.png"))); // NOI18N
-        buttonClearTextarea.setText("Clear Textarea");
+        buttonClearTextarea.setIcon(getIcon("/org/mockenhaupt/fortgnox/wipe48.png"));
+//        buttonClearTextarea.setText("Wipe");
+        buttonClearTextarea.setMnemonic(KeyEvent.VK_I);
         buttonClearTextarea.setToolTipText("Clears the textarea and the clipboard in case a password has been stored there");
         buttonClearTextarea.setBorderPainted(false);
         buttonClearTextarea.setFocusable(false);
@@ -1364,8 +1375,8 @@ public class MainFrame extends JFrame implements
 
 
         // ---------------------------------
-        buttonClearPass.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/1346509520_preferences-desktop-cryptography.png"))); // NOI18N
-        buttonClearPass.setText("Clear Passphrase");
+        buttonClearPass.setIcon(getIcon("/org/mockenhaupt/fortgnox/lock48.png"));
+//        buttonClearPass.setText("Clear");
         buttonClearPass.setToolTipText("Clears the internally stored passphrase and optionally the GPG agenty password (see Settings)");
         buttonClearPass.setBorderPainted(false);
         buttonClearPass.setFocusable(false);
@@ -1380,8 +1391,8 @@ public class MainFrame extends JFrame implements
         });
         jToolBarMainFunctions.add(buttonClearPass);
         // ---------------------------------
-        buttonClearFavorites.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/favs32.png"))); // NOI18N
-        buttonClearFavorites.setText("Clear Favorites");
+        buttonClearFavorites.setIcon(getIcon("/org/mockenhaupt/fortgnox/bookmark48.png"));
+//        buttonClearFavorites.setText("Clear Favorites");
         buttonClearFavorites.setToolTipText("Clears the favorites list");
         buttonClearFavorites.setBorderPainted(false);
         buttonClearFavorites.setFocusable(false);
@@ -1405,8 +1416,8 @@ public class MainFrame extends JFrame implements
 
 
 
-        buttonExit.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/1346509462_exit.png"))); // NOI18N
-        buttonExit.setText("EXIT");
+        buttonExit.setIcon(getIcon("/org/mockenhaupt/fortgnox/poweroff48.png"));
+//        buttonExit.setText("EXIT");
         buttonExit.setBorderPainted(false);
         buttonExit.setFocusable(false);
         buttonExit.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -1419,8 +1430,8 @@ public class MainFrame extends JFrame implements
             }
         });
 
-        buttonOptions.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/toolbar.png"))); // NOI18N
-        buttonOptions.setText("Text Options");
+        buttonOptions.setIcon(getIcon("/org/mockenhaupt/fortgnox/toolbar.png")); // NOI18N
+//        buttonOptions.setText("Text Options");
         buttonOptions.setBorderPainted(false);
         buttonOptions.setFocusable(false);
         buttonOptions.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -1440,8 +1451,8 @@ public class MainFrame extends JFrame implements
 //        jToolBarMainFunctions.add(buttonOptions);
         jToolBarMainFunctions.add(buttonExit);
 
-        jButtonSettings.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/Settings-icon.png"))); // NOI18N
-        jButtonSettings.setText("Settings");
+        jButtonSettings.setIcon(getIcon("/org/mockenhaupt/fortgnox/sprocket48.png"));
+//        jButtonSettings.setText("Settings");
         jButtonSettings.setFocusable(false);
         jButtonSettings.setHorizontalTextPosition(SwingConstants.CENTER);
         jButtonSettings.setVerticalTextPosition(SwingConstants.BOTTOM);
@@ -1456,9 +1467,8 @@ public class MainFrame extends JFrame implements
 
 
 
-
-        buttonAbout.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/icons8-info-30.png"))); // NOI18N
-        buttonAbout.setText("");
+        buttonAbout.setIcon(getIcon("/org/mockenhaupt/fortgnox/info48.png"));
+//        buttonAbout.setText("");
         buttonAbout.setBorderPainted(false);
         buttonAbout.setFocusable(false);
         buttonAbout.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -1560,7 +1570,7 @@ public class MainFrame extends JFrame implements
                 sb.toString(),
                 "About fortGnox " + getVersionFromManifest().computeIfAbsent(VERSION_PROJECT, k -> "UNKNOWN"),
                 JOptionPane.INFORMATION_MESSAGE,
-                new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/icons8-info-30.png")));
+                getIcon("/org/mockenhaupt/fortgnox/info48.png"));
     }
 
 
