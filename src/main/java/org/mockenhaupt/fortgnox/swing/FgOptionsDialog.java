@@ -58,6 +58,7 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_PASSWORD_SECONDS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_RESET_MASK_BUTTON_SECONDS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIRS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SHOW_TB_BUTTON_TEXT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_TEXTAREA_FONT_SIZE;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_URL_OPEN_COMMAND;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USERNAME_MASK_PATTERNS;
@@ -82,6 +83,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
     private javax.swing.JButton jButtonSave;
     private javax.swing.JCheckBox jCheckBoxUsePassDialog;
     private javax.swing.JCheckBox jCheckBoxPasswordShortcuts;
+    private javax.swing.JCheckBox jCheckBoxShowTbButtonText;
     private javax.swing.JCheckBox jCheckboxReloadAgent;
     private javax.swing.JCheckBox jCheckboxMastFirstLine;
     private javax.swing.JCheckBox jCheckBoxUseFavorites;
@@ -118,7 +120,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
     public FgOptionsDialog (MainFrame parent)
     {
         super(parent, "fortGnox Settings", true);
-        this.setPreferredSize(new Dimension(960, 640));
+        this.setPreferredSize(new Dimension(960, 740));
         optionsPanel = new JPanel();
         gpgPanel = new JPanel();
         buttonPanel = new JPanel(new FlowLayout());
@@ -146,6 +148,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         this.jTextSecretDirs.setText(pa.get(PREF_SECRETDIRS));
         this.jCheckBoxUsePassDialog.setSelected(pa.getBoolean(PREF_USE_PASS_DIALOG));
         this.jCheckBoxPasswordShortcuts.setSelected(pa.getBoolean(PREF_SHOW_PASSWORD_SHORTCUT_BAR));
+        this.jCheckBoxShowTbButtonText.setSelected(pa.get(PREF_SHOW_TB_BUTTON_TEXT, true));
         this.jCheckboxReloadAgent.setSelected(pa.getBoolean(PREF_USE_GPG_AGENT));
         this.jCheckboxMastFirstLine.setSelected(pa.getBoolean(PREF_MASK_FIRST_LINE));
         this.jCheckBoxUseFavorites.setSelected(pa.getBoolean(PREF_USE_FAVORITES));
@@ -285,6 +288,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         jFormattedTextareaClearTimeout = new javax.swing.JFormattedTextField();
         jCheckBoxUsePassDialog = new javax.swing.JCheckBox();
         jCheckBoxPasswordShortcuts = new javax.swing.JCheckBox();
+        jCheckBoxShowTbButtonText = new javax.swing.JCheckBox();
         jCheckboxReloadAgent = new javax.swing.JCheckBox();
         jCheckboxMastFirstLine = new javax.swing.JCheckBox();
         jCheckBoxUseFavorites = new javax.swing.JCheckBox();
@@ -360,6 +364,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
 
         jCheckBoxUsePassDialog.setText("Show password dialog (might not be required with GPG agent)");
         jCheckBoxPasswordShortcuts.setText("Show password shortcut bar");
+        jCheckBoxShowTbButtonText.setText("Show description text below toolbar buttons");
         jCheckboxReloadAgent.setText("Allow flushing password from GPG agent");
         jCheckboxMastFirstLine.setText("Mask the first line on program start");
         jCheckBoxUseFavorites.setText("Show list of favorites");
@@ -431,7 +436,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                                                 .addComponent(jCheckBoxPasswordShortcuts)
                                                 .addComponent(jCheckboxMastFirstLine)
                                                 .addComponent(jCheckBoxFilterFavorites)
-                                                .addComponent(jCheckBoxShowDebugWindow)
+                                                .addComponent(jCheckBoxShowTbButtonText)
                                         )
                         )
         );
@@ -454,7 +459,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                         .addGroup(gl.createParallelGroup().addComponent(jCheckBoxUsePassDialog).addComponent(jCheckBoxPasswordShortcuts))
                         .addGroup(gl.createParallelGroup().addComponent(jCheckboxReloadAgent).addComponent(jCheckboxMastFirstLine))
                         .addGroup(gl.createParallelGroup().addComponent(jCheckBoxUseFavorites).addComponent(jCheckBoxFilterFavorites))
-                        .addGroup(gl.createParallelGroup().addComponent(jCheckBoxShowFavoritesCount).addComponent(jCheckBoxShowDebugWindow))
+                        .addGroup(gl.createParallelGroup().addComponent(jCheckBoxShowFavoritesCount).addComponent(jCheckBoxShowTbButtonText))
         );
 
 
@@ -599,6 +604,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         FgPreferences.get().put(PREF_URL_OPEN_COMMAND, jTexfFieldBrowserOpen.getText());
         FgPreferences.get().put(FgPreferences.PREF_USE_PASS_DIALOG, jCheckBoxUsePassDialog.isSelected());
         FgPreferences.get().put(PREF_SHOW_PASSWORD_SHORTCUT_BAR, jCheckBoxPasswordShortcuts.isSelected());
+        FgPreferences.get().put(PREF_SHOW_TB_BUTTON_TEXT, jCheckBoxShowTbButtonText.isSelected());
         FgPreferences.get().put(FgPreferences.PREF_USE_GPG_AGENT, jCheckboxReloadAgent.isSelected());
         FgPreferences.get().put(PREF_MASK_FIRST_LINE, jCheckboxMastFirstLine.isSelected());
         FgPreferences.get().put(PREF_USE_FAVORITES, jCheckBoxUseFavorites.isSelected());

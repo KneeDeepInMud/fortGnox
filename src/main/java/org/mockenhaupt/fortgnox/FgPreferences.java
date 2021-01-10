@@ -16,6 +16,7 @@ public class FgPreferences
     public static final String PREF_IS_WINDOWS = "iswindows";
     public static final String PREF_USE_PASS_DIALOG = "passDialog";
     public static final String PREF_SHOW_PASSWORD_SHORTCUT_BAR = "passwordShortcutToolbar";
+    public static final String PREF_SHOW_TB_BUTTON_TEXT = "PREF_SHOW_TB_BUTTON_TEXT";
     public static final String PREF_USE_GPG_AGENT = "connectToGpgAgent";
     public static final String PREF_MASK_FIRST_LINE = "mask_first_line";
     public static final String PREF_TEXTAREA_FONT_SIZE = "textarea_font_size";

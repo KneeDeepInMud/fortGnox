@@ -67,6 +67,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -78,6 +80,7 @@ import static org.mockenhaupt.fortgnox.DebugWindow.Category.FAV;
 import static org.mockenhaupt.fortgnox.DebugWindow.Category.FILTER;
 import static org.mockenhaupt.fortgnox.DebugWindow.Category.GPG;
 import static org.mockenhaupt.fortgnox.DebugWindow.Category.LIST;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CHARSET;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CLEAR_SECONDS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CLIP_SECONDS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES;
@@ -90,6 +93,7 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_PASSWORD_SECONDS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIRS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIR_SORTING;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETLIST_FONT_SIZE;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SHOW_TB_BUTTON_TEXT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_FAVORITES;
 
 /**
@@ -136,6 +140,10 @@ public class MainFrame extends JFrame implements
 
     public static final String CLIENTDATA_EDIT = "editGpg";
     private JButton buttonClearPass;
+    private JButton buttonClearTextarea;
+    private JButton buttonExit;
+    private JButton buttonAbout;
+    private JButton jButtonSettings;
     private JButton buttonClearFavorites;
     private JButton buttonNew;
     private JList jListSecrets;
@@ -150,6 +158,7 @@ public class MainFrame extends JFrame implements
     private JToolBar jToolBarMainFunctions;
     private boolean prefUseFavoriteList = true;
     private boolean prefFilterFavoriteList = true;
+    private boolean prefShowToobarTexts = true;
     private int prefSecretListFontSize = 12;
     private boolean editMode = false;
     private FgOptionsDialog fgOptionsDialog;
@@ -269,6 +278,7 @@ public class MainFrame extends JFrame implements
         prefFavoritesMinHitCount = preferences.get(PREF_FAVORITES_MIN_HIT_COUNT, prefFavoritesMinHitCount);
         prefShowFavoritesCount = preferences.get(PREF_FAVORITES_SHOW_COUNT, prefShowFavoritesCount);
         prefFilterFavoriteList = preferences.get(PREF_FILTER_FAVORITES, prefFilterFavoriteList);
+        prefShowToobarTexts = preferences.get(PREF_SHOW_TB_BUTTON_TEXT, prefShowToobarTexts);
         prefSecretListFontSize = preferences.get(PREF_SECRETLIST_FONT_SIZE, prefSecretListFontSize);
         setPrefUseFavorites(preferences.get(PREF_USE_FAVORITES, prefUseFavoriteList));
         favoritesParseFromJson(preferences.get(PREF_FAVORITES, "{}"));
@@ -1188,6 +1198,28 @@ public class MainFrame extends JFrame implements
     }
 
 
+    private void optionalSetText (Consumer<String> setter, String value)
+    {
+        if (prefShowToobarTexts)
+        {
+            setter.accept(value);
+        }
+        else {
+            setter.accept(null);
+        }
+    }
+
+    private void updateTbButtonTexts ()
+    {
+        optionalSetText(s -> buttonNew.setText(s), "Add New Password");
+        optionalSetText(s -> buttonClearTextarea.setText(s), "Wipe Text");
+        optionalSetText(s -> buttonClearPass.setText(s), "Forget GPG Passphrase");
+        optionalSetText(s -> buttonClearFavorites.setText(s), "Clear Favorites List");
+        optionalSetText(s -> jButtonSettings.setText(s), "Open Preferences");
+        optionalSetText(s -> buttonAbout.setText(s), "About fortGnox");
+        optionalSetText(s -> buttonExit.setText(s), "Exit");
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -1210,13 +1242,13 @@ public class MainFrame extends JFrame implements
         buttonClearPass = new JButton();
         buttonClearFavorites = new JButton();
         buttonClearPass.setMnemonic(KeyEvent.VK_P);
-        JButton buttonClearTextarea = new JButton();
-        JButton buttonExit = new JButton();
+        buttonClearTextarea = new JButton();
+        buttonExit = new JButton();
         JToggleButton buttonOptions = new JToggleButton();
-        JButton buttonAbout = new JButton();
+        buttonAbout = new JButton();
         buttonExit.setMnemonic(KeyEvent.VK_X);
         buttonOptions.setMnemonic(KeyEvent.VK_O);
-        JButton jButtonSettings = new JButton();
+        jButtonSettings = new JButton();
         jButtonSettings.setMnemonic(KeyEvent.VK_S);
         jButtonSettings.setToolTipText("Open fortGnox preferences");
         JButton jButtonClipboard = new JButton();
@@ -1270,7 +1302,6 @@ public class MainFrame extends JFrame implements
 
 
         buttonNew.setIcon(getIcon("/org/mockenhaupt/fortgnox/addplus48.png"));
-//        buttonNew.setText("New");
         buttonNew.setMnemonic('n');
         buttonNew.setFocusable(false);
         buttonNew.setToolTipText("Insert new password");
@@ -1304,7 +1335,6 @@ public class MainFrame extends JFrame implements
 
         // ---------------------------------
         buttonClearTextarea.setIcon(getIcon("/org/mockenhaupt/fortgnox/wipe48.png"));
-//        buttonClearTextarea.setText("Wipe");
         buttonClearTextarea.setMnemonic(KeyEvent.VK_I);
         buttonClearTextarea.setToolTipText("Clears the textarea and the clipboard in case a password has been stored there");
         buttonClearTextarea.setBorderPainted(false);
@@ -1455,6 +1485,7 @@ public class MainFrame extends JFrame implements
         FgFocusTraversalPolicy fgFocusTraversalPolicy = new FgFocusTraversalPolicy(focusComponentVector);
         this.setFocusTraversalPolicy(fgFocusTraversalPolicy);
 
+        updateTbButtonTexts();
         pack();
     }
 
@@ -1617,6 +1648,10 @@ public class MainFrame extends JFrame implements
                 break;
             case PREF_LOOK_AND_FEEL:
                 LAFChooser.get().set((String)propertyChangeEvent.getNewValue(), INSTANCE);
+                break;
+            case PREF_SHOW_TB_BUTTON_TEXT:
+                prefShowToobarTexts = (boolean) propertyChangeEvent.getNewValue();
+                SwingUtilities.invokeLater(() -> updateTbButtonTexts());
                 break;
             case PREF_SECRETLIST_FONT_SIZE:
                 if (jListSecrets != null)
