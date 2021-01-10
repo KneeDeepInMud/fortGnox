@@ -554,7 +554,7 @@ public class MainFrame extends JFrame implements
         initSecretListCellRenderer();
         initSecretListFont();
 
-        URL url = this.getClass().getResource("fortGnox.png");
+        URL url = this.getClass().getResource("fortGnox48.png");
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 
 
