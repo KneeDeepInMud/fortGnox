@@ -1267,6 +1267,7 @@ public class MainFrame extends JFrame implements
         buttonOptions.setMnemonic(KeyEvent.VK_O);
         JButton jButtonSettings = new JButton();
         jButtonSettings.setMnemonic(KeyEvent.VK_S);
+        jButtonSettings.setToolTipText("Open fortGnox preferences");
         JButton jButtonClipboard = new JButton();
         jButtonClipboard.setMnemonic(KeyEvent.VK_C);
         buttonNew = new JButton();
@@ -1310,7 +1311,7 @@ public class MainFrame extends JFrame implements
 
 
 
-        buttonNew.setIcon(getIcon("/org/mockenhaupt/fortgnox/addperson48dark.png"));
+        buttonNew.setIcon(getIcon("/org/mockenhaupt/fortgnox/addplus48.png"));
 //        buttonNew.setText("New");
         buttonNew.setMnemonic('n');
         buttonNew.setFocusable(false);
@@ -1405,7 +1406,7 @@ public class MainFrame extends JFrame implements
 
 
         buttonExit.setIcon(getIcon("/org/mockenhaupt/fortgnox/poweroff48.png"));
-//        buttonExit.setText("EXIT");
+        buttonExit.setToolTipText("Exit fortGnox");
         buttonExit.setBorderPainted(false);
         buttonExit.setFocusable(false);
         buttonExit.setHorizontalTextPosition(SwingConstants.CENTER);
