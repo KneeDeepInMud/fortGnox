@@ -1,5 +1,8 @@
 package org.mockenhaupt.fortgnox;
 
+import org.mockenhaupt.fortgnox.misc.FileUtils;
+import org.mockenhaupt.fortgnox.swing.LAFChooser;
+
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;

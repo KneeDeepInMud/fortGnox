@@ -1,4 +1,6 @@
-package org.mockenhaupt.fortgnox;
+package org.mockenhaupt.fortgnox.misc;
+
+import org.mockenhaupt.fortgnox.DebugWindow;
 
 import java.io.File;
 import java.nio.file.FileSystems;

@@ -1,4 +1,6 @@
-package org.mockenhaupt.fortgnox;
+package org.mockenhaupt.fortgnox.swing;
+
+import org.mockenhaupt.fortgnox.MainFrame;
 
 import javax.swing.JButton;
 import java.awt.event.ActionEvent;

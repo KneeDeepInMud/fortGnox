@@ -5,6 +5,10 @@
 package org.mockenhaupt.fortgnox;
 
 
+import org.mockenhaupt.fortgnox.misc.DirectoryWatcher;
+import org.mockenhaupt.fortgnox.misc.FileUtils;
+import org.mockenhaupt.fortgnox.misc.IDirectoryWatcherHandler;
+
 import javax.swing.SwingUtilities;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;

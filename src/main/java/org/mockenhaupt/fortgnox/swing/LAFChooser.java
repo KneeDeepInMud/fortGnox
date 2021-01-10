@@ -1,4 +1,7 @@
-package org.mockenhaupt.fortgnox;
+package org.mockenhaupt.fortgnox.swing;
+
+import org.mockenhaupt.fortgnox.FgPreferences;
+import org.mockenhaupt.fortgnox.MainFrame;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;

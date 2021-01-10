@@ -7,6 +7,8 @@
 package org.mockenhaupt.fortgnox;
 
 
+import org.mockenhaupt.fortgnox.swing.LAFChooser;
+
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;

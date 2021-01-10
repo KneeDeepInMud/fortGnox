@@ -1,4 +1,6 @@
-package org.mockenhaupt.fortgnox;
+package org.mockenhaupt.fortgnox.swing;
+
+import org.mockenhaupt.fortgnox.FgPreferences;
 
 import javax.swing.JCheckBox;
 

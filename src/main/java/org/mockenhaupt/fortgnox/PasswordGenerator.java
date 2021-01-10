@@ -1,5 +1,8 @@
 package org.mockenhaupt.fortgnox;
 
+import org.mockenhaupt.fortgnox.swing.JCheckBoxPersistent;
+import org.mockenhaupt.fortgnox.swing.LAFChooser;
+
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
