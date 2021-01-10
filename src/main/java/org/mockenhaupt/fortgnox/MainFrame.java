@@ -1206,6 +1206,7 @@ public class MainFrame extends JFrame implements
         jListSecrets = new JList();
         jToolBarPanel = new JPanel(new BorderLayout());
         jToolBarMainFunctions = new JToolBar();
+        jToolBarMainFunctions.setFloatable(false);
         buttonClearPass = new JButton();
         buttonClearFavorites = new JButton();
         buttonClearPass.setMnemonic(KeyEvent.VK_P);

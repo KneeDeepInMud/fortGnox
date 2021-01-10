@@ -503,6 +503,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
         // ---------------------------------------------------------------------
         clipToolbar = new JToolBar(JToolBar.VERTICAL);
+        clipToolbar.setFloatable(false);
         clipToolbar.setVisible(false);
 
         // ---------------------------------------------------------------------

@@ -150,6 +150,7 @@ public class DebugWindow
             debugFrame.getContentPane().add(debugScrollPane, BorderLayout.CENTER);
             JToolBar debugToolbar;
             debugFrame.getContentPane().add(debugToolbar = new JToolBar(), BorderLayout.NORTH);
+            debugToolbar.setFloatable(false);
             JButton debugClear = new JButton("Clear");
             debugClear.addActionListener(e -> debugTextArea.setText(""));
             debugToolbar.add(debugClear);
