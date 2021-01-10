@@ -164,6 +164,11 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
             return command;
         }
 
+        public List<String> getCommandList ()
+        {
+            return Arrays.asList(command.split("\\s"));
+        }
+
         public boolean isToClipboard ()
         {
             return toClipboard;
@@ -589,7 +594,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
                 int lines = 0;
 
                 List<String> cmdArgList = new ArrayList<>();
-                cmdArgList.add(prefGpgExeLocation);
+                cmdArgList.addAll(Arrays.asList(prefGpgExeLocation.split("\\s")));
                 cmdArgList.add("--batch");
                 if (passphrase != null && !passphrase.isEmpty())
                 {
@@ -853,7 +858,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
                 int lines = 0;
 
                 List<String> cmdArgList = new ArrayList<>();
-                cmdArgList.add(prefGpgExeLocation);
+                cmdArgList.addAll(Arrays.asList(prefGpgExeLocation.split("\\s")));
                 cmdArgList.add("--batch");
                 cmdArgList.add("--yes");
                 if (FgPreferences.get().getBoolean(PREF_GPG_USE_ASCII))
@@ -1008,7 +1013,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
                 int lines = 0;
 
                 List<String> cmdArgList = new ArrayList<>();
-                cmdArgList.add(getCommand());
+                cmdArgList.addAll(getCommandList());
                 cmdArgList.add(getFilename());
 
                 DebugWindow.get().debug(DebugWindow.Category.GPG, cmdArgList.toString());
