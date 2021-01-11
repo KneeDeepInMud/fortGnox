@@ -8,7 +8,7 @@ Java based password manager front-end on top of GPG
 
 ## What is **fortGnox**
 
-__fortGnox__ is a GUI password manager written in Java. It is based on [GnuPG](https://gnupg.org/) which is used as backend for all encryption related tasks.
+__fortGnox__ is a GUI password manager written in Java. It uses [GnuPG](https://gnupg.org/) as backend for all encryption related tasks.
 
 ![Screenshot](https://raw.githubusercontent.com/KneeDeepInMud/fortGnox/master/resources/fortGnox_Screenshot.png "fortGnox screenshot") 
 
