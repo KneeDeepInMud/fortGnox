@@ -407,7 +407,7 @@ public class MainFrame extends JFrame implements
 
     private void stopClearTimer ()
     {
-        if (clearTimer.isRunning())
+        if (clearTimer != null && clearTimer.isRunning())
         {
             clearTimer.stop();
             clearUserTextArea("Cleared " + toDecode);
@@ -561,10 +561,6 @@ public class MainFrame extends JFrame implements
 
         FgPreferences.get().addPropertyChangeListener(this);
         initComponents();
-        loadPreferences();
-
-        initSecretListCellRenderer();
-        initSecretListFont();
 
         URL url = this.getClass().getResource("fortGnox48.png");
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
@@ -598,6 +594,12 @@ public class MainFrame extends JFrame implements
                 startTimer();
             }
         });
+
+        loadPreferences();
+
+        initSecretListCellRenderer();
+        initSecretListFont();
+
 
         setSize(880, 640);
     }

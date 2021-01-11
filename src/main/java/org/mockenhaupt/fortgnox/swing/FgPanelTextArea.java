@@ -406,7 +406,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
         add(searchAndTextPanel, BorderLayout.CENTER);
 
-        buttonToolbar = new JPanel(new FlowLayout(LEFT, 1, 1));
+        buttonToolbar = new JPanel(new FlowLayout(LEFT, 1, 0));
 //        buttonToolbar.setRollover(true);
 
         // ---------------------------------------------------------------------
