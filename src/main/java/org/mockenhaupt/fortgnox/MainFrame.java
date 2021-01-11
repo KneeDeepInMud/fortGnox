@@ -32,11 +32,14 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
+import javax.swing.JTable;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
@@ -146,6 +149,7 @@ public class MainFrame extends JFrame implements
     private JButton jButtonSettings;
     private JButton buttonClearFavorites;
     private JButton buttonNew;
+    private JButton buttonEdit;
     private JList jListSecrets;
     private JProgressBar progressClearTimer;
     private JProgressBar progressPassTimer;
@@ -600,6 +604,7 @@ public class MainFrame extends JFrame implements
 
         initSecretListCellRenderer();
         initSecretListFont();
+        handleListSelection ();
 
         setSize(880, 640);
     }
@@ -710,6 +715,14 @@ public class MainFrame extends JFrame implements
             {
                 super.mouseMoved(e);
                 startTimer();
+            }
+        });
+        jListSecrets.addListSelectionListener(new ListSelectionListener()
+        {
+            @Override
+            public void valueChanged (ListSelectionEvent e)
+            {
+                handleListSelection();
             }
         });
     }
@@ -1214,12 +1227,19 @@ public class MainFrame extends JFrame implements
     private void updateTbButtonTexts ()
     {
         optionalSetText(s -> buttonNew.setText(s), "Add New Password");
-        optionalSetText(s -> buttonClearTextarea.setText(s), "Wipe Text");
+        optionalSetText(s -> buttonEdit.setText(s), "Edit Selected Password");
+        optionalSetText(s -> buttonClearTextarea.setText(s), "Wipe Textarea");
         optionalSetText(s -> buttonClearPass.setText(s), "Forget GPG Passphrase");
         optionalSetText(s -> buttonClearFavorites.setText(s), "Clear Favorites List");
-        optionalSetText(s -> jButtonSettings.setText(s), "Open Preferences");
+        optionalSetText(s -> jButtonSettings.setText(s), "Open Settings");
         optionalSetText(s -> buttonAbout.setText(s), "About fortGnox");
         optionalSetText(s -> buttonExit.setText(s), "Exit");
+    }
+
+
+    private void handleListSelection ()
+    {
+        buttonEdit.setEnabled(jListSecrets.getSelectedValue() != null);
     }
 
     /**
@@ -1256,6 +1276,7 @@ public class MainFrame extends JFrame implements
         JButton jButtonClipboard = new JButton();
         jButtonClipboard.setMnemonic(KeyEvent.VK_C);
         buttonNew = new JButton();
+        buttonEdit = new JButton();
         JPanel statusBarPanel = new JPanel();
         progressClearTimer = new JProgressBar();
         progressPassTimer = new JProgressBar();
@@ -1317,6 +1338,27 @@ public class MainFrame extends JFrame implements
             }
         });
         jToolBarMainFunctions.add(buttonNew);
+
+        buttonEdit.setIcon(getIcon("/org/mockenhaupt/fortgnox/edit48.png"));
+        buttonEdit.setMnemonic('d');
+        buttonEdit.setFocusable(false);
+        buttonEdit.setToolTipText("Edit selected password");
+        buttonEdit.setHorizontalTextPosition(SwingConstants.CENTER);
+        buttonEdit.setVerticalTextPosition(SwingConstants.BOTTOM);
+        buttonEdit.addActionListener(new java.awt.event.ActionListener()
+        {
+            @Override
+            public void actionPerformed (ActionEvent e)
+            {
+                if (jListSecrets.getSelectedValue() instanceof String)
+                {
+                    decrypt(false, jListSecrets.getSelectedValue(), CLIENTDATA_EDIT);
+                }
+            }
+        });
+        jToolBarMainFunctions.add(buttonEdit);
+
+
 
         jButtonClipboard.setIcon(getIcon("/org/mockenhaupt/fortgnox/clipboard.png")); // NOI18N
 //        jButtonClipboard.setText("Clipboard First Line");
