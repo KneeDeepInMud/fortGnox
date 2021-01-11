@@ -596,10 +596,10 @@ public class MainFrame extends JFrame implements
         });
 
         loadPreferences();
+        updateTbButtonTexts();
 
         initSecretListCellRenderer();
         initSecretListFont();
-
 
         setSize(880, 640);
     }
@@ -1487,7 +1487,6 @@ public class MainFrame extends JFrame implements
         FgFocusTraversalPolicy fgFocusTraversalPolicy = new FgFocusTraversalPolicy(focusComponentVector);
         this.setFocusTraversalPolicy(fgFocusTraversalPolicy);
 
-        updateTbButtonTexts();
         pack();
     }
 
