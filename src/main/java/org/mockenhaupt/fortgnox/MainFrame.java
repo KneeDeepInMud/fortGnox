@@ -566,7 +566,7 @@ public class MainFrame extends JFrame implements
         FgPreferences.get().addPropertyChangeListener(this);
         initComponents();
 
-        URL url = this.getClass().getResource("fortGnox48.png");
+        URL url = this.getClass().getResource("fortGnoxB48.png");
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 
         progressClearTimer.setMaximum(CLEAR_SECONDS);
@@ -1350,7 +1350,8 @@ public class MainFrame extends JFrame implements
             @Override
             public void actionPerformed (ActionEvent e)
             {
-                if (jListSecrets.getSelectedValue() instanceof String)
+                if (jListSecrets.getSelectedValue() instanceof String
+                )
                 {
                     decrypt(false, jListSecrets.getSelectedValue(), CLIENTDATA_EDIT);
                 }
@@ -1599,7 +1600,7 @@ public class MainFrame extends JFrame implements
                 sb.toString(),
                 "About fortGnox " + getVersionFromManifest().computeIfAbsent(VERSION_PROJECT, k -> "UNKNOWN"),
                 JOptionPane.INFORMATION_MESSAGE,
-                getIcon("/org/mockenhaupt/fortgnox/info48.png"));
+                getIcon("/org/mockenhaupt/fortgnox/fortGnoxB48.png", 48));
     }
 
 
