@@ -1489,7 +1489,6 @@ public class MainFrame extends JFrame implements
 
 
         buttonAbout.setIcon(getIcon("/org/mockenhaupt/fortgnox/info48.png"));
-//        buttonAbout.setText("");
         buttonAbout.setBorderPainted(false);
         buttonAbout.setFocusable(false);
         buttonAbout.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -1599,7 +1598,7 @@ public class MainFrame extends JFrame implements
                 sb.toString(),
                 "About fortGnox " + getVersionFromManifest().computeIfAbsent(VERSION_PROJECT, k -> "UNKNOWN"),
                 JOptionPane.INFORMATION_MESSAGE,
-                getIcon("/org/mockenhaupt/fortgnox/info48.png"));
+                getIcon("/org/mockenhaupt/fortgnox/fortGnox128.png", 128));
     }
 
 
