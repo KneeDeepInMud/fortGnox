@@ -1134,7 +1134,6 @@ public class MainFrame extends JFrame implements
     @Override
     public void handleGpgResult (String out, String err, String filename, Object clientData)
     {
-        handleGpgResult(out, err);
         if (filename != null && !filename.isEmpty())
         {
             jListSecrets.setSelectedValue(filename, true);
@@ -1145,12 +1144,14 @@ public class MainFrame extends JFrame implements
                 editWindow.setText(out, "Loaded for editing " + filename, filename);
                 setEditMode(true);
                 buttonClearTextareaActionPerformed(null);
+                return;
             }
             else
             {
                 setEditMode(false);
             }
         }
+        handleGpgResult(out, err);
     }
 
     private void setEditMode (boolean editMode)
