@@ -63,7 +63,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         FgGPGProcess.CommandListener,
         PasswordGenerator.PasswordInsertListener
 {
-    private JDialog editWindow;
+    private JPanel editPanel;
     private JTextArea textArea;
     private JTextArea textAreaStatus;
     private JComboBox<String> comboBoxDirectories;
@@ -149,16 +149,8 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
     public Container getTextArea ()
     {
         SwingUtilities.invokeLater(()->textArea.requestFocus());
-        return editWindow.getRootPane();
-    }
-
-    public void show ()
-    {
-        Point location = MouseInfo.getPointerInfo().getLocation();
-        editWindow.setLocation(location);
-        SwingUtilities.invokeLater(()->textArea.requestFocus());
-
-        editWindow.setVisible(true);
+        editPanel.setVisible(true);
+        return editPanel;
     }
 
     public void showNew ()
@@ -332,13 +324,10 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
 
     private void init (JFrame parent)
     {
-        if (editWindow == null)
+        if (editPanel == null)
         {
-            editWindow = new JDialog(parent, "fortgnox Edit", true);
-            editWindow.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-
+            editPanel = new JPanel();
             URL url = this.getClass().getResource("fortGnox.png");
-            editWindow.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 
             textArea = new JTextArea();
             Document doc = textArea.getDocument();
@@ -421,24 +410,23 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
                     });
 
 
-            editWindow.setLayout(new BorderLayout());
-            editWindow.add(editorScrollPane, BorderLayout.CENTER);
-            editWindow.add(commandToolbar(), BorderLayout.NORTH);
+            editPanel.setLayout(new BorderLayout());
+            editPanel.add(editorScrollPane, BorderLayout.CENTER);
+            editPanel.add(commandToolbar(), BorderLayout.NORTH);
 
             textAreaStatus = new JTextArea();
             textAreaStatus.setFont(textAreaStatus.getFont().deriveFont(Font.BOLD));
             textAreaStatus.setBorder(BorderFactory.createEmptyBorder(5, 2, 5, 2));
 
             textAreaStatus.setEditable(false);
-            editWindow.add(textAreaStatus, BorderLayout.SOUTH);
+            editPanel.add(textAreaStatus, BorderLayout.SOUTH);
 
-            editWindow.pack();
-            editWindow.setVisible(false);
+            editPanel.setVisible(false);
             setModified(false);
             setDirectories(fgGPGProcess.getSecretdirs());
             LAFChooser.setPreferenceLaf(textArea);
 
-            LAFChooser.setPreferenceLaf(editWindow.getRootPane());
+            LAFChooser.setPreferenceLaf(editPanel);
         }
     }
 
@@ -450,10 +438,6 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         if (editHandler != null)
         {
             editHandler.handleNewFile(file);
-        }
-        else
-        {
-            show();
         }
     }
 
@@ -509,10 +493,9 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
                     "File is modified, close discarding changes?",
                     "fortGnox Close Confirmation", OK_CANCEL_OPTION))
             {
-                if (editWindow.isVisible())
+                if (editPanel.isVisible())
                 {
-                    editWindow.setVisible(false);
-                    editWindow.dispose();
+                    editPanel.setVisible(false);
                 }
                 setModified(false);
                 if (editHandler != null)
@@ -649,11 +632,9 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
                 if (doPostCommand)
                 {
                     fgGPGProcess.command(postCommand, filename, this);
-                    editWindow.dispose();
                 }
                 else
                 {
-                    editWindow.dispose();
                     JOptionPane.showMessageDialog(parentWindow, status, "fortGnox INFO", JOptionPane.INFORMATION_MESSAGE);
                     if (editHandler != null)
                     {
@@ -691,7 +672,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
                 }
                 break;
             case PREF_LOOK_AND_FEEL:
-                LAFChooser.get().set((String)propertyChangeEvent.getNewValue(),editWindow);
+                LAFChooser.get().set((String)propertyChangeEvent.getNewValue(), editPanel);
                 break;
 
         }
