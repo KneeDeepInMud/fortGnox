@@ -1,8 +1,9 @@
-fortGnox ${project.version}
+fortGnox ${project.version} (revision: ${buildNumber})
 
 Java password manager based on GPG encryption.
-build: ${buildNumber}
 
+www: https://fortgnox.mockenhaupt.org/
 Source: https://github.com/KneeDeepInMud/fortGnox
-Author: Frank Mockenhaupt 2021
-Mail:   fortgnox@mockenhaupt.org
+Author: Frank Mockenhaupt
+Mail: fortgnox@mockenhaupt.org
+License: Apache 2.0
