@@ -16,6 +16,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -137,7 +138,7 @@ public class PasswordGenerator
 
         StringBuilder sb = new StringBuilder();
 
-        Random rnd = new Random();
+        Random rnd = new SecureRandom();
 
         List<List<Character>> pool = new ArrayList<>();
         if (cbDigit.isSelected()) pool.add(digits);
