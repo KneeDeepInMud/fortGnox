@@ -75,11 +75,9 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
     private JButton saveButton;
     private JCheckBox cbSkipPost;
     final private JFrame parentWindow;
-
     private String recipientId = "";
-
     final private List<String> directories = new ArrayList<>();
-
+    private final UndoManager undo = new UndoManager();
     private final PasswordGenerator passwordGenerator;
 
     EditHandler editHandler;
@@ -146,120 +144,6 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
     {
         this.saveButton.setEnabled(modified);
         this.modified = modified;
-    }
-
-    private final UndoManager undo = new UndoManager();
-
-    private void init (JFrame parent)
-    {
-        if (editWindow == null)
-        {
-            editWindow = new JDialog(parent, "fortgnox Edit", true);
-            editWindow.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-
-            URL url = this.getClass().getResource("fortGnox.png");
-            editWindow.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
-
-            textArea = new JTextArea();
-            Document doc = textArea.getDocument();
-            doc.addUndoableEditListener(new UndoableEditListener()
-            {
-                public void undoableEditHappened (UndoableEditEvent evt)
-                {
-                    undo.addEdit(evt.getEdit());
-                }
-            });
-
-            textArea.getActionMap().put("Undo",
-                    new AbstractAction("Undo")
-                    {
-                        public void actionPerformed (ActionEvent evt)
-                        {
-                            try
-                            {
-                                if (undo.canUndo())
-                                {
-                                    undo.undo();
-                                }
-                            }
-                            catch (CannotUndoException e)
-                            {
-                            }
-                        }
-                    });
-
-            textArea.getInputMap().put(KeyStroke.getKeyStroke("control Z"), "Undo");
-
-            textArea.getActionMap().put("Redo",
-                    new AbstractAction("Redo")
-                    {
-                        public void actionPerformed (ActionEvent evt)
-                        {
-                            try
-                            {
-                                if (undo.canRedo())
-                                {
-                                    undo.redo();
-                                }
-                            }
-                            catch (CannotRedoException e)
-                            {
-                            }
-                        }
-                    });
-
-            textArea.getInputMap().put(KeyStroke.getKeyStroke("control Y"), "Redo");
-
-
-            textArea.setFont(new Font("monospaced", Font.PLAIN,
-                    FgPreferences.get().get(PREF_TEXTAREA_FONT_SIZE, 14)));
-
-            JScrollPane editorScrollPane = new JScrollPane(textArea);
-            editorScrollPane.setViewportView(textArea);
-
-            editorScrollPane.setPreferredSize(new Dimension(800, 600));
-            textArea.getDocument()
-                    .addDocumentListener(new DocumentListener()
-                    {
-                        @Override
-                        public void insertUpdate (DocumentEvent documentEvent)
-                        {
-                            setModified(true);
-                        }
-
-                        @Override
-                        public void removeUpdate (DocumentEvent documentEvent)
-                        {
-                            setModified(true);
-                        }
-
-                        @Override
-                        public void changedUpdate (DocumentEvent documentEvent)
-                        {
-                            setModified(true);
-                        }
-                    });
-
-
-            editWindow.setLayout(new BorderLayout());
-            editWindow.add(editorScrollPane, BorderLayout.CENTER);
-            editWindow.add(commandToolbar(), BorderLayout.NORTH);
-
-            textAreaStatus = new JTextArea();
-            textAreaStatus.setFont(textAreaStatus.getFont().deriveFont(Font.BOLD));
-            textAreaStatus.setBorder(BorderFactory.createEmptyBorder(5, 2, 5, 2));
-
-            textAreaStatus.setEditable(false);
-            editWindow.add(textAreaStatus, BorderLayout.SOUTH);
-
-            editWindow.pack();
-            editWindow.setVisible(false);
-            setModified(false);
-            setDirectories(fgGPGProcess.getSecretdirs());
-            LAFChooser.setPreferenceLaf(textArea);
-
-            LAFChooser.setPreferenceLaf(editWindow.getRootPane());
-        }
     }
 
     public Container getTextArea ()
@@ -446,6 +330,118 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         directoryChooser.setVisible(true);
     }
 
+    private void init (JFrame parent)
+    {
+        if (editWindow == null)
+        {
+            editWindow = new JDialog(parent, "fortgnox Edit", true);
+            editWindow.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+
+            URL url = this.getClass().getResource("fortGnox.png");
+            editWindow.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
+
+            textArea = new JTextArea();
+            Document doc = textArea.getDocument();
+            doc.addUndoableEditListener(new UndoableEditListener()
+            {
+                public void undoableEditHappened (UndoableEditEvent evt)
+                {
+                    undo.addEdit(evt.getEdit());
+                }
+            });
+
+            textArea.getActionMap().put("Undo",
+                    new AbstractAction("Undo")
+                    {
+                        public void actionPerformed (ActionEvent evt)
+                        {
+                            try
+                            {
+                                if (undo.canUndo())
+                                {
+                                    undo.undo();
+                                }
+                            }
+                            catch (CannotUndoException e)
+                            {
+                            }
+                        }
+                    });
+
+            textArea.getInputMap().put(KeyStroke.getKeyStroke("control Z"), "Undo");
+
+            textArea.getActionMap().put("Redo",
+                    new AbstractAction("Redo")
+                    {
+                        public void actionPerformed (ActionEvent evt)
+                        {
+                            try
+                            {
+                                if (undo.canRedo())
+                                {
+                                    undo.redo();
+                                }
+                            }
+                            catch (CannotRedoException e)
+                            {
+                            }
+                        }
+                    });
+
+            textArea.getInputMap().put(KeyStroke.getKeyStroke("control Y"), "Redo");
+
+
+            textArea.setFont(new Font("monospaced", Font.PLAIN,
+                    FgPreferences.get().get(PREF_TEXTAREA_FONT_SIZE, 14)));
+
+            JScrollPane editorScrollPane = new JScrollPane(textArea);
+            editorScrollPane.setViewportView(textArea);
+
+            editorScrollPane.setPreferredSize(new Dimension(800, 600));
+            textArea.getDocument()
+                    .addDocumentListener(new DocumentListener()
+                    {
+                        @Override
+                        public void insertUpdate (DocumentEvent documentEvent)
+                        {
+                            setModified(true);
+                        }
+
+                        @Override
+                        public void removeUpdate (DocumentEvent documentEvent)
+                        {
+                            setModified(true);
+                        }
+
+                        @Override
+                        public void changedUpdate (DocumentEvent documentEvent)
+                        {
+                            setModified(true);
+                        }
+                    });
+
+
+            editWindow.setLayout(new BorderLayout());
+            editWindow.add(editorScrollPane, BorderLayout.CENTER);
+            editWindow.add(commandToolbar(), BorderLayout.NORTH);
+
+            textAreaStatus = new JTextArea();
+            textAreaStatus.setFont(textAreaStatus.getFont().deriveFont(Font.BOLD));
+            textAreaStatus.setBorder(BorderFactory.createEmptyBorder(5, 2, 5, 2));
+
+            textAreaStatus.setEditable(false);
+            editWindow.add(textAreaStatus, BorderLayout.SOUTH);
+
+            editWindow.pack();
+            editWindow.setVisible(false);
+            setModified(false);
+            setDirectories(fgGPGProcess.getSecretdirs());
+            LAFChooser.setPreferenceLaf(textArea);
+
+            LAFChooser.setPreferenceLaf(editWindow.getRootPane());
+        }
+    }
+
     private void handleButtonNewFileSelected (JDialog directoryChooser, JComboBox<String> comboBoxDirectories, JTextField fileNameText)
     {
         String file = getNewFilename(comboBoxDirectories, fileNameText);
@@ -493,7 +489,6 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         }
         return suffix;
     }
-
 
     private Container commandToolbar ()
     {
@@ -677,7 +672,6 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
             }
         });
     }
-
 
     @Override
     public void propertyChange (PropertyChangeEvent propertyChangeEvent)
