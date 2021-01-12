@@ -18,6 +18,7 @@ Although __fortGnox__ was mainly developed under Linux, it is already used by pe
 
 ## Features ##
 - Password management (creation / random generation).
+- Strong security. Encryption is done exclusively by a standard [GnuPG](https://gnupg.org/) installation. All passwords are typically encrypted with the own public GPG (PGP) key.
 - Keybordless usage of passwords through the clipboard. The passwords are flushed from clipboard after a timeout.
 - Passwords are masked in the GUI. This allows usage of __fortGnox__ even if other people are around.
 - Integrates smoothly with [pass](https://www.passwordstore.org/)
@@ -55,7 +56,7 @@ Although __fortGnox__ was mainly developed under Linux, it is already used by pe
 
     - Edit configuration in __fortGnox__
         - After first start open the `Settings` dialog and select `GPG` tab.
-        - Enter the `GPG HOme` directory. If unknown enter command `gpg -k`, the path it is shown in the first line of the output.
+        - Enter the `GPG Home` directory. If unknown enter command `gpg -k`, the path it is shown in the first line of the output.
         - Enter the path to the folder where you want to store the encrypted passwords files in field `Data directories`
         - In case you have multiple public GPG keys, which is usually the case enter **your own** public key in field `Default recipient`. The public keys can be listed via command:
                
