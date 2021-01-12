@@ -49,7 +49,6 @@ public class FgPreferences
 
     public static final String PREF_LOOK_AND_FEEL = "PREF_LOOK_AND_FEEL";
 
-
     public static PreferencesAccess get ()
     {
         return PreferencesAccess.getInstance(PREFERENCE_NODE);

@@ -32,7 +32,6 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
-import javax.swing.JTable;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
@@ -71,7 +70,6 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -83,7 +81,6 @@ import static org.mockenhaupt.fortgnox.DebugWindow.Category.FAV;
 import static org.mockenhaupt.fortgnox.DebugWindow.Category.FILTER;
 import static org.mockenhaupt.fortgnox.DebugWindow.Category.GPG;
 import static org.mockenhaupt.fortgnox.DebugWindow.Category.LIST;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CHARSET;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CLEAR_SECONDS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CLIP_SECONDS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES;
@@ -100,7 +97,6 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SHOW_TB_BUTTON_TEXT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_FAVORITES;
 
 /**
- *
  * @author fmoc
  */
 public class MainFrame extends JFrame implements
@@ -119,15 +115,15 @@ public class MainFrame extends JFrame implements
     final private Timer passTimer;
     private int clearSeconds = 0;
     private int passSeconds = 0;
-    private int CLEAR_SECONDS = 30;
-    private int CLIP_SECONDS = 10;
-    private int PASSWORD_SECONDS = 60 * 5;
+    private int prefClearSeconds = 30;
+    private int prefClipboardSeconds = 10;
+    private int prefPasswordSeconds = 60 * 5;
     private final int CLEAR_SECONDS_DEFAULT = 30;
     private final int CLIP_SECONDS_DEFAULT = 10;
     private final int PASSWORD_SECONDS_DEFAULT = 60 * 5;
     private final int MIN_TIMER_VALUE = 1;
     private String toDecode = "";
-    private int NUMBER_FAVORITES = 8;
+    private int prefNumberFavorites = 8;
     private int prefFavoritesMinHitCount = 2;
     private boolean prefShowFavoritesCount = false;
 
@@ -166,7 +162,7 @@ public class MainFrame extends JFrame implements
     private int prefSecretListFontSize = 12;
     private boolean editMode = false;
     private FgOptionsDialog fgOptionsDialog;
-
+    static private MainFrame INSTANCE;
 
     /**
      * @param args the command line arguments
@@ -235,7 +231,7 @@ public class MainFrame extends JFrame implements
 
                 if (showDebug)
                 {
-                   DebugWindow.get().setWindowVisible(true);
+                    DebugWindow.get().setWindowVisible(true);
                 }
 
                 INSTANCE = new MainFrame();
@@ -260,14 +256,10 @@ public class MainFrame extends JFrame implements
         });
     }
 
-
-    static private MainFrame INSTANCE;
-    private static MainFrame getInstance()
+    private static MainFrame getInstance ()
     {
         return INSTANCE;
     }
-
-
 
     private void loadPreferences ()
     {
@@ -275,10 +267,10 @@ public class MainFrame extends JFrame implements
 
         PreferencesAccess preferences = FgPreferences.get();
 
-        CLEAR_SECONDS = preferences.get(PREF_CLEAR_SECONDS, CLEAR_SECONDS_DEFAULT);
-        CLIP_SECONDS = preferences.get(PREF_CLIP_SECONDS, CLIP_SECONDS_DEFAULT);
-        PASSWORD_SECONDS = preferences.get(PREF_PASSWORD_SECONDS, PASSWORD_SECONDS_DEFAULT);
-        NUMBER_FAVORITES = preferences.get(PREF_NUMBER_FAVORITES, NUMBER_FAVORITES);
+        prefClearSeconds = preferences.get(PREF_CLEAR_SECONDS, CLEAR_SECONDS_DEFAULT);
+        prefClipboardSeconds = preferences.get(PREF_CLIP_SECONDS, CLIP_SECONDS_DEFAULT);
+        prefPasswordSeconds = preferences.get(PREF_PASSWORD_SECONDS, PASSWORD_SECONDS_DEFAULT);
+        prefNumberFavorites = preferences.get(PREF_NUMBER_FAVORITES, prefNumberFavorites);
         prefFavoritesMinHitCount = preferences.get(PREF_FAVORITES_MIN_HIT_COUNT, prefFavoritesMinHitCount);
         prefShowFavoritesCount = preferences.get(PREF_FAVORITES_SHOW_COUNT, prefShowFavoritesCount);
         prefFilterFavoriteList = preferences.get(PREF_FILTER_FAVORITES, prefFilterFavoriteList);
@@ -288,41 +280,40 @@ public class MainFrame extends JFrame implements
         favoritesParseFromJson(preferences.get(PREF_FAVORITES, "{}"));
     }
 
-    private int getCLEAR_SECONDS()
+    private int getPrefClearSeconds ()
     {
-        return CLEAR_SECONDS;
+        return prefClearSeconds;
     }
 
-    private int getCLIP_SECONDS()
+    private int getPrefClipboardSeconds ()
     {
-        return CLIP_SECONDS;
+        return prefClipboardSeconds;
     }
 
-    private void setCLIP_SECONDS(int clipSeconds)
+    private void setPrefClipboardSeconds (int clipSeconds)
     {
         clipSeconds = Math.max(MIN_TIMER_VALUE, clipSeconds);
-        this.CLIP_SECONDS = clipSeconds;
+        this.prefClipboardSeconds = clipSeconds;
     }
 
-
-    private void setCLEAR_SECONDS(int clearSec)
+    private void setPrefClearSeconds (int clearSec)
     {
         clearSec = Math.max(MIN_TIMER_VALUE, clearSec);
-        this.CLEAR_SECONDS = clearSec;
-        progressClearTimer.setMaximum(CLEAR_SECONDS);
+        this.prefClearSeconds = clearSec;
+        progressClearTimer.setMaximum(prefClearSeconds);
         startTimer();
     }
 
-    public int getPASSWORD_SECONDS ()
+    public int getPrefPasswordSeconds ()
     {
-        return PASSWORD_SECONDS;
+        return prefPasswordSeconds;
     }
 
-    private void setPASSWORD_SECONDS(int passSec)
+    private void setPrefPasswordSeconds (int passSec)
     {
         passSec = Math.max(MIN_TIMER_VALUE, passSec);
-        this.PASSWORD_SECONDS = passSec;
-        progressPassTimer.setMaximum(PASSWORD_SECONDS);
+        this.prefPasswordSeconds = passSec;
+        progressPassTimer.setMaximum(prefPasswordSeconds);
         startTimer();
     }
 
@@ -331,16 +322,16 @@ public class MainFrame extends JFrame implements
         if (component instanceof Container)
         {
             Container container = (Container) component;
-            for (int i = 0; i < container.getComponentCount(); ++i){
-               revalidateAllKids(container.getComponent(i));
+            for (int i = 0; i < container.getComponentCount(); ++i)
+            {
+                revalidateAllKids(container.getComponent(i));
             }
         }
         component.invalidate();
         component.repaint();
     }
 
-    int lastInc = 1;
-    private void setPrefUseFavorites(boolean useFavorites)
+    private void setPrefUseFavorites (boolean useFavorites)
     {
         this.prefUseFavoriteList = useFavorites;
         buttonClearFavorites.setVisible(useFavorites);
@@ -349,7 +340,6 @@ public class MainFrame extends JFrame implements
         refreshSecretList();
         refreshFavorites();
     }
-
 
     public static void toClipboard (String clipBoardText, String whatInfo, boolean startTimer)
     {
@@ -365,6 +355,7 @@ public class MainFrame extends JFrame implements
     {
         startTimer(null);
     }
+
     public void startTimer (Boolean clipboard)
     {
 
@@ -404,9 +395,9 @@ public class MainFrame extends JFrame implements
     {
         if (this.clipboard)
         {
-            return getCLIP_SECONDS();
+            return getPrefClipboardSeconds();
         }
-        return getCLEAR_SECONDS();
+        return getPrefClearSeconds();
     }
 
     private void stopClearTimer ()
@@ -452,7 +443,7 @@ public class MainFrame extends JFrame implements
             if (passTimer.isRunning())
             {
                 String time;
-                int rest = PASSWORD_SECONDS - passSeconds;
+                int rest = prefPasswordSeconds - passSeconds;
                 if (rest > 60)
                 {
 
@@ -486,6 +477,7 @@ public class MainFrame extends JFrame implements
         this.decrypt(false, jList.getSelectedValue(), null);
         fgPanelTextArea.requestFocus();
     }
+
     private void decrypt (boolean toClipboard)
     {
         this.decrypt(toClipboard, jListSecrets.getSelectedValue(), null);
@@ -497,6 +489,7 @@ public class MainFrame extends JFrame implements
     }
 
     private boolean clipboard = false;
+
     private void decrypt (boolean toClipboard, Object filename, Object clientData)
     {
         this.clipboard = toClipboard;
@@ -508,27 +501,25 @@ public class MainFrame extends JFrame implements
         }
         if (!passDlg.getPassPhrase().isEmpty() || !isPassDialog)
         {
-            if (filename instanceof String && !((String)filename).isEmpty())
+            if (filename instanceof String && !((String) filename).isEmpty())
             {
-                toDecode = (String)filename;
+                toDecode = (String) filename;
                 if (toDecode == null || toDecode.isEmpty())
                 {
-                    handleGpgResult("","Nothing selected to decode ...");
+                    handleGpgResult("", "Nothing selected to decode ...");
                     return;
                 }
-                handleGpgResult("","Decoding " + toDecode + "...");
-                String decryptEntry = (String)filename;
+                handleGpgResult("", "Decoding " + toDecode + "...");
+                String decryptEntry = (String) filename;
                 handleForFavoritesList(decryptEntry);
 
                 gpgProcess.decrypt(decryptEntry, passDlg.getPassPhrase(),
-                        toClipboard, getCLIP_SECONDS(), clientData);
+                        toClipboard, getPrefClipboardSeconds(), clientData);
                 startTimer();
                 setPassStatusText();
             }
         }
     }
-
-
 
 
     private Map<String, String> getVersionFromManifest ()
@@ -559,7 +550,7 @@ public class MainFrame extends JFrame implements
     /**
      * Creates new form MainFrame
      */
-    private MainFrame()
+    private MainFrame ()
     {
         gpgProcess = new FgGPGProcess();
 
@@ -569,8 +560,8 @@ public class MainFrame extends JFrame implements
         URL url = this.getClass().getResource("fortGnox48.png");
         this.setIconImage(Toolkit.getDefaultToolkit().createImage(url));
 
-        progressClearTimer.setMaximum(CLEAR_SECONDS);
-        progressPassTimer.setMaximum(PASSWORD_SECONDS);
+        progressClearTimer.setMaximum(prefClearSeconds);
+        progressPassTimer.setMaximum(prefPasswordSeconds);
         clearTimer = new Timer(1000, this);
         passTimer = new Timer(1000, this);
         stopClearTimer();
@@ -604,11 +595,10 @@ public class MainFrame extends JFrame implements
 
         initSecretListCellRenderer();
         initSecretListFont();
-        handleListSelection ();
+        handleListSelection();
 
         setSize(880, 640);
     }
-
 
 
     private void initSecretListEventHandling (JList jList)
@@ -729,9 +719,8 @@ public class MainFrame extends JFrame implements
 
     private void initSecretListFont ()
     {
-        jListSecrets.setFont(jListSecrets.getFont().deriveFont((float)prefSecretListFontSize));
+        jListSecrets.setFont(jListSecrets.getFont().deriveFont((float) prefSecretListFontSize));
     }
-
 
 
     public JPopupMenu getSecretsPopupMenu ()
@@ -802,36 +791,37 @@ public class MainFrame extends JFrame implements
 
     private void initSecretListCellRenderer ()
     {
-        jListSecrets.setCellRenderer(new DefaultListCellRenderer(){
+        jListSecrets.setCellRenderer(new DefaultListCellRenderer()
+        {
 
             @Override
             public Component getListCellRendererComponent (
-                                                           JList<?> list,
-                                                           Object value,
-                                                           int index,
-                                                           boolean isSelected,
-                                                           boolean cellHasFocus)
+                    JList<?> list,
+                    Object value,
+                    int index,
+                    boolean isSelected,
+                    boolean cellHasFocus)
 
             {
-                 Component c = super.getListCellRendererComponent(list, value, index,
-                                                          isSelected,
-                                                          false);
+                Component c = super.getListCellRendererComponent(list, value, index,
+                        isSelected,
+                        false);
 
                 if (value instanceof String)
                 {
                     if (prefUseFavoriteList && favorites.containsKey(value) && index < filteredFavorites.size())
                     {
                         String info = (prefShowFavoritesCount ? "" + favorites.get(value) : null);
-                        setText(gpgProcess.getShortFileName((String)value, info, true));
+                        setText(gpgProcess.getShortFileName((String) value, info, true));
                     }
                     else
                     {
                         setText(gpgProcess.getShortFileName((String) value, false));
                     }
                 }
-                else if ( value instanceof JSeparator)
+                else if (value instanceof JSeparator)
                 {
-                    return (Component)value;
+                    return (Component) value;
                 }
                 if (filteredFavorites.contains(value) && prefUseFavoriteList)
                 {
@@ -850,14 +840,16 @@ public class MainFrame extends JFrame implements
 
     /**
      * Avoid dependencies to Jackson etc. by parsing simple JSON "by hand"
-      * @param json
+     *
+     * @param json
      * @return
      */
     private void favoritesParseFromJson (String json)
     {
         Pattern p = Pattern.compile("\"([^\"]+)\":([^,}]*)[,}]");
         Matcher m = p.matcher(json);
-        while (m.find()) {
+        while (m.find())
+        {
             String fname = m.group(1);
             if (new File(fname).isFile())
             {
@@ -880,14 +872,16 @@ public class MainFrame extends JFrame implements
         StringBuilder jsonBuilder = new StringBuilder();
         Iterator<Map.Entry<String, Integer>> iter = favorites.entrySet().iterator();
         jsonBuilder.append("{");
-        while (iter.hasNext()){
+        while (iter.hasNext())
+        {
             Map.Entry<String, Integer> entry = iter.next();
             jsonBuilder.append('"');
             jsonBuilder.append(entry.getKey());
             jsonBuilder.append('"');
             jsonBuilder.append(':');
             jsonBuilder.append(entry.getValue());
-            if (iter.hasNext()) {
+            if (iter.hasNext())
+            {
                 jsonBuilder.append(',');
             }
         }
@@ -920,7 +914,8 @@ public class MainFrame extends JFrame implements
 
         newFavorites.entrySet()
                 .stream().sorted((t2, t1) -> t1.getValue() - t2.getValue())
-                .forEach(stringIntegerEntry -> {
+                .forEach(stringIntegerEntry ->
+                {
                     favorites.put(stringIntegerEntry.getKey(), stringIntegerEntry.getValue());
                 });
 
@@ -937,7 +932,8 @@ public class MainFrame extends JFrame implements
 
         newFavorites.entrySet()
                 .stream().sorted((t2, t1) -> t1.getValue() - t2.getValue())
-                .forEach(stringIntegerEntry -> {
+                .forEach(stringIntegerEntry ->
+                {
                     favorites.put(stringIntegerEntry.getKey(), i.decrementAndGet());
                 });
         refreshFavorites();
@@ -963,7 +959,8 @@ public class MainFrame extends JFrame implements
         favoritesList.clear();
         favoritesList.addAll(favorites.keySet()
                 .stream()
-                .filter(s -> {
+                .filter(s ->
+                {
                     boolean isFav = isFavoritesPrefMinHits(s);
                     // ensure to show only favorites from one of the secret dirs
                     // which may have changed in preferences
@@ -986,7 +983,8 @@ public class MainFrame extends JFrame implements
 
 
     final String sepChar = Pattern.quote(File.separator);
-    private Pattern pattern = Pattern.compile("^.*[^"+ sepChar+ "]+" + sepChar + "(.*$)");
+    private Pattern pattern = Pattern.compile("^.*[^" + sepChar + "]+" + sepChar + "(.*$)");
+
     private boolean filterFile (String fileName)
     {
         if (fgTextFilter.getText() == null || fgTextFilter.getText().isEmpty())
@@ -1001,31 +999,32 @@ public class MainFrame extends JFrame implements
             String name2 = baseName.toLowerCase().replace(".asc", "");
             name2 = name2.toLowerCase().replace(".gpg", "");
             boolean ret = name2.contains(filter.toLowerCase());
-            dbg(FILTER, fgTextFilter.getText() + (ret?" match   ":" nomatch ")  + fileName);
+            dbg(FILTER, fgTextFilter.getText() + (ret ? " match   " : " nomatch ") + fileName);
             return ret;
         }
-        else {
+        else
+        {
             dbg(FILTER, "matcher matches() failed " + fileName);
         }
         return false;
     }
 
-    private void dbg(DebugWindow.Category cat, String text)
+    private void dbg (DebugWindow.Category cat, String text)
     {
-         DebugWindow.get().debug(cat, text);
+        DebugWindow.get().debug(cat, text);
     }
 
     private List<String> getConfiguredNumberFavorites ()
     {
-        if (NUMBER_FAVORITES <= 0)
+        if (prefNumberFavorites <= 0)
         {
             return favoritesList;
         }
-        else {
-            return favoritesList.subList(0, Math.min(favoritesList.size(), NUMBER_FAVORITES));
+        else
+        {
+            return favoritesList.subList(0, Math.min(favoritesList.size(), prefNumberFavorites));
         }
     }
-
 
     @Override
     public void handleSecretList (String[] list)
@@ -1035,9 +1034,9 @@ public class MainFrame extends JFrame implements
         filteredFavorites.clear();
         filteredFavorites.addAll(
                 getConfiguredNumberFavorites()
-                .stream()
-                .filter(s -> (!prefFilterFavoriteList || filterFile(s)) && new File(s).exists())
-                .collect(Collectors.toList()));
+                        .stream()
+                        .filter(s -> (!prefFilterFavoriteList || filterFile(s)) && new File(s).exists())
+                        .collect(Collectors.toList()));
 
         secretListModel.clear();
         secretListModel.addAll(Arrays.asList(list).stream().filter(s -> filterFile(s)).collect(Collectors.toList()));
@@ -1119,7 +1118,7 @@ public class MainFrame extends JFrame implements
         this.labelSecretInfo.setVisible(text != null && !text.isEmpty());
     }
 
-    private void clearUserTextArea(String err)
+    private void clearUserTextArea (String err)
     {
         fgPanelTextArea.clear(err);
     }
@@ -1172,7 +1171,7 @@ public class MainFrame extends JFrame implements
 
     private void setEnabledHierachy (Component c, boolean enabled)
     {
-        if (c instanceof Container && ((Container)c).getComponents().length > 0)
+        if (c instanceof Container && ((Container) c).getComponents().length > 0)
         {
             for (Component cc : ((Container) c).getComponents())
             {
@@ -1186,7 +1185,7 @@ public class MainFrame extends JFrame implements
         }
     }
 
-    private void setUserTextareaStatus(String err)
+    private void setUserTextareaStatus (String err)
     {
         fgPanelTextArea.setText(null, err);
     }
@@ -1197,7 +1196,7 @@ public class MainFrame extends JFrame implements
     }
 
 
-    private void setUsePasswordDialog(boolean mode)
+    private void setUsePasswordDialog (boolean mode)
     {
         updateClearPassVisibility();
         progressPassTimer.setVisible(mode);
@@ -1208,6 +1207,7 @@ public class MainFrame extends JFrame implements
     {
         return FileUtils.getScaledIcon(new ImageIcon(getClass().getResource(path)), size, size);
     }
+
     private ImageIcon getIcon (String path)
     {
         return getIcon(path, 28);
@@ -1220,7 +1220,8 @@ public class MainFrame extends JFrame implements
         {
             setter.accept(value);
         }
-        else {
+        else
+        {
             setter.accept(null);
         }
     }
@@ -1237,7 +1238,6 @@ public class MainFrame extends JFrame implements
         optionalSetText(s -> buttonExit.setText(s), "Exit");
     }
 
-
     private void handleListSelection ()
     {
         buttonEdit.setEnabled(jListSecrets.getSelectedValue() != null);
@@ -1248,7 +1248,7 @@ public class MainFrame extends JFrame implements
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
      */
-    private void initComponents()
+    private void initComponents ()
     {
 
         jSplitPaneLR = new JSplitPane();
@@ -1324,7 +1324,6 @@ public class MainFrame extends JFrame implements
         jToolBarMainFunctions.setRollover(true);
 
 
-
         buttonNew.setIcon(getIcon("/org/mockenhaupt/fortgnox/addplus48.png"));
         buttonNew.setMnemonic('n');
         buttonNew.setFocusable(false);
@@ -1333,7 +1332,7 @@ public class MainFrame extends JFrame implements
         buttonNew.setVerticalTextPosition(SwingConstants.BOTTOM);
         buttonNew.addActionListener(new java.awt.event.ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            public void actionPerformed (java.awt.event.ActionEvent evt)
             {
                 editWindow.showNew();
             }
@@ -1360,7 +1359,6 @@ public class MainFrame extends JFrame implements
         jToolBarMainFunctions.add(buttonEdit);
 
 
-
         jButtonClipboard.setIcon(getIcon("/org/mockenhaupt/fortgnox/clipboard.png")); // NOI18N
 //        jButtonClipboard.setText("Clipboard First Line");
         jButtonClipboard.setToolTipText("Save the first line of decoded file to clipboard");
@@ -1369,13 +1367,12 @@ public class MainFrame extends JFrame implements
         jButtonClipboard.setVerticalTextPosition(SwingConstants.BOTTOM);
         jButtonClipboard.addActionListener(new java.awt.event.ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            public void actionPerformed (java.awt.event.ActionEvent evt)
             {
                 jButtonClipboardActionPerformed(evt);
             }
         });
 //        jToolBar1.add(jButtonClipboard);
-
 
 
         // ---------------------------------
@@ -1388,7 +1385,7 @@ public class MainFrame extends JFrame implements
         buttonClearTextarea.setVerticalTextPosition(SwingConstants.BOTTOM);
         buttonClearTextarea.addActionListener(new java.awt.event.ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            public void actionPerformed (java.awt.event.ActionEvent evt)
             {
                 buttonClearTextareaActionPerformed(evt);
             }
@@ -1406,7 +1403,7 @@ public class MainFrame extends JFrame implements
         buttonClearPass.setVerticalTextPosition(SwingConstants.BOTTOM);
         buttonClearPass.addActionListener(new java.awt.event.ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            public void actionPerformed (java.awt.event.ActionEvent evt)
             {
                 buttonClearPassActionPerformed(evt);
             }
@@ -1437,7 +1434,6 @@ public class MainFrame extends JFrame implements
         // ---------------------------------
 
 
-
         buttonExit.setIcon(getIcon("/org/mockenhaupt/fortgnox/poweroff48.png"));
         buttonExit.setToolTipText("Exit fortGnox");
         buttonExit.setBorderPainted(false);
@@ -1446,7 +1442,7 @@ public class MainFrame extends JFrame implements
         buttonExit.setVerticalTextPosition(SwingConstants.BOTTOM);
         buttonExit.addActionListener(new java.awt.event.ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            public void actionPerformed (java.awt.event.ActionEvent evt)
             {
                 buttonExitActionPerformed(evt);
             }
@@ -1460,7 +1456,7 @@ public class MainFrame extends JFrame implements
         buttonOptions.setVerticalTextPosition(SwingConstants.BOTTOM);
         buttonOptions.addActionListener(new java.awt.event.ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            public void actionPerformed (java.awt.event.ActionEvent evt)
             {
                 buttonOptionsActionPerformed(evt);
             }
@@ -1480,13 +1476,11 @@ public class MainFrame extends JFrame implements
         jButtonSettings.setVerticalTextPosition(SwingConstants.BOTTOM);
         jButtonSettings.addActionListener(new java.awt.event.ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            public void actionPerformed (java.awt.event.ActionEvent evt)
             {
                 jButtonSettingsActionPerformed(evt);
             }
         });
-
-
 
 
         buttonAbout.setIcon(getIcon("/org/mockenhaupt/fortgnox/info48.png"));
@@ -1496,7 +1490,7 @@ public class MainFrame extends JFrame implements
         buttonAbout.setVerticalTextPosition(SwingConstants.BOTTOM);
         buttonAbout.addActionListener(new java.awt.event.ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            public void actionPerformed (java.awt.event.ActionEvent evt)
             {
                 buttonAboutActionPerformed(evt);
             }
@@ -1533,13 +1527,14 @@ public class MainFrame extends JFrame implements
     }
 
 
-
-    private void buttonClearTextareaActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonClearTextareaActionPerformed (java.awt.event.ActionEvent evt)
+    {
         fgPanelTextArea.clear("Cleared");
         stopClearTimer();
     }
 
-    private void buttonExitActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonExitActionPerformed (java.awt.event.ActionEvent evt)
+    {
 
         boolean doTerminate = !editWindow.isModified() || JOptionPane.showConfirmDialog(this,
                 "Unsaved text in edit window, really exit fortGnox?",
@@ -1557,11 +1552,12 @@ public class MainFrame extends JFrame implements
     {
         if (evt.getSource() instanceof JToggleButton)
         {
-            fgPanelTextArea.setButtonToolbarVisible(((JToggleButton)evt.getSource()).isSelected());
+            fgPanelTextArea.setButtonToolbarVisible(((JToggleButton) evt.getSource()).isSelected());
         }
     }
 
-    private void buttonClearPassActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonClearPassActionPerformed (java.awt.event.ActionEvent evt)
+    {
         passDlg.setPassPhrase("");
         fgPanelTextArea.clear("Cleared");
         FgGPGProcess.clearClipboardIfNotChanged();
@@ -1603,24 +1599,18 @@ public class MainFrame extends JFrame implements
     }
 
 
-
-    private void jButtonSettingsActionPerformed(java.awt.event.ActionEvent evt)
+    private void jButtonSettingsActionPerformed (java.awt.event.ActionEvent evt)
     {
 
         fgOptionsDialog.setVisible(true);
     }
 
-
-
-
-    private void jButtonClipboardActionPerformed(java.awt.event.ActionEvent evt)
+    private void jButtonClipboardActionPerformed (java.awt.event.ActionEvent evt)
     {
         decrypt(true);
     }
 
-
-
-
+    @Override
     public void actionPerformed (ActionEvent e)
     {
 
@@ -1646,7 +1636,7 @@ public class MainFrame extends JFrame implements
         {
             passSeconds++;
             setPassStatusText();
-            if (passSeconds >= PASSWORD_SECONDS)
+            if (passSeconds >= prefPasswordSeconds)
             {
                 stopPassTimer();
             }
@@ -1659,27 +1649,27 @@ public class MainFrame extends JFrame implements
         switch (propertyChangeEvent.getPropertyName())
         {
             case PREF_CLIP_SECONDS:
-                setCLIP_SECONDS((Integer) propertyChangeEvent.getNewValue());
+                setPrefClipboardSeconds((Integer) propertyChangeEvent.getNewValue());
                 break;
             case PREF_USE_FAVORITES:
-                setPrefUseFavorites((Boolean)propertyChangeEvent.getNewValue());
+                setPrefUseFavorites((Boolean) propertyChangeEvent.getNewValue());
                 break;
             case PREF_FILTER_FAVORITES:
                 prefFilterFavoriteList = (boolean) propertyChangeEvent.getNewValue();
                 refreshFavorites();
                 break;
             case PREF_CLEAR_SECONDS:
-                setCLEAR_SECONDS((Integer) propertyChangeEvent.getNewValue());
+                setPrefClearSeconds((Integer) propertyChangeEvent.getNewValue());
                 break;
             case PREF_PASSWORD_SECONDS:
-                setPASSWORD_SECONDS((Integer) propertyChangeEvent.getNewValue());
+                setPrefPasswordSeconds((Integer) propertyChangeEvent.getNewValue());
                 break;
             case PREF_FAVORITES_MIN_HIT_COUNT:
                 prefFavoritesMinHitCount = (Integer) propertyChangeEvent.getNewValue();
                 SwingUtilities.invokeLater(() -> refreshFavorites());
                 break;
             case PREF_NUMBER_FAVORITES:
-                NUMBER_FAVORITES = (Integer) propertyChangeEvent.getNewValue();
+                prefNumberFavorites = (Integer) propertyChangeEvent.getNewValue();
                 SwingUtilities.invokeLater(() -> refreshFavorites());
                 break;
             case PREF_SECRETDIRS:
@@ -1690,7 +1680,7 @@ public class MainFrame extends JFrame implements
                 refreshFavorites();
                 break;
             case PREF_LOOK_AND_FEEL:
-                LAFChooser.get().set((String)propertyChangeEvent.getNewValue(), INSTANCE);
+                LAFChooser.get().set((String) propertyChangeEvent.getNewValue(), INSTANCE);
                 break;
             case PREF_SHOW_TB_BUTTON_TEXT:
                 prefShowToobarTexts = (boolean) propertyChangeEvent.getNewValue();
@@ -1699,14 +1689,13 @@ public class MainFrame extends JFrame implements
             case PREF_SECRETLIST_FONT_SIZE:
                 if (jListSecrets != null)
                 {
-                    prefSecretListFontSize = (Integer)propertyChangeEvent.getNewValue();
+                    prefSecretListFontSize = (Integer) propertyChangeEvent.getNewValue();
                     initSecretListFont();
                 }
                 break;
         }
         SwingUtilities.invokeLater(() -> updateClearPassVisibility());
     }
-
 
     @Override
     public void handleFinished ()

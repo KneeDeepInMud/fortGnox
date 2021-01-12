@@ -10,19 +10,15 @@ public class PreferencesAccess
 {
     private final PropertyChangeSupport propertyChangeSupport;
 
-    // this is a hack for backwards compability, package name could be used
-
-
     final private Preferences preferences;
+    private static PreferencesAccess INSTANCE;
+    private static String NODE;
 
     private PreferencesAccess (String node)
     {
         propertyChangeSupport = new PropertyChangeSupport(this);
         preferences = Preferences.userRoot().node(node);
     }
-
-    private static PreferencesAccess INSTANCE;
-    private static String NODE;
 
     public void addPropertyChangeListener (PropertyChangeListener listener)
     {
@@ -33,60 +29,47 @@ public class PreferencesAccess
     {
         return new PropertyChangeEvent(INSTANCE, name, oldVal, newVal);
     }
+
     private void fireEvent (String name, Object oldVal, Object newVal)
     {
         propertyChangeSupport.firePropertyChange(getEvent(name, oldVal, newVal));
     }
 
-    // for test purpose only
-    static PreferencesAccess getInstance (String node)
-    {
-        if (INSTANCE == null)
-        {
-            NODE = node;
-            INSTANCE = new PreferencesAccess(node);
-        }
-        if (!NODE.equals(node))
-        {
-            throw new IllegalArgumentException("Invalid node " + node + " expected " + NODE);
-        }
-        return INSTANCE;
-    }
 
-    public  String get (String name)
+    public String get (String name)
     {
         return getPreference(name, "");
     }
-    public  Integer getInt (String name)
+
+    public Integer getInt (String name)
     {
         return getPreference(name, Integer.MIN_VALUE);
     }
+
     public Boolean getBoolean (String name)
     {
         return getPreference(name, Boolean.FALSE);
     }
 
-
-
-    public  <T> T get (String name, T defaultValue)
+    public <T> T get (String name, T defaultValue)
     {
         return getPreference(name, defaultValue);
     }
 
-    public  <T> T getPreference (String name, T defaultValue)
+    public <T> T getPreference (String name, T defaultValue)
     {
         if (defaultValue instanceof String)
         {
-            String got =  INSTANCE.preferences.get(name, (String)defaultValue);
+            String got = INSTANCE.preferences.get(name, (String) defaultValue);
             if (got.equals(defaultValue))
             {
-                 putPreference(name, defaultValue);
+                putPreference(name, defaultValue);
             }
             return (T) got;
         }
         else if (defaultValue instanceof Integer)
         {
-            Integer got =  INSTANCE.preferences.getInt(name, (Integer)defaultValue);
+            Integer got = INSTANCE.preferences.getInt(name, (Integer) defaultValue);
             if (got.equals(defaultValue))
             {
                 putPreference(name, defaultValue);
@@ -115,9 +98,11 @@ public class PreferencesAccess
         throw new IllegalArgumentException("unsupported preference type " + defaultValue.getClass());
     }
 
-    public <T> PreferencesAccess put (String name, T value) {
+    public <T> PreferencesAccess put (String name, T value)
+    {
         return putPreference(name, value);
     }
+
     public <T> PreferencesAccess putPreference (String name, T value)
     {
 
@@ -126,7 +111,7 @@ public class PreferencesAccess
             String invalid = null;
             String oldVal = INSTANCE.preferences.get(name, invalid);
 
-            String svalue = ((String)value).trim();
+            String svalue = ((String) value).trim();
             INSTANCE.preferences.put(name, svalue);
             if (oldVal == null || !oldVal.equals(svalue))
             {
@@ -184,4 +169,20 @@ public class PreferencesAccess
             // TODO: handle this
         }
     }
+
+    // for test purpose only
+    static PreferencesAccess getInstance (String node)
+    {
+        if (INSTANCE == null)
+        {
+            NODE = node;
+            INSTANCE = new PreferencesAccess(node);
+        }
+        if (!NODE.equals(node))
+        {
+            throw new IllegalArgumentException("Invalid node " + node + " expected " + NODE);
+        }
+        return INSTANCE;
+    }
+
 }

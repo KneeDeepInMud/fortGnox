@@ -52,7 +52,6 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_GPG_AGENT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_PASS_DIALOG;
 
 /**
- *
  * @author fmoc
  */
 public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHandler
@@ -61,7 +60,33 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
 
     public static final String LINE_SEP = System.lineSeparator();
     private String prefCharset = "ISO-8859-15";
-    private Charset charset = Charset.forName(prefCharset);
+    private Charset charset;
+    private String[] secretList;
+    private String prefGpgConfCommand = "gpgconf";
+    private String prefGpgExeLocation = "gpg";
+    private String prefGpgHome = "";
+    private String prefSecretDirsString = "";
+    protected List<String> secretdirs = new ArrayList<>();
+    protected Map<String, DirectoryWatcher> directoryWatchers = new HashMap<>();
+    private final HashSet<SecretListListener> secretListeners = new HashSet<>();
+    private final HashSet<ResultListListener> resultListeners = new HashSet<>();
+    private final HashSet<EncrypionListener> encryptListeners = new HashSet<>();
+    private final HashSet<CommandListener> commandListeners = new HashSet<>();
+
+    private static String lastClipText;
+
+    private boolean prefUsePasswordDialog = false;
+    private boolean prefConnectToGpgAgent = true;
+    private final Set<String> skipExtensions = new HashSet<>(Arrays.asList("tgz",
+            "jpg",
+            "gif",
+            "doc",
+            "docx",
+            "p12",
+            "xls",
+            "xlsx",
+            "zip"));
+
 
     @Override
     public void propertyChange (PropertyChangeEvent propertyChangeEvent)
@@ -71,32 +96,32 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
         {
             case PREF_GPG_HOMEDIR:
 
-                prefGpgHome = (String)propertyChangeEvent.getNewValue();
+                prefGpgHome = (String) propertyChangeEvent.getNewValue();
                 break;
             case PREF_GPGCONF_COMMAND:
-                prefGpgConfCommand = (String)propertyChangeEvent.getNewValue();
+                prefGpgConfCommand = (String) propertyChangeEvent.getNewValue();
                 break;
 
             case PREF_GPG_COMMAND:
-                prefGpgExeLocation = (String)propertyChangeEvent.getNewValue();
+                prefGpgExeLocation = (String) propertyChangeEvent.getNewValue();
                 break;
 
             case PREF_CHARSET:
-                prefCharset = (String)propertyChangeEvent.getNewValue();
+                prefCharset = (String) propertyChangeEvent.getNewValue();
                 charset = Charset.forName(prefCharset);
                 break;
 
             case PREF_SECRETDIRS:
-                prefSecretDirsString = (String)propertyChangeEvent.getNewValue();
+                prefSecretDirsString = (String) propertyChangeEvent.getNewValue();
                 handleSecretPreferenceChanged();
                 break;
 
             case PREF_USE_PASS_DIALOG:
-                prefUsePasswordDialog = (Boolean)propertyChangeEvent.getNewValue();
+                prefUsePasswordDialog = (Boolean) propertyChangeEvent.getNewValue();
                 break;
 
             case PREF_USE_GPG_AGENT:
-                prefConnectToGpgAgent = (Boolean)propertyChangeEvent.getNewValue();
+                prefConnectToGpgAgent = (Boolean) propertyChangeEvent.getNewValue();
                 break;
             case PREF_SECRETDIR_SORTING:
                 rebuildSecretList();
@@ -104,27 +129,29 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
         }
     }
 
-    interface SecretListListener
+    public interface SecretListListener
     {
         void handleSecretList (String[] list);
     }
 
-    interface ResultListListener
+    public interface ResultListListener
     {
         void handleGpgResult (String out, String err);
+
         void handleGpgResult (String out, String err, String filename, Object clientData);
     }
-    interface EncrypionListener
+
+    public interface EncrypionListener
     {
         void handleGpgEncryptResult (String out, String err, String filename, Object clientData);
     }
 
-    interface CommandListener
+    public interface CommandListener
     {
         void handleGpgCommandResult (String out, String err, String filename, Object clientData, int exitCode);
     }
 
-    abstract class GpgRunnable implements Runnable
+    abstract static class GpgRunnable implements Runnable
     {
         private boolean toClipboard;
         private String password;
@@ -145,6 +172,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
         {
             this.command = command;
         }
+
         public GpgRunnable (String command, File file, Object clientData)
         {
             this.filename = file.getAbsolutePath();
@@ -205,353 +233,13 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
         }
     }
 
-    private String prefGpgConfCommand = "gpgconf";
-    private String prefGpgExeLocation = "gpg";
-    private String prefGpgHome = "";
-    private String prefSecretDirsString = "";
-    protected List<String> secretdirs = new ArrayList<String>();
-    protected Map<String, DirectoryWatcher> directoryWatchers = new HashMap<>();
-    boolean isWindows;
-    HashSet<SecretListListener> secretListeners = new HashSet<>();
-    HashSet<ResultListListener> resultListeners = new HashSet<>();
-    HashSet<EncrypionListener> encryptListeners  = new HashSet<>();
-    HashSet<CommandListener> commandListeners  = new HashSet<>();
-
-    private static String lastClipText;
-
-    private boolean prefUsePasswordDialog = false;
-    private boolean prefConnectToGpgAgent = true;
-
-    public boolean isPrefUsePasswordDialog ()
-    {
-        return prefUsePasswordDialog;
-    }
-
-    public void setPrefUsePasswordDialog (boolean prefUsePasswordDialog)
-    {
-        this.prefUsePasswordDialog = prefUsePasswordDialog;
-    }
-
-    public boolean isPrefConnectToGpgAgent ()
-    {
-        return prefConnectToGpgAgent;
-    }
-
-    public void setPrefConnectToGpgAgent (boolean prefConnectToGpgAgent)
-    {
-        this.prefConnectToGpgAgent = prefConnectToGpgAgent;
-    }
-
-    void addSecretListListener (SecretListListener listener)
-    {
-        secretListeners.add(listener);
-        listener.handleSecretList(secretList);
-    }
-
-    void addEncryptionListener (EncrypionListener listener)
-    {
-        encryptListeners.add(listener);
-    }
-    void addCommandListener (CommandListener listener)
-    {
-        commandListeners.add(listener);
-    }
-
-    void addResultListener (ResultListListener listener)
-    {
-        resultListeners.add(listener);
-        listener.handleGpgResult("", "");
-    }
-
-    private void notifySecretListeners ()
-    {
-        Iterator<SecretListListener> iter = secretListeners.iterator();
-        while (iter.hasNext())
-        {
-            iter.next().handleSecretList(secretList);
-        }
-    }
-
-    private void notifyResultListeners (String out, String err, String filename, Object clientData)
-    {
-        Iterator<ResultListListener> iter = resultListeners.iterator();
-        while (iter.hasNext())
-        {
-            iter.next().handleGpgResult(out, err, filename, clientData);
-        }
-    }
-
-    private void notifyEncryptionListeners (String out, String err, String filename, Object clientData)
-    {
-        Iterator<EncrypionListener> iter = encryptListeners.iterator();
-        while (iter.hasNext())
-        {
-            iter.next().handleGpgEncryptResult(out, err, filename, clientData);
-        }
-    }
-
-    private void notifyCommandListeners (String out, String err, String filename, Object clientData, int exitCode)
-    {
-        Iterator<CommandListener> iter = commandListeners.iterator();
-        while (iter.hasNext())
-        {
-            iter.next().handleGpgCommandResult(out, err, filename, clientData, exitCode);
-        }
-    }
-    private void handleSecretPreferenceChanged ()
-    {
-        PreferencesAccess preferences = FgPreferences.get();
-        File f = new File(prefSecretDirsString);
-        secretdirs.clear();
-        directoryWatchers.values().stream().forEach(s -> s.stop());
-        directoryWatchers.clear();
-
-        FileUtils.ParsedDirectories parsedDirectories = FileUtils.splitDirectoryString(prefSecretDirsString);
-
-        if (!parsedDirectories.directoryList.isEmpty())
-        {
-            secretdirs.addAll(parsedDirectories.directoryList.stream().sorted().collect(Collectors.toList()));
-            preferences.put(PREF_SECRETDIRS, parsedDirectories.revisedList);
-        }
-        else
-        {
-            // prop is single directrory
-            f = new File(prefSecretDirsString);
-            preferences.put(PREF_SECRETDIRS, f.getAbsolutePath());
-            secretdirs.add(f.getAbsolutePath());
-        }
-
-
-        secretdirs.stream().forEach(sd ->
-        {
-            directoryWatchers.computeIfAbsent(sd, s ->
-            {
-                DirectoryWatcher dw = new DirectoryWatcher(FgGPGProcess.this);
-                dw.init(s);
-                return dw;
-            });
-        });
-
-        rebuildSecretList();
-    }
-
-    //  protected Preferences preferences;
-    public FgGPGProcess ()
-    {
-
-        PreferencesAccess preferences = FgPreferences.get();
-        preferences.addPropertyChangeListener(this);
-
-        String defaultFileLocation = "gpg";
-        prefGpgExeLocation = preferences.get(FgPreferences.PREF_GPG_COMMAND, defaultFileLocation);
-
-        prefCharset = preferences.get(PREF_CHARSET, prefCharset);
-        charset = Charset.forName(prefCharset);
-
-        defaultFileLocation = "/";
-        prefGpgHome = preferences.get(PREF_GPG_HOMEDIR, defaultFileLocation);
-
-        prefGpgConfCommand = preferences.get(FgPreferences.PREF_GPGCONF_COMMAND, "gpgconf");
-
-        defaultFileLocation = "/";
-        prefSecretDirsString = preferences.get(FgPreferences.PREF_SECRETDIRS, defaultFileLocation);
-        handleSecretPreferenceChanged();
-
-        isWindows = preferences.get(FgPreferences.PREF_IS_WINDOWS, true);
-
-        this.prefUsePasswordDialog = preferences.get(FgPreferences.PREF_USE_PASS_DIALOG, prefUsePasswordDialog);
-        this.prefConnectToGpgAgent = preferences.get(FgPreferences.PREF_USE_GPG_AGENT, prefConnectToGpgAgent);
-    }
-
-    String[] secretList;
-    private String errorState = "";
-
-
-    public String getShortFileName (String filename, boolean abbrev)
-    {
-        return getShortFileName(filename, null, abbrev);
-    }
-
-    public String getShortFileName (String filename, String info, boolean abbrev)
-    {
-        String ret;
-        if (abbrev)
-        {
-            ret = abbrevCompleteFileMap.get(filename);
-            if (info != null && !info.isEmpty() && ret != null)
-            {
-                ret = ret.replace(")", " - " + info + ")");
-            }
-        }
-        else
-        {
-            ret = completeFileMap.get(filename);
-            if (info != null && !info.isEmpty() && ret != null)
-            {
-                ret = ret + " - " + info;
-            }
-        }
-
-
-        if (ret == null || ret.isEmpty())
-        {
-            ret = filename;
-        }
-        return ret;
-    }
-
-    private HashMap<String, String> fileMap = new HashMap<String, String>();
-    private HashMap<String, String> completeFileMap = new HashMap<String, String>();
-    private HashMap<String, String> abbrevCompleteFileMap = new HashMap<String, String>();
-
-    Set<String> skipExtensions = new HashSet<>(Arrays.asList("tgz",
-            "jpg",
-            "gif",
-            "doc",
-            "docx",
-            "p12",
-            "xls",
-            "xlsx",
-            "zip"));
-
-    private void rebuildSecretList ()
-    {
-        fileMap.clear();
-
-        Map<String, List<String>> folderToPathKeysMap = new HashMap<>();
-
-        for (String secDir : secretdirs)
-        {
-            File f = new File(secDir);
-            File[] fList = f.listFiles(new FilenameFilter()
-            {
-
-                public boolean accept (File dir, String name)
-                {
-                    if (!(name.toLowerCase().endsWith(".asc") || name.toLowerCase().endsWith(".gpg")))
-                    {
-                        return false;
-                    }
-
-                    return skipExtensions.stream().noneMatch(ext ->
-                    {
-                        String name2 = name.toLowerCase().replace(".asc", "").replace(".gpg", "");
-                        return name2.endsWith("." + ext);
-                    });
-                }
-            });
-
-            if (fList == null)
-            {
-                errorState = "Invalid secret directory in preferences " + secretdirs;
-                handleGpgResult(errorState, "", 1, null);
-                break;
-            }
-
-            errorState = "";
-
-            for (int i = 0; i < fList.length; ++i)
-            {
-                String shortName = fList[i].getName().replace(".asc", "").replace(".gpg", "");
-                String dir = "";
-                if (fList[i].getParentFile() != null)
-                {
-                    dir = fList[i].getParentFile().getName();
-                    dir += "/";
-                }
-//                String ddir = dir.isEmpty() ? shortName : shortName + " (" + dir + ")";
-                String displayDir = dir + shortName;
-                fileMap.put(fList[i].getAbsolutePath(), displayDir);
-                folderToPathKeysMap.computeIfAbsent(dir, d ->  new ArrayList<>()).add(fList[i].getAbsolutePath());
-            }
-        }
-
-        int secretsSize = folderToPathKeysMap.entrySet().stream().mapToInt(stringListEntry -> stringListEntry.getValue().size()).sum();
-        secretList = new String[secretsSize];
-
-        AtomicInteger ix = new AtomicInteger();
-        int sortReverse =  FgPreferences.get().getBoolean(PREF_SECRETDIR_SORTING)?1:-1;
-        folderToPathKeysMap.keySet().stream().sorted(
-                (s, t1) -> s.toLowerCase().compareTo(t1.toLowerCase()) * sortReverse)
-                .forEach(
-                dir -> {
-                    folderToPathKeysMap.get(dir).stream().sorted((a,b) -> {
-                        return a.toLowerCase().compareTo(b.toLowerCase());
-                    }).forEach(s -> {
-                        secretList[ix.getAndIncrement()] = s;
-                    });
-                }
-                );
-
-        completeFileMap.putAll(fileMap);
-
-        final String sepChar = Pattern.quote(File.separator);
-        final Pattern bnPattern = Pattern.compile("([^" + sepChar + "]+)" + sepChar + "([^" + sepChar + "]+)$");
-        completeFileMap.entrySet().stream().forEach(stringStringEntry ->
-        {
-            Matcher m = bnPattern.matcher(stringStringEntry.getKey());
-
-            while (m.find() && m.groupCount() == 2)
-            {
-                String shortName = m.group(2);
-                shortName = shortName.replace(".asc", "").replace(".gpg", "");
-
-                String longName = shortName + " (" + m.group(1) + ")";
-
-//                if (!abbrevCompleteFileMap.containsValue(shortName))
-//                {
-//                    abbrevCompleteFileMap.put(stringStringEntry.getKey(), shortName);
-//                }
-//                else
-//                {
-                    abbrevCompleteFileMap.put(stringStringEntry.getKey(), longName);
-//                }
-            }
-        });
-
-        notifySecretListeners();
-    }
-
-    private synchronized void handleGpgResult (String err,
-                                               String out,
-                                               int exCode)
-    {
-        handleGpgResult(err, out, null, exCode, null);
-    }
-    private synchronized void handleGpgResult (String err,
-                                               String out,
-                                               int exCode,
-                                               Object clientData)
-    {
-        handleGpgResult(err, out, null, exCode, clientData);
-    }
-
-
-    private synchronized void handleGpgResult (String err,
-                                               String out,
-                                               String filename,
-                                               int exCode,
-                                               Object clientData)
-    {
-        if (exCode == 0)
-        {
-            notifyResultListeners(out, err, filename, clientData);
-        }
-        else
-        {
-            err = "Exitcode: " + exCode + LINE_SEP + err;
-            notifyResultListeners("", err, filename, clientData);
-        }
-    }
-
-
     public static void clearClipboardIfNotChanged ()
     {
         String currentClip = null;
         try
         {
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-            currentClip = (String)clipboard.getData(DataFlavor.stringFlavor);
+            currentClip = (String) clipboard.getData(DataFlavor.stringFlavor);
         }
         catch (UnsupportedFlavorException e)
         {
@@ -713,7 +401,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
                 {
                     if (clipboardText == null)
                     {
-                        handleGpgResult(this.getFilename()  + LINE_SEP + error, "Error occurred copying text to clipboard", 1);
+                        handleGpgResult(this.getFilename() + LINE_SEP + error, "Error occurred copying text to clipboard", 1);
                     }
                     else
                     {
@@ -723,7 +411,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
                     }
                 }
                 else
-                {                  
+                {
                     String linesText = LINE_SEP + lines + " lines";
                     linesText = ""; // TODO: make this configurable
 
@@ -741,109 +429,6 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
             handleGpgResult(ex.getMessage(), "Internal error occurred starting decryption thread", 333, null);
         }
     }
-
-    protected  boolean stillActive (Process p)
-    {
-        try
-        {
-            p.exitValue();
-            return false;
-        }
-        catch (IllegalThreadStateException ex)
-        {
-            return true;    // still active!
-        }
-    }
-
-
-    public void gpgAgendCommand (String command)
-    {
-        if (!isPrefConnectToGpgAgent())
-        {
-            return;
-        }
-
-        Thread t = new Thread(new GpgRunnable(command)
-        {
-
-            public void run ()
-            {
-                String output = "";
-                String error = "";
-                String[] cmds =
-                        {
-                                prefGpgConfCommand,
-                                this.getCommand()
-                        };
-
-                Process gpgConnectAgentProcess = null;
-                try
-                {
-                    gpgConnectAgentProcess = Runtime.getRuntime().exec(cmds);
-                    final BufferedReader or = new BufferedReader(
-                            new InputStreamReader(gpgConnectAgentProcess.getInputStream(), charset));
-                    final BufferedReader er = new BufferedReader(
-                            new InputStreamReader(gpgConnectAgentProcess.getErrorStream(), charset));
-
-                    while (stillActive(gpgConnectAgentProcess) || er.ready() || or.ready())
-                    {
-                        while (er.ready())
-                        {
-                            String s = er.readLine();
-                            error += s + LINE_SEP;
-                        }
-                        while (or.ready())
-                        {
-                            String s = or.readLine();
-                            output += s + LINE_SEP;
-                        }
-                        Thread.sleep(10, 10);
-                    }
-                    handleGpgResult(error+output + "Successfully executed \"" + prefGpgConfCommand + " " + command + "\"", "",
-                            gpgConnectAgentProcess.exitValue());
-
-                }
-                catch (IOException ex)
-                {
-                    handleGpgResult(ex.toString() + LINE_SEP + error, "",1);
-                }
-                catch (InterruptedException ex)
-                {
-                    handleGpgResult(ex.toString()+ LINE_SEP + error, "", 2);
-                }
-                finally
-                {
-                    if (stillActive(gpgConnectAgentProcess))
-                    {
-                        gpgConnectAgentProcess.destroy();
-                    }
-                }
-            }
-        });
-
-        try
-        {
-            t.start();
-        }
-        catch (Exception ex)
-        {
-            handleGpgResult("Internal error: " + ex.toString(), "", 5);
-        }
-    }
-
-    public List<String> getSecretdirs ()
-    {
-        return secretdirs;
-    }
-
-    @Override
-    public void handleDirContentChanged (String directory, String entry, WatchEvent.Kind<?> kind)
-    {
-        SwingUtilities.invokeLater(() -> rebuildSecretList());
-    }
-
-
-
 
 
     public void encrypt (String fname, String content, String recipient, Object clientData)
@@ -889,7 +474,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
                 catch (IOException e)
                 {
                     e.printStackTrace();
-                    notifyEncryptionListeners("",e.getMessage() +  " ERROR staring encryption process", fname, clientData);
+                    notifyEncryptionListeners("", e.getMessage() + " ERROR staring encryption process", fname, clientData);
                     return;
                 }
 
@@ -915,12 +500,12 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
                     }
                     catch (IOException e)
                     {
-                        notifyEncryptionListeners("",e.getMessage() +  " ERROR writing content for encryption", fname, clientData);
+                        notifyEncryptionListeners("", e.getMessage() + " ERROR writing content for encryption", fname, clientData);
                         return;
                     }
                     catch (InterruptedException e)
                     {
-                        notifyEncryptionListeners("",e.getMessage() +  " ERROR writing password", fname, clientData);
+                        notifyEncryptionListeners("", e.getMessage() + " ERROR writing password", fname, clientData);
                         return;
                     }
                 }
@@ -997,8 +582,6 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
             notifyEncryptionListeners("", ex.toString(), fname, clientData);
         }
     }
-
-
 
 
     public void command (String command, String fname, Object clientData)
@@ -1112,6 +695,421 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
     }
 
 
+    public boolean isPrefUsePasswordDialog ()
+    {
+        return prefUsePasswordDialog;
+    }
+
+    public void setPrefUsePasswordDialog (boolean prefUsePasswordDialog)
+    {
+        this.prefUsePasswordDialog = prefUsePasswordDialog;
+    }
+
+    public boolean isPrefConnectToGpgAgent ()
+    {
+        return prefConnectToGpgAgent;
+    }
+
+    public void setPrefConnectToGpgAgent (boolean prefConnectToGpgAgent)
+    {
+        this.prefConnectToGpgAgent = prefConnectToGpgAgent;
+    }
+
+    void addSecretListListener (SecretListListener listener)
+    {
+        secretListeners.add(listener);
+        listener.handleSecretList(secretList);
+    }
+
+    void addEncryptionListener (EncrypionListener listener)
+    {
+        encryptListeners.add(listener);
+    }
+
+    void addCommandListener (CommandListener listener)
+    {
+        commandListeners.add(listener);
+    }
+
+    void addResultListener (ResultListListener listener)
+    {
+        resultListeners.add(listener);
+        listener.handleGpgResult("", "");
+    }
+
+    private void notifySecretListeners ()
+    {
+        Iterator<SecretListListener> iter = secretListeners.iterator();
+        while (iter.hasNext())
+        {
+            iter.next().handleSecretList(secretList);
+        }
+    }
+
+    private void notifyResultListeners (String out, String err, String filename, Object clientData)
+    {
+        Iterator<ResultListListener> iter = resultListeners.iterator();
+        while (iter.hasNext())
+        {
+            iter.next().handleGpgResult(out, err, filename, clientData);
+        }
+    }
+
+    private void notifyEncryptionListeners (String out, String err, String filename, Object clientData)
+    {
+        Iterator<EncrypionListener> iter = encryptListeners.iterator();
+        while (iter.hasNext())
+        {
+            iter.next().handleGpgEncryptResult(out, err, filename, clientData);
+        }
+    }
+
+    private void notifyCommandListeners (String out, String err, String filename, Object clientData, int exitCode)
+    {
+        Iterator<CommandListener> iter = commandListeners.iterator();
+        while (iter.hasNext())
+        {
+            iter.next().handleGpgCommandResult(out, err, filename, clientData, exitCode);
+        }
+    }
+
+    private void handleSecretPreferenceChanged ()
+    {
+        PreferencesAccess preferences = FgPreferences.get();
+        File f = new File(prefSecretDirsString);
+        secretdirs.clear();
+        directoryWatchers.values().stream().forEach(s -> s.stop());
+        directoryWatchers.clear();
+
+        FileUtils.ParsedDirectories parsedDirectories = FileUtils.splitDirectoryString(prefSecretDirsString);
+
+        if (!parsedDirectories.directoryList.isEmpty())
+        {
+            secretdirs.addAll(parsedDirectories.directoryList.stream().sorted().collect(Collectors.toList()));
+            preferences.put(PREF_SECRETDIRS, parsedDirectories.revisedList);
+        }
+        else
+        {
+            // prop is single directrory
+            f = new File(prefSecretDirsString);
+            preferences.put(PREF_SECRETDIRS, f.getAbsolutePath());
+            secretdirs.add(f.getAbsolutePath());
+        }
+
+
+        secretdirs.stream().forEach(sd ->
+        {
+            directoryWatchers.computeIfAbsent(sd, s ->
+            {
+                DirectoryWatcher dw = new DirectoryWatcher(FgGPGProcess.this);
+                dw.init(s);
+                return dw;
+            });
+        });
+
+        rebuildSecretList();
+    }
+
+    //  protected Preferences preferences;
+    public FgGPGProcess ()
+    {
+
+        PreferencesAccess preferences = FgPreferences.get();
+        preferences.addPropertyChangeListener(this);
+
+        String defaultFileLocation = "gpg";
+        prefGpgExeLocation = preferences.get(FgPreferences.PREF_GPG_COMMAND, defaultFileLocation);
+
+        prefCharset = preferences.get(PREF_CHARSET, prefCharset);
+        charset = Charset.forName(prefCharset);
+
+        defaultFileLocation = "/";
+        prefGpgHome = preferences.get(PREF_GPG_HOMEDIR, defaultFileLocation);
+
+        prefGpgConfCommand = preferences.get(FgPreferences.PREF_GPGCONF_COMMAND, "gpgconf");
+
+        defaultFileLocation = "/";
+        prefSecretDirsString = preferences.get(FgPreferences.PREF_SECRETDIRS, defaultFileLocation);
+        handleSecretPreferenceChanged();
+
+        this.prefUsePasswordDialog = preferences.get(FgPreferences.PREF_USE_PASS_DIALOG, prefUsePasswordDialog);
+        this.prefConnectToGpgAgent = preferences.get(FgPreferences.PREF_USE_GPG_AGENT, prefConnectToGpgAgent);
+    }
+
+
+    public String getShortFileName (String filename, boolean abbrev)
+    {
+        return getShortFileName(filename, null, abbrev);
+    }
+
+    public String getShortFileName (String filename, String info, boolean abbrev)
+    {
+        String ret;
+        if (abbrev)
+        {
+            ret = abbrevCompleteFileMap.get(filename);
+            if (info != null && !info.isEmpty() && ret != null)
+            {
+                ret = ret.replace(")", " - " + info + ")");
+            }
+        }
+        else
+        {
+            ret = completeFileMap.get(filename);
+            if (info != null && !info.isEmpty() && ret != null)
+            {
+                ret = ret + " - " + info;
+            }
+        }
+
+
+        if (ret == null || ret.isEmpty())
+        {
+            ret = filename;
+        }
+        return ret;
+    }
+
+    private HashMap<String, String> fileMap = new HashMap<String, String>();
+    private HashMap<String, String> completeFileMap = new HashMap<String, String>();
+    private HashMap<String, String> abbrevCompleteFileMap = new HashMap<String, String>();
+
+
+    private void rebuildSecretList ()
+    {
+        fileMap.clear();
+
+        Map<String, List<String>> folderToPathKeysMap = new HashMap<>();
+
+        for (String secDir : secretdirs)
+        {
+            File f = new File(secDir);
+            File[] fList = f.listFiles(new FilenameFilter()
+            {
+
+                public boolean accept (File dir, String name)
+                {
+                    if (!(name.toLowerCase().endsWith(".asc") || name.toLowerCase().endsWith(".gpg")))
+                    {
+                        return false;
+                    }
+
+                    return skipExtensions.stream().noneMatch(ext ->
+                    {
+                        String name2 = name.toLowerCase().replace(".asc", "").replace(".gpg", "");
+                        return name2.endsWith("." + ext);
+                    });
+                }
+            });
+
+            String errorState = "";
+            if (fList == null)
+            {
+                errorState = "Invalid secret directory in preferences " + secretdirs;
+                handleGpgResult(errorState, "", 1, null);
+                break;
+            }
+
+            errorState = "";
+
+            for (int i = 0; i < fList.length; ++i)
+            {
+                String shortName = fList[i].getName().replace(".asc", "").replace(".gpg", "");
+                String dir = "";
+                if (fList[i].getParentFile() != null)
+                {
+                    dir = fList[i].getParentFile().getName();
+                    dir += "/";
+                }
+//                String ddir = dir.isEmpty() ? shortName : shortName + " (" + dir + ")";
+                String displayDir = dir + shortName;
+                fileMap.put(fList[i].getAbsolutePath(), displayDir);
+                folderToPathKeysMap.computeIfAbsent(dir, d -> new ArrayList<>()).add(fList[i].getAbsolutePath());
+            }
+        }
+
+        int secretsSize = folderToPathKeysMap.entrySet().stream().mapToInt(stringListEntry -> stringListEntry.getValue().size()).sum();
+        secretList = new String[secretsSize];
+
+        AtomicInteger ix = new AtomicInteger();
+        int sortReverse = FgPreferences.get().getBoolean(PREF_SECRETDIR_SORTING) ? 1 : -1;
+        folderToPathKeysMap.keySet().stream().sorted(
+                (s, t1) -> s.toLowerCase().compareTo(t1.toLowerCase()) * sortReverse)
+                .forEach(
+                        dir ->
+                        {
+                            folderToPathKeysMap.get(dir).stream().sorted((a, b) ->
+                            {
+                                return a.toLowerCase().compareTo(b.toLowerCase());
+                            }).forEach(s ->
+                            {
+                                secretList[ix.getAndIncrement()] = s;
+                            });
+                        }
+                );
+
+        completeFileMap.putAll(fileMap);
+
+        final String sepChar = Pattern.quote(File.separator);
+        final Pattern bnPattern = Pattern.compile("([^" + sepChar + "]+)" + sepChar + "([^" + sepChar + "]+)$");
+        completeFileMap.entrySet().stream().forEach(stringStringEntry ->
+        {
+            Matcher m = bnPattern.matcher(stringStringEntry.getKey());
+
+            while (m.find() && m.groupCount() == 2)
+            {
+                String shortName = m.group(2);
+                shortName = shortName.replace(".asc", "").replace(".gpg", "");
+
+                String longName = shortName + " (" + m.group(1) + ")";
+
+//                if (!abbrevCompleteFileMap.containsValue(shortName))
+//                {
+//                    abbrevCompleteFileMap.put(stringStringEntry.getKey(), shortName);
+//                }
+//                else
+//                {
+                abbrevCompleteFileMap.put(stringStringEntry.getKey(), longName);
+//                }
+            }
+        });
+
+        notifySecretListeners();
+    }
+
+    private synchronized void handleGpgResult (String err,
+                                               String out,
+                                               int exCode)
+    {
+        handleGpgResult(err, out, null, exCode, null);
+    }
+
+    private synchronized void handleGpgResult (String err,
+                                               String out,
+                                               int exCode,
+                                               Object clientData)
+    {
+        handleGpgResult(err, out, null, exCode, clientData);
+    }
+
+
+    private synchronized void handleGpgResult (String err,
+                                               String out,
+                                               String filename,
+                                               int exCode,
+                                               Object clientData)
+    {
+        if (exCode == 0)
+        {
+            notifyResultListeners(out, err, filename, clientData);
+        }
+        else
+        {
+            err = "Exitcode: " + exCode + LINE_SEP + err;
+            notifyResultListeners("", err, filename, clientData);
+        }
+    }
+
+
+    protected boolean stillActive (Process p)
+    {
+        try
+        {
+            p.exitValue();
+            return false;
+        }
+        catch (IllegalThreadStateException ex)
+        {
+            return true;    // still active!
+        }
+    }
+
+
+    public void gpgAgendCommand (String command)
+    {
+        if (!isPrefConnectToGpgAgent())
+        {
+            return;
+        }
+
+        Thread t = new Thread(new GpgRunnable(command)
+        {
+
+            public void run ()
+            {
+                String output = "";
+                String error = "";
+                String[] cmds =
+                        {
+                                prefGpgConfCommand,
+                                this.getCommand()
+                        };
+
+                Process gpgConnectAgentProcess = null;
+                try
+                {
+                    gpgConnectAgentProcess = Runtime.getRuntime().exec(cmds);
+                    final BufferedReader or = new BufferedReader(
+                            new InputStreamReader(gpgConnectAgentProcess.getInputStream(), charset));
+                    final BufferedReader er = new BufferedReader(
+                            new InputStreamReader(gpgConnectAgentProcess.getErrorStream(), charset));
+
+                    while (stillActive(gpgConnectAgentProcess) || er.ready() || or.ready())
+                    {
+                        while (er.ready())
+                        {
+                            String s = er.readLine();
+                            error += s + LINE_SEP;
+                        }
+                        while (or.ready())
+                        {
+                            String s = or.readLine();
+                            output += s + LINE_SEP;
+                        }
+                        Thread.sleep(10, 10);
+                    }
+                    handleGpgResult(error + output + "Successfully executed \"" + prefGpgConfCommand + " " + command + "\"", "",
+                            gpgConnectAgentProcess.exitValue());
+
+                }
+                catch (IOException ex)
+                {
+                    handleGpgResult(ex.toString() + LINE_SEP + error, "", 1);
+                }
+                catch (InterruptedException ex)
+                {
+                    handleGpgResult(ex.toString() + LINE_SEP + error, "", 2);
+                }
+                finally
+                {
+                    if (stillActive(gpgConnectAgentProcess))
+                    {
+                        gpgConnectAgentProcess.destroy();
+                    }
+                }
+            }
+        });
+
+        try
+        {
+            t.start();
+        }
+        catch (Exception ex)
+        {
+            handleGpgResult("Internal error: " + ex.toString(), "", 5);
+        }
+    }
+
+    public List<String> getSecretdirs ()
+    {
+        return secretdirs;
+    }
+
+    @Override
+    public void handleDirContentChanged (String directory, String entry, WatchEvent.Kind<?> kind)
+    {
+        SwingUtilities.invokeLater(() -> rebuildSecretList());
+    }
 
 
 }

@@ -34,21 +34,138 @@ public class PasswordGenerator
     private final List<Character> special = new ArrayList<>();
     private final JComboBox<String> comboBoxPasswords = new JComboBox<>();
     private final JFormattedTextField textFieldLength = new JFormattedTextField();
-    private final JCheckBoxPersistent cbUpper = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_UPPER, "Uppercase", ()->handleEnabled());
-    private final JCheckBoxPersistent cbLower = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_LOWER, "Lowercase", ()->handleEnabled());
-    private final JCheckBoxPersistent cbDigit = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_DIGITS, "Digits", ()->handleEnabled());
-    private final JCheckBoxPersistent cbSpecial = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_SPECIAL, "Special", ()->handleEnabled());
+    private final JCheckBoxPersistent cbUpper = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_UPPER, "Uppercase", () -> handleEnabled());
+    private final JCheckBoxPersistent cbLower = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_LOWER, "Lowercase", () -> handleEnabled());
+    private final JCheckBoxPersistent cbDigit = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_DIGITS, "Digits", () -> handleEnabled());
+    private final JCheckBoxPersistent cbSpecial = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_SPECIAL, "Special", () -> handleEnabled());
     private final JButton buttonGenerate = new JButton("Generate Password");
     private final JButton buttonInsert = new JButton("Insert");
     private final JButton buttonCopy = new JButton("Clipboard");
     private final JButton buttonReset = new JButton("Reset");
     private final List<String> passwordList = new ArrayList<>();
-
     private final PasswordInsertListener passwordInsertListener;
+    private JPanel generatorPanel;
 
-    interface PasswordInsertListener
+    public interface PasswordInsertListener
     {
         void handlePasswordInsert (String password);
+    }
+
+    public JPanel getGeneratorPanel ()
+    {
+        if (generatorPanel == null)
+        {
+            generatorPanel = new JPanel();
+            GroupLayout gl = new GroupLayout(generatorPanel);
+            generatorPanel.setLayout(gl);
+
+            gl.setAutoCreateGaps(true);
+
+            buttonReset.setEnabled(false);
+            buttonReset.addActionListener(a -> resetPasswords());
+            buttonGenerate.addActionListener(actionEvent -> generatePassword());
+            buttonGenerate.setMnemonic(KeyEvent.VK_G);
+
+            buttonCopy.addActionListener(actionEvent ->
+            {
+                if (comboBoxPasswords.getModel().getSize() == 0)
+                {
+                    generatePassword();
+                }
+                FgGPGProcess.clip(comboBoxPasswords.getSelectedItem().toString());
+            });
+            buttonInsert.addActionListener(actionEvent ->
+            {
+                if (passwordInsertListener != null)
+                {
+                    if (comboBoxPasswords.getModel().getSize() == 0)
+                    {
+                        generatePassword();
+                    }
+                    passwordInsertListener.handlePasswordInsert(comboBoxPasswords.getSelectedItem().toString());
+                }
+            });
+            buttonInsert.setMnemonic(KeyEvent.VK_I);
+
+            comboBoxPasswords.setMaximumSize(new Dimension(300, 40));
+
+            cbUpper.setMnemonic('u');
+            cbLower.setMnemonic('o');
+            cbDigit.setMnemonic('d');
+            cbSpecial.setMnemonic('e');
+            buttonCopy.setMnemonic('l');
+
+            textFieldLength.setMinimumSize(new Dimension(40, 10));
+            textFieldLength.setValue(FgPreferences.get().getPreference(FgPreferences.PREF_GPG_PASS_LENGTH, 18));
+            textFieldLength.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
+            textFieldLength.getDocument().addDocumentListener(new DocumentListener()
+            {
+                void updatePreference ()
+                {
+                    FgPreferences.get().putPreference(FgPreferences.PREF_GPG_PASS_LENGTH, textFieldLength.getText());
+                }
+
+                @Override
+                public void insertUpdate (DocumentEvent documentEvent)
+                {
+                    updatePreference();
+                }
+
+                @Override
+                public void removeUpdate (DocumentEvent documentEvent)
+                {
+                    updatePreference();
+                }
+
+                @Override
+                public void changedUpdate (DocumentEvent documentEvent)
+                {
+                    updatePreference();
+                }
+            });
+
+            handleEnabled();
+            gl.setHorizontalGroup(
+                    gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                            .addGroup(gl.createSequentialGroup()
+                                    .addComponent(cbUpper)
+                                    .addComponent(cbLower)
+                                    .addComponent(cbDigit)
+                                    .addComponent(cbSpecial)
+                                    .addGap(10)
+                                    .addComponent(textFieldLength, 20, 40, 60)
+                                    .addComponent(buttonGenerate)
+                            )
+                            .addGroup(gl.createSequentialGroup()
+                                    .addComponent(comboBoxPasswords, 20, 100, 400)
+                                    .addComponent(buttonInsert)
+                                    .addComponent(buttonCopy)
+                                    .addComponent(buttonReset)
+                            )
+            );
+
+
+            gl.setVerticalGroup(
+                    gl.createSequentialGroup()
+                            .addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                                    .addComponent(cbUpper)
+                                    .addComponent(cbLower)
+                                    .addComponent(cbDigit)
+                                    .addComponent(cbSpecial)
+                                    .addComponent(textFieldLength)
+                                    .addComponent(buttonGenerate)
+                            )
+                            .addGroup(gl.createParallelGroup()
+                                    .addComponent(comboBoxPasswords)
+                                    .addComponent(buttonInsert)
+                                    .addComponent(buttonCopy)
+                                    .addComponent(buttonReset)
+                            )
+            );
+            LAFChooser.setPreferenceLaf(generatorPanel);
+
+        }
+        return generatorPanel;
     }
 
     public PasswordGenerator (JFrame parent)
@@ -223,122 +340,4 @@ public class PasswordGenerator
     }
 
 
-    private JPanel generatorPanel;
-    public JPanel getGeneratorPanel ()
-    {
-        if (generatorPanel == null)
-        {
-            generatorPanel = new JPanel();
-            GroupLayout gl = new GroupLayout(generatorPanel);
-            generatorPanel.setLayout(gl);
-
-            gl.setAutoCreateGaps(true);
-//            gl.setAutoCreateContainerGaps(true);
-
-
-            buttonReset.setEnabled(false);
-            buttonReset.addActionListener(a -> resetPasswords());
-            buttonGenerate.addActionListener(actionEvent -> generatePassword());
-            buttonGenerate.setMnemonic(KeyEvent.VK_G);
-
-            buttonCopy.addActionListener(actionEvent -> {
-                if (comboBoxPasswords.getModel().getSize() == 0)
-                {
-                    generatePassword();
-                }
-                FgGPGProcess.clip(comboBoxPasswords.getSelectedItem().toString());
-            });
-            buttonInsert.addActionListener(actionEvent ->
-            {
-                if (passwordInsertListener != null)
-                {
-                    if (comboBoxPasswords.getModel().getSize() == 0)
-                    {
-                        generatePassword();
-                    }
-                    passwordInsertListener.handlePasswordInsert(comboBoxPasswords.getSelectedItem().toString());
-                }
-            });
-            buttonInsert.setMnemonic(KeyEvent.VK_I);
-
-            comboBoxPasswords.setMaximumSize(new Dimension(300, 40));
-
-            cbUpper.setMnemonic('u');
-            cbLower.setMnemonic('o');
-            cbDigit.setMnemonic('d');
-            cbSpecial.setMnemonic('e');
-            buttonCopy.setMnemonic('l');
-
-            textFieldLength.setMinimumSize(new Dimension(40, 10));
-            textFieldLength.setValue(FgPreferences.get().getPreference(FgPreferences.PREF_GPG_PASS_LENGTH, 18));
-            textFieldLength.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-            textFieldLength.getDocument().addDocumentListener(new DocumentListener()
-            {
-                void updatePreference ()
-                {
-                    FgPreferences.get().putPreference(FgPreferences.PREF_GPG_PASS_LENGTH, textFieldLength.getText());
-                }
-
-                @Override
-                public void insertUpdate (DocumentEvent documentEvent)
-                {
-                    updatePreference();
-                }
-
-                @Override
-                public void removeUpdate (DocumentEvent documentEvent)
-                {
-                    updatePreference();
-                }
-
-                @Override
-                public void changedUpdate (DocumentEvent documentEvent)
-                {
-                    updatePreference();
-                }
-            });
-
-            handleEnabled();
-            gl.setHorizontalGroup(
-                    gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                            .addGroup(gl.createSequentialGroup()
-                                    .addComponent(cbUpper)
-                                    .addComponent(cbLower)
-                                    .addComponent(cbDigit)
-                                    .addComponent(cbSpecial)
-                                    .addGap(10)
-                                    .addComponent(textFieldLength, 20, 40, 60)
-                                    .addComponent(buttonGenerate)
-                            )
-                            .addGroup(gl.createSequentialGroup()
-                                    .addComponent(comboBoxPasswords, 20, 100, 400)
-                                    .addComponent(buttonInsert)
-                                    .addComponent(buttonCopy)
-                                    .addComponent(buttonReset)
-                            )
-            );
-
-
-            gl.setVerticalGroup(
-                    gl.createSequentialGroup()
-                            .addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                                    .addComponent(cbUpper)
-                                    .addComponent(cbLower)
-                                    .addComponent(cbDigit)
-                                    .addComponent(cbSpecial)
-                                    .addComponent(textFieldLength)
-                                    .addComponent(buttonGenerate)
-                            )
-                            .addGroup(gl.createParallelGroup()
-                                    .addComponent(comboBoxPasswords)
-                                    .addComponent(buttonInsert)
-                                    .addComponent(buttonCopy)
-                                    .addComponent(buttonReset)
-                            )
-            );
-            LAFChooser.setPreferenceLaf(generatorPanel);
-
-        }
-        return generatorPanel;
-    }
 }
