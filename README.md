@@ -20,7 +20,7 @@ Although __fortGnox__ was mainly developed under Linux, it is already used by pe
 - Password management (creation / random generation).
 - Strong security. Encryption is done exclusively by a standard [GnuPG](https://gnupg.org/) installation. All passwords are typically encrypted with the own public GPG (PGP) key.
 - Keybordless usage of passwords through the clipboard. The passwords are flushed from clipboard after a timeout.
-- Passwords are masked in the GUI. This allows usage of __fortGnox__ even if other people are around.
+- Passwords are masked in the GUI. This allows usage of __fortGnox__ even if other people are around and can see your screen while using __fortGnox__.
 - Integrates smoothly with [pass](https://www.passwordstore.org/)
 
 ## Requirements ##
