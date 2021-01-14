@@ -263,8 +263,8 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                 fgTextFilter.requestFocus();
                 mainFrame.startTimer();
             }
-
         });
+
         textPane.addHyperlinkListener(e ->
         {
             if (HyperlinkEvent.EventType.ACTIVATED.equals(e.getEventType()))
@@ -402,7 +402,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         searchAndTextPanel.add(scrollPaneTextArea, BorderLayout.CENTER);
         fgTextFilter = new FgTextFilter(this);
         searchAndTextPanel.add(fgTextFilter, BorderLayout.NORTH);
-
+        fgTextFilter.addKeyListener(new SearchKeyAdapter(mainFrame) {});
 
         add(searchAndTextPanel, BorderLayout.CENTER);
 

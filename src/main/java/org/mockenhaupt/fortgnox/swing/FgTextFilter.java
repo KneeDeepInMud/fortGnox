@@ -12,6 +12,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 public class FgTextFilter extends JPanel
 {
@@ -101,6 +102,11 @@ public class FgTextFilter extends JPanel
         return textFilter.getText();
     }
 
+    @Override
+    public synchronized void addKeyListener (KeyListener l)
+    {
+        textFilter.addKeyListener(l);
+    }
 
     private void callHandler ()
     {
