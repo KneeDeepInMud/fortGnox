@@ -42,6 +42,7 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -139,7 +140,7 @@ public class MainFrame extends JFrame implements
 
     public static final String CLIENTDATA_EDIT = "editGpg";
     private JButton buttonClearPass;
-    private JButton buttonClearTextarea;
+//    private JButton buttonClearTextarea;
     private JButton buttonExit;
     private JButton buttonAbout;
     private JButton jButtonSettings;
@@ -350,6 +351,13 @@ public class MainFrame extends JFrame implements
             MainFrame.getInstance().startTimer(true);
         }
     }
+
+    public void clearTextArea ()
+    {
+        fgPanelTextArea.clear("Cleared");
+        stopClearTimer();
+    }
+
 
     public void startTimer ()
     {
@@ -1142,7 +1150,7 @@ public class MainFrame extends JFrame implements
             {
                 editWindow.setText(out, "Loaded for editing " + filename, filename);
                 setEditMode(true);
-                buttonClearTextareaActionPerformed(null);
+                clearTextArea();
                 return;
             }
             else
@@ -1230,7 +1238,7 @@ public class MainFrame extends JFrame implements
     {
         optionalSetText(s -> buttonNew.setText(s), "Add New Password");
         optionalSetText(s -> buttonEdit.setText(s), "Edit Selected Password");
-        optionalSetText(s -> buttonClearTextarea.setText(s), "Wipe Textarea");
+//        optionalSetText(s -> buttonClearTextarea.setText(s), "Wipe Textarea");
         optionalSetText(s -> buttonClearPass.setText(s), "Forget GPG Passphrase");
         optionalSetText(s -> buttonClearFavorites.setText(s), "Clear Favorites List");
         optionalSetText(s -> jButtonSettings.setText(s), "Open Settings");
@@ -1265,7 +1273,7 @@ public class MainFrame extends JFrame implements
         buttonClearPass = new JButton();
         buttonClearFavorites = new JButton();
         buttonClearPass.setMnemonic(KeyEvent.VK_P);
-        buttonClearTextarea = new JButton();
+//        buttonClearTextarea = new JButton();
         buttonExit = new JButton();
         JToggleButton buttonOptions = new JToggleButton();
         buttonAbout = new JButton();
@@ -1376,21 +1384,21 @@ public class MainFrame extends JFrame implements
 
 
         // ---------------------------------
-        buttonClearTextarea.setIcon(getIcon("/org/mockenhaupt/fortgnox/wipe48.png"));
-        buttonClearTextarea.setMnemonic(KeyEvent.VK_I);
-        buttonClearTextarea.setToolTipText("Clears the textarea and the clipboard in case a password has been stored there");
-        buttonClearTextarea.setBorderPainted(false);
-        buttonClearTextarea.setFocusable(false);
-        buttonClearTextarea.setHorizontalTextPosition(SwingConstants.CENTER);
-        buttonClearTextarea.setVerticalTextPosition(SwingConstants.BOTTOM);
-        buttonClearTextarea.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed (java.awt.event.ActionEvent evt)
-            {
-                buttonClearTextareaActionPerformed(evt);
-            }
-        });
-        jToolBarMainFunctions.add(buttonClearTextarea);
+//        buttonClearTextarea.setIcon(getIcon("/org/mockenhaupt/fortgnox/wipe48.png"));
+//        buttonClearTextarea.setMnemonic(KeyEvent.VK_I);
+//        buttonClearTextarea.setToolTipText("Clears the textarea and the clipboard in case a password has been stored there");
+//        buttonClearTextarea.setBorderPainted(false);
+//        buttonClearTextarea.setFocusable(false);
+//        buttonClearTextarea.setHorizontalTextPosition(SwingConstants.CENTER);
+//        buttonClearTextarea.setVerticalTextPosition(SwingConstants.BOTTOM);
+//        buttonClearTextarea.addActionListener(new java.awt.event.ActionListener()
+//        {
+//            public void actionPerformed (java.awt.event.ActionEvent evt)
+//            {
+//                buttonClearTextareaActionPerformed(evt);
+//            }
+//        });
+//        jToolBarMainFunctions.add(buttonClearTextarea);
 
 
         // ---------------------------------
@@ -1495,7 +1503,12 @@ public class MainFrame extends JFrame implements
                 buttonAboutActionPerformed(evt);
             }
         });
-        jToolBarPanel.add(buttonAbout, BorderLayout.EAST);
+
+        // Separate toolbar for about dialog (ensures correct geometry handling)
+        JToolBar aboutPanel = new JToolBar();
+        aboutPanel.setFloatable(false);
+        aboutPanel.add(buttonAbout);
+        jToolBarPanel.add(aboutPanel, BorderLayout.LINE_END);
 
         jToolBarPanel.add(jToolBarMainFunctions, BorderLayout.CENTER);
         getContentPane().add(jToolBarPanel, java.awt.BorderLayout.PAGE_START);
@@ -1529,8 +1542,7 @@ public class MainFrame extends JFrame implements
 
     private void buttonClearTextareaActionPerformed (java.awt.event.ActionEvent evt)
     {
-        fgPanelTextArea.clear("Cleared");
-        stopClearTimer();
+        clearTextArea();
     }
 
     private void buttonExitActionPerformed (java.awt.event.ActionEvent evt)

@@ -2,8 +2,11 @@ package org.mockenhaupt.fortgnox.swing;
 
 import org.mockenhaupt.fortgnox.FgPreferences;
 import org.mockenhaupt.fortgnox.MainFrame;
+import org.mockenhaupt.fortgnox.misc.FileUtils;
 
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -13,6 +16,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.event.HyperlinkEvent;
@@ -49,6 +53,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.awt.FlowLayout.CENTER;
 import static java.awt.FlowLayout.LEFT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_RESET_MASK_BUTTON_SECONDS;
 
@@ -542,6 +547,23 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
             }
         }
 
+        JButton buttonClearTextarea = new JButton();
+        buttonClearTextarea.setIcon(FileUtils.getScaledIcon(this.getClass(), "/org/mockenhaupt/fortgnox/wipe48.png", 24));
+        buttonClearTextarea.setMnemonic(KeyEvent.VK_I);
+        buttonClearTextarea.setPreferredSize(new Dimension(30, 30));
+        buttonClearTextarea.setToolTipText("Clears the textarea and the clipboard in case a password has been stored there");
+        buttonClearTextarea.setBorderPainted(false);
+        buttonClearTextarea.setFocusable(false);
+        buttonClearTextarea.setHorizontalTextPosition(SwingConstants.CENTER);
+        buttonClearTextarea.setVerticalTextPosition(SwingConstants.BOTTOM);
+        buttonClearTextarea.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed (java.awt.event.ActionEvent evt)
+            {
+                mainFrame.clearTextArea();
+            }
+        });
+
 
         this.add(scrollPaneTextAreaError, BorderLayout.SOUTH);
         JPanel toolBarPanel = new JPanel(new BorderLayout());
@@ -549,7 +571,12 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         buttonTbVisible.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/settings24.png")));
         buttonTbVisible.addActionListener(a -> buttonToolbar.setVisible(buttonTbVisible.isSelected()));
         buttonTbVisible.setPreferredSize(new Dimension(30, 30));
-        toolBarPanel.add(buttonTbVisible, BorderLayout.WEST);
+
+        JPanel miniButtonPanel = new JPanel(new FlowLayout(CENTER, 0, 0));
+        miniButtonPanel.setBorder(BorderFactory.createEmptyBorder());
+        miniButtonPanel.add(buttonClearTextarea);
+        miniButtonPanel.add(buttonTbVisible);
+        toolBarPanel.add(miniButtonPanel, BorderLayout.WEST);
         toolBarPanel.add(buttonToolbar, BorderLayout.CENTER);
 //        this.add(buttonToolbar, BorderLayout.NORTH);
         this.add(toolBarPanel, BorderLayout.NORTH);
