@@ -42,7 +42,6 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -354,10 +353,14 @@ public class MainFrame extends JFrame implements
 
     public void clearTextArea ()
     {
-        fgPanelTextArea.clear("Cleared");
-        stopClearTimer();
+        clearTextArea(toDecode.isEmpty()?"":"Cleared contents of " + toDecode);
     }
-
+    private void clearTextArea (String err)
+    {
+        fgPanelTextArea.clear(err);
+        stopClearTimer();
+        fgTextFilter.requestFocus();
+    }
 
     public void startTimer ()
     {
@@ -413,7 +416,7 @@ public class MainFrame extends JFrame implements
         if (clearTimer != null && clearTimer.isRunning())
         {
             clearTimer.stop();
-            clearUserTextArea("Cleared " + toDecode);
+            clearTextArea();
         }
         progressClearTimer.setVisible(false);
         FgGPGProcess.clearClipboardIfNotChanged();
@@ -434,7 +437,7 @@ public class MainFrame extends JFrame implements
     private void stopPassTimer ()
     {
         passDlg.setPassPhrase("");
-        clearUserTextArea("Cleared passphrase");
+        clearTextArea("Cleared passphrase");
         passTimer.stop();
         setPassStatusText();
     }
@@ -1126,10 +1129,7 @@ public class MainFrame extends JFrame implements
         this.labelSecretInfo.setVisible(text != null && !text.isEmpty());
     }
 
-    private void clearUserTextArea (String err)
-    {
-        fgPanelTextArea.clear(err);
-    }
+
 
     public void handleGpgResult (String out, String err)
     {
@@ -1171,9 +1171,9 @@ public class MainFrame extends JFrame implements
         else
         {
             jSplitPaneLR.setRightComponent(fgPanelTextArea);
+            fgTextFilter.requestFocus();
         }
         setEnabledHierachy(jToolBarMainFunctions, !editMode);
-//        jToolBarMainFunctions.setEnabled(!editMode);
         setEnabledHierachy(scrollPaneSecrets, !editMode);
     }
 
