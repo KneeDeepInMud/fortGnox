@@ -71,7 +71,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     private JCheckBox checkSelectAll;
     private JScrollPane scrollPaneTextArea;
     private JToolBar clipToolbar;
-    JScrollPane scrollPaneTextAreaError;
+    private JScrollPane scrollPaneTextAreaError;
     private JTextArea textAreaError;
     private FgTextFilter fgTextFilter;
     private MainFrame mainFrame;
@@ -211,6 +211,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     {
         this.mainFrame = mainFrame;
         this.textPane = new JTextPane();
+        textPane.setBorder(BorderFactory.createLineBorder(BACKGROUND, 1));
         textPane.setEditable(false);
         textPane.setContentType("text/html");
 
