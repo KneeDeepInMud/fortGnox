@@ -1,10 +1,14 @@
 package org.mockenhaupt.fortgnox;
 
+import javax.swing.JOptionPane;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+
+import static javax.swing.JOptionPane.YES_OPTION;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREFERENCE_NODES_OLD;
 
 public class PreferencesAccess
 {
@@ -12,13 +16,60 @@ public class PreferencesAccess
 
     final private Preferences preferences;
     private static PreferencesAccess INSTANCE;
-    private static String NODE;
+    private static String preferenceNodeName;
+
+    static boolean UNIT_TEST = false;
 
     private PreferencesAccess (String node)
     {
         propertyChangeSupport = new PropertyChangeSupport(this);
+
+        if (!UNIT_TEST)
+        {
+            try
+            {
+                if (!Preferences.userRoot().nodeExists(node))
+                {
+                    for (String oldPreference : PREFERENCE_NODES_OLD)
+                    {
+                        if (Preferences.userRoot().nodeExists(oldPreference))
+                        {
+                            if (YES_OPTION == JOptionPane.showConfirmDialog(null,
+                                    "Preferences from a previous installation have been found. It is recommended " +
+                                            "to import these preferences.\nContinue importing preferences (" + oldPreference + ")?",
+                                    "fortGnox - Import Preferences", JOptionPane.YES_NO_OPTION))
+                            {
+                                importPreferences(Preferences.userRoot().node(oldPreference), Preferences.userRoot().node(node));
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (BackingStoreException e)
+            {
+                e.printStackTrace();
+            }
+        }
         preferences = Preferences.userRoot().node(node);
+        preferences.put("PREFERENCE_NODE_NAME_SELF", node);
     }
+
+    private void importPreferences (Preferences source, Preferences target) throws BackingStoreException
+    {
+        for (String key : source.keys())
+        {
+            if (source.nodeExists(key))
+            {
+                importPreferences(source.node(key), target.node(key));
+            }
+            else
+            {
+                target.put(key, source.get(key, ""));
+            }
+        }
+    }
+
 
     public void addPropertyChangeListener (PropertyChangeListener listener)
     {
@@ -175,12 +226,12 @@ public class PreferencesAccess
     {
         if (INSTANCE == null)
         {
-            NODE = node;
+            preferenceNodeName = node;
             INSTANCE = new PreferencesAccess(node);
         }
-        if (!NODE.equals(node))
+        if (!preferenceNodeName.equals(node))
         {
-            throw new IllegalArgumentException("Invalid node " + node + " expected " + NODE);
+            throw new IllegalArgumentException("Invalid node " + node + " expected " + preferenceNodeName);
         }
         return INSTANCE;
     }

@@ -7,11 +7,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class PreferencesAccessTest
 {
 
-    static final String NODE = PreferencesAccessTest.class.getPackage().getName();
+    static final String NODE = PreferencesAccessTest.class.getPackage().getName() + "JUNIT";
 
     @BeforeEach
     void setUp ()
     {
+        PreferencesAccess.UNIT_TEST = true;
         PreferencesAccess.getInstance(NODE).clear();
     }
 
