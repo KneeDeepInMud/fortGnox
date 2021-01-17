@@ -6,7 +6,7 @@ public class FgPreferences
     public static final String[] PREFERENCE_NODES_OLD = {"org.fmoc.fortgnox", "org.fmoc.jgpg"};
 
 
-    public static final String PREF_GPG_HOMEDIR = "homedir";
+    public static final String PREF_GPG_HOMEDIR = "PREF_GPG_HOMEDIR";
     public static final String PREF_GPG_COMMAND = "gpg";
     public static final String PREF_GPG_POST_COMMAND = "PREF_GPG_POST_COMMAND";
     public static final String PREF_GPGCONF_COMMAND = "gpgconf";

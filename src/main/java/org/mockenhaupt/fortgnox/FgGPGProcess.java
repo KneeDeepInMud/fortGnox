@@ -599,14 +599,14 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
     }
 
 
-    public void command (String command, String fname, Object clientData)
+    public  Thread command (String command, String fname, Object clientData)
     {
-        command(command, fname, clientData, (out, err, filename, clientData1, exitCode) -> {
+        return command(command, fname, clientData, (out, err, filename, clientData1, exitCode) -> {
              notifyCommandListeners(out, err, filename, clientData1, exitCode);
         });
     }
 
-    public void command (String command, String fname, Object clientData, CommandListener commandListener)
+    public Thread command (String command, String fname, Object clientData, CommandListener commandListener)
     {
         File fileArgument;
         if (fname == null || fname.isEmpty())
@@ -726,6 +726,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
         {
             commandListener.handleGpgCommandResult("", ex.toString(), fname, clientData, 1);
         }
+        return t;
     }
 
 
@@ -933,8 +934,22 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
         prefCharset = preferences.get(PREF_CHARSET, prefCharset);
         charset = Charset.forName(prefCharset);
 
-        defaultFileLocation = "/";
-        prefGpgHome = preferences.get(PREF_GPG_HOMEDIR, defaultFileLocation);
+        prefGpgHome = preferences.get(PREF_GPG_HOMEDIR, "INVALID_GPG_HOME");
+
+        if ("INVALID_GPG_HOME".equals(prefGpgHome))
+        {
+            FgEnvironmentGuesser fgEnvironmentGuesser = new FgEnvironmentGuesser(this);
+            String potentialGpgHome = fgEnvironmentGuesser.getGpgHome(prefGpgExeLocation, 2000);
+            if (potentialGpgHome != null)
+            {
+               prefGpgHome =  potentialGpgHome;
+               preferences.put(PREF_GPG_HOMEDIR, prefGpgHome);
+            }
+            else
+            {
+               preferences.remove(PREF_GPG_HOMEDIR);
+            }
+        }
 
         prefGpgConfCommand = preferences.get(FgPreferences.PREF_GPGCONF_COMMAND, "gpgconf");
 
