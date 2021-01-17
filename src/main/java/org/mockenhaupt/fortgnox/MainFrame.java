@@ -614,6 +614,8 @@ public class MainFrame extends JFrame implements
         handleListSelection();
 
         setSize(880, 640);
+
+        SwingUtilities.invokeLater(()->handleUiWidth());
     }
 
 
@@ -1256,12 +1258,7 @@ public class MainFrame extends JFrame implements
     {
         jToolBarMainFunctions.revalidate();
         int minWidth = jToolBarMainFunctions.getMinimumSize().width + aboutPanel.getMinimumSize().width + 20;
-        if (minWidth > getWidth())
-        {
-            setMinimumSize(new Dimension(minWidth, 400));
-            setSize(new Dimension(minWidth, getHeight()));
-            revalidate();
-        }
+        setMinimumSize(new Dimension(minWidth, 400));
     }
 
     private void handleListSelection ()
