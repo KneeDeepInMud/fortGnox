@@ -175,7 +175,16 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
 
         public GpgRunnable (String command, File file, Object clientData)
         {
-            this.filename = file.getAbsolutePath();
+            if (file != null)
+            {
+                this.filename = file.getAbsolutePath();
+            }
+            this.command = command;
+            this.clientData = clientData;
+        }
+
+        public GpgRunnable (String command, Object clientData)
+        {
             this.command = command;
             this.clientData = clientData;
         }
@@ -290,8 +299,11 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
                     cmdArgList.add("0");
                 }
                 cmdArgList.add("--yes");
-                cmdArgList.add("--homedir");
-                cmdArgList.add(prefGpgHome);
+                if (prefGpgHome != null && !prefGpgHome.isEmpty())
+                {
+                    cmdArgList.add("--homedir");
+                    cmdArgList.add(prefGpgHome);
+                }
                 cmdArgList.add("--decrypt");
 
                 File file = new File(this.getFilename());
@@ -450,8 +462,11 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
                 {
                     cmdArgList.add("--armor");
                 }
-                cmdArgList.add("--homedir");
-                cmdArgList.add(prefGpgHome);
+                if (prefGpgHome != null && !prefGpgHome.isEmpty())
+                {
+                    cmdArgList.add("--homedir");
+                    cmdArgList.add(prefGpgHome);
+                }
                 cmdArgList.add("--encrypt");
                 cmdArgList.add("--recipient");
                 cmdArgList.add(recipient);
@@ -593,7 +608,16 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
 
     public void command (String command, String fname, Object clientData, CommandListener commandListener)
     {
-        Thread t = new Thread(new GpgRunnable(command, new File(fname), clientData)
+        File fileArgument;
+        if (fname == null || fname.isEmpty())
+        {
+            fileArgument = null;
+        }
+        else
+        {
+            fileArgument = new File(fname);
+        }
+        Thread t = new Thread(new GpgRunnable(command, fileArgument, clientData)
         {
             public void run ()
             {
@@ -604,7 +628,10 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
 
                 List<String> cmdArgList = new ArrayList<>();
                 cmdArgList.addAll(getCommandList());
-                cmdArgList.add(getFilename());
+                if (getFilename() != null && !getFilename().isEmpty())
+                {
+                    cmdArgList.add(getFilename());
+                }
 
                 DebugWindow.get().debug(DebugWindow.Category.GPG, cmdArgList.toString());
                 String[] cmds = cmdArgList.toArray(new String[]{});
