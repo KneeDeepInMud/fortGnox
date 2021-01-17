@@ -586,6 +586,13 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
 
     public void command (String command, String fname, Object clientData)
     {
+        command(command, fname, clientData, (out, err, filename, clientData1, exitCode) -> {
+             notifyCommandListeners(out, err, filename, clientData1, exitCode);
+        });
+    }
+
+    public void command (String command, String fname, Object clientData, CommandListener commandListener)
+    {
         Thread t = new Thread(new GpgRunnable(command, new File(fname), clientData)
         {
             public void run ()
@@ -613,7 +620,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
                 catch (IOException e)
                 {
                     e.printStackTrace();
-                    notifyCommandListeners("", e.toString(), getFilename(), getClientData(), 1);
+                    commandListener.handleGpgCommandResult("", e.toString(), getFilename(), getClientData(), 1);
                     return;
                 }
 
@@ -653,7 +660,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
                         }
                         catch (InterruptedException ex)
                         {
-                            notifyCommandListeners(output, error, fname, clientData, 1);
+                            commandListener.handleGpgCommandResult(output, error, fname, clientData, 1);
                             break;
                         }
                     }
@@ -662,7 +669,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
                 }
                 catch (IOException ex)
                 {
-                    notifyCommandListeners("", ex.toString(), fname, clientData, exitValue);
+                    commandListener.handleGpgCommandResult("", ex.toString(), fname, clientData, exitValue);
                 }
                 catch (IllegalThreadStateException ex)
                 {
@@ -680,7 +687,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
                 {
                     error = "failure in post command, " + error;
                 }
-                notifyCommandListeners(output, error, getFilename(), getClientData(), exitValue);
+                commandListener.handleGpgCommandResult(output, error, getFilename(), getClientData(), exitValue);
             }
         });
 
@@ -690,7 +697,83 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
         }
         catch (Exception ex)
         {
-            notifyCommandListeners("", ex.toString(), fname, clientData, 1);
+            commandListener.handleGpgCommandResult("", ex.toString(), fname, clientData, 1);
+        }
+    }
+
+
+    public void gpgAgendCommand (String command)
+    {
+        if (!isPrefConnectToGpgAgent())
+        {
+            return;
+        }
+
+        Thread t = new Thread(new GpgRunnable(command)
+        {
+
+            public void run ()
+            {
+                String output = "";
+                String error = "";
+                String[] cmds =
+                        {
+                                prefGpgConfCommand,
+                                this.getCommand()
+                        };
+
+                Process gpgConnectAgentProcess = null;
+                try
+                {
+                    gpgConnectAgentProcess = Runtime.getRuntime().exec(cmds);
+                    final BufferedReader or = new BufferedReader(
+                            new InputStreamReader(gpgConnectAgentProcess.getInputStream(), charset));
+                    final BufferedReader er = new BufferedReader(
+                            new InputStreamReader(gpgConnectAgentProcess.getErrorStream(), charset));
+
+                    while (stillActive(gpgConnectAgentProcess) || er.ready() || or.ready())
+                    {
+                        while (er.ready())
+                        {
+                            String s = er.readLine();
+                            error += s + LINE_SEP;
+                        }
+                        while (or.ready())
+                        {
+                            String s = or.readLine();
+                            output += s + LINE_SEP;
+                        }
+                        Thread.sleep(10, 10);
+                    }
+                    handleGpgResult(error + output + "Successfully executed \"" + prefGpgConfCommand + " " + command + "\"", "",
+                            gpgConnectAgentProcess.exitValue());
+
+                }
+                catch (IOException ex)
+                {
+                    handleGpgResult(ex.toString() + LINE_SEP + error, "", 1);
+                }
+                catch (InterruptedException ex)
+                {
+                    handleGpgResult(ex.toString() + LINE_SEP + error, "", 2);
+                }
+                finally
+                {
+                    if (stillActive(gpgConnectAgentProcess))
+                    {
+                        gpgConnectAgentProcess.destroy();
+                    }
+                }
+            }
+        });
+
+        try
+        {
+            t.start();
+        }
+        catch (Exception ex)
+        {
+            handleGpgResult("Internal error: " + ex.toString(), "", 5);
         }
     }
 
@@ -870,9 +953,9 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
         return ret;
     }
 
-    private HashMap<String, String> fileMap = new HashMap<String, String>();
-    private HashMap<String, String> completeFileMap = new HashMap<String, String>();
-    private HashMap<String, String> abbrevCompleteFileMap = new HashMap<String, String>();
+    private HashMap<String, String> fileMap = new HashMap<>();
+    private HashMap<String, String> completeFileMap = new HashMap<>();
+    private HashMap<String, String> abbrevCompleteFileMap = new HashMap<>();
 
 
     private void rebuildSecretList ()
@@ -1021,82 +1104,6 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
         catch (IllegalThreadStateException ex)
         {
             return true;    // still active!
-        }
-    }
-
-
-    public void gpgAgendCommand (String command)
-    {
-        if (!isPrefConnectToGpgAgent())
-        {
-            return;
-        }
-
-        Thread t = new Thread(new GpgRunnable(command)
-        {
-
-            public void run ()
-            {
-                String output = "";
-                String error = "";
-                String[] cmds =
-                        {
-                                prefGpgConfCommand,
-                                this.getCommand()
-                        };
-
-                Process gpgConnectAgentProcess = null;
-                try
-                {
-                    gpgConnectAgentProcess = Runtime.getRuntime().exec(cmds);
-                    final BufferedReader or = new BufferedReader(
-                            new InputStreamReader(gpgConnectAgentProcess.getInputStream(), charset));
-                    final BufferedReader er = new BufferedReader(
-                            new InputStreamReader(gpgConnectAgentProcess.getErrorStream(), charset));
-
-                    while (stillActive(gpgConnectAgentProcess) || er.ready() || or.ready())
-                    {
-                        while (er.ready())
-                        {
-                            String s = er.readLine();
-                            error += s + LINE_SEP;
-                        }
-                        while (or.ready())
-                        {
-                            String s = or.readLine();
-                            output += s + LINE_SEP;
-                        }
-                        Thread.sleep(10, 10);
-                    }
-                    handleGpgResult(error + output + "Successfully executed \"" + prefGpgConfCommand + " " + command + "\"", "",
-                            gpgConnectAgentProcess.exitValue());
-
-                }
-                catch (IOException ex)
-                {
-                    handleGpgResult(ex.toString() + LINE_SEP + error, "", 1);
-                }
-                catch (InterruptedException ex)
-                {
-                    handleGpgResult(ex.toString() + LINE_SEP + error, "", 2);
-                }
-                finally
-                {
-                    if (stillActive(gpgConnectAgentProcess))
-                    {
-                        gpgConnectAgentProcess.destroy();
-                    }
-                }
-            }
-        });
-
-        try
-        {
-            t.start();
-        }
-        catch (Exception ex)
-        {
-            handleGpgResult("Internal error: " + ex.toString(), "", 5);
         }
     }
 
