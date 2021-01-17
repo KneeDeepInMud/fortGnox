@@ -43,7 +43,6 @@ Although __fortGnox__ was mainly developed under Linux, it is already used by pe
 
       and follow the instructions.
 
-
 - Download __fortGnox__
   
     - Either download the latest JAR file from https://github.com/KneeDeepInMud/fortGnox/releases or download and compile the code.
@@ -56,9 +55,8 @@ Although __fortGnox__ was mainly developed under Linux, it is already used by pe
 
     - Edit configuration in __fortGnox__
         - After first start open the `Settings` dialog and select `GPG` tab.
-        - Enter the `GPG Home` directory. If unknown enter command `gpg -k`, the path it is shown in the first line of the output.
         - Enter the path to the folder where you want to store the encrypted passwords files in field `Data directories`
-        - In case you have multiple public GPG keys, which is usually the case enter **your own** public key in field `Default recipient`. The public keys can be listed via command:
+        - Enter **your own** public GPG key in field `Default recipient`. The public keys can be listed via command:
                
               gpg -k --keyid-format short
 

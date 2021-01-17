@@ -236,4 +236,9 @@ public class PreferencesAccess
         return INSTANCE;
     }
 
+    public void remove (String prefName)
+    {
+        INSTANCE.preferences.remove(prefName);
+    }
+
 }

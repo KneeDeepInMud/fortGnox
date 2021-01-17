@@ -181,7 +181,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
 
         JLabel jLabelGpgConf = new JLabel("GPGCONF Executable");
         jTexfFieldGpgConf = new JTextField();
-        labelGpgHome.setText("GPG Home");
+        labelGpgHome.setText("GPG Home (optional or leave blank)");
         labelDataDirs.setText("Data directories (separate with \";\")");
         jTexfFieldGpgRIDFile = new JTextField();
         jTexfFieldGpgDefaultRID = new JTextField();
