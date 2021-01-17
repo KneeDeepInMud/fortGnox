@@ -1475,6 +1475,7 @@ public class MainFrame extends JFrame implements
         jToolBarMainFunctions.add(jButtonSettings);
 
 //        jToolBarMainFunctions.add(buttonOptions);
+        jToolBarMainFunctions.add(buttonExit);
 
         jButtonSettings.setIcon(getIcon("/org/mockenhaupt/fortgnox/sprocket48.png"));
 //        jButtonSettings.setText("Settings");
@@ -1503,16 +1504,11 @@ public class MainFrame extends JFrame implements
             }
         });
 
-
-
         // Separate toolbar for about dialog (ensures correct geometry handling)
-//        JToolBar aboutPanel = new JToolBar();
-//        aboutPanel.setFloatable(false);
-//        aboutPanel.add(buttonAbout);
-        jToolBarMainFunctions.add(new JSeparator());
-        jToolBarMainFunctions.add(buttonExit);
-        jToolBarMainFunctions.add(buttonAbout);
-
+        JToolBar aboutPanel = new JToolBar();
+        aboutPanel.setFloatable(false);
+        aboutPanel.add(buttonAbout);
+        jToolBarPanel.add(aboutPanel, BorderLayout.LINE_END);
 
         jToolBarPanel.add(jToolBarMainFunctions, BorderLayout.CENTER);
         getContentPane().add(jToolBarPanel, java.awt.BorderLayout.PAGE_START);
