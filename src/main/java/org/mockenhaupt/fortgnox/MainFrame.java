@@ -42,8 +42,10 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -73,6 +75,7 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.OK_OPTION;
@@ -139,7 +142,7 @@ public class MainFrame extends JFrame implements
 
     public static final String CLIENTDATA_EDIT = "editGpg";
     private JButton buttonClearPass;
-//    private JButton buttonClearTextarea;
+    //    private JButton buttonClearTextarea;
     private JButton buttonExit;
     private JButton buttonAbout;
     private JButton jButtonSettings;
@@ -155,6 +158,7 @@ public class MainFrame extends JFrame implements
     private FgPanelTextArea fgPanelTextArea;
     private JLabel labelSecretInfo;
     private JPanel jToolBarPanel;
+    JToolBar aboutPanel;
     private JToolBar jToolBarMainFunctions;
     private boolean prefUseFavoriteList = true;
     private boolean prefFilterFavoriteList = true;
@@ -353,8 +357,9 @@ public class MainFrame extends JFrame implements
 
     public void clearTextArea ()
     {
-        clearTextArea(toDecode.isEmpty()?"":"Cleared contents of " + toDecode);
+        clearTextArea(toDecode.isEmpty() ? "" : "Cleared contents of " + toDecode);
     }
+
     private void clearTextArea (String err)
     {
         fgPanelTextArea.clear(err);
@@ -1130,7 +1135,6 @@ public class MainFrame extends JFrame implements
     }
 
 
-
     public void handleGpgResult (String out, String err)
     {
         fgPanelTextArea.setText(out, err);
@@ -1236,14 +1240,28 @@ public class MainFrame extends JFrame implements
 
     private void updateTbButtonTexts ()
     {
-        optionalSetText(s -> buttonNew.setText(s), "Add New Password");
+        optionalSetText(s -> buttonNew.setText(s), "New Password");
         optionalSetText(s -> buttonEdit.setText(s), "Edit Password");
 //        optionalSetText(s -> buttonClearTextarea.setText(s), "Wipe Textarea");
-        optionalSetText(s -> buttonClearPass.setText(s), "Forget GPG Passphrase");
+        optionalSetText(s -> buttonClearPass.setText(s), "Forget Passphrase");
         optionalSetText(s -> buttonClearFavorites.setText(s), "Clear Favorites");
         optionalSetText(s -> jButtonSettings.setText(s), "Open Settings");
-        optionalSetText(s -> buttonAbout.setText(s), "fortGnox");
+        optionalSetText(s -> buttonAbout.setText(s), "About");
         optionalSetText(s -> buttonExit.setText(s), "Exit");
+
+        handleUiWidth();
+    }
+
+    private void handleUiWidth ()
+    {
+        jToolBarMainFunctions.revalidate();
+        int minWidth = jToolBarMainFunctions.getMinimumSize().width + aboutPanel.getMinimumSize().width + 20;
+        if (minWidth > getWidth())
+        {
+            setMinimumSize(new Dimension(minWidth, 400));
+            setSize(new Dimension(minWidth, getHeight()));
+            revalidate();
+        }
     }
 
     private void handleListSelection ()
@@ -1300,7 +1318,7 @@ public class MainFrame extends JFrame implements
         });
 
         setTitle("fortGnox");
-        setMinimumSize(new java.awt.Dimension(800, 600));
+//        setMinimumSize(new java.awt.Dimension(800, 600));
 
         jSplitPaneLR.setBackground(new java.awt.Color(204, 204, 204));
         jSplitPaneLR.setMinimumSize(new java.awt.Dimension(200, 102));
@@ -1475,7 +1493,7 @@ public class MainFrame extends JFrame implements
         jToolBarMainFunctions.add(jButtonSettings);
 
 //        jToolBarMainFunctions.add(buttonOptions);
-        jToolBarMainFunctions.add(buttonExit);
+//        jToolBarMainFunctions.add(buttonExit);
 
         jButtonSettings.setIcon(getIcon("/org/mockenhaupt/fortgnox/sprocket48.png"));
 //        jButtonSettings.setText("Settings");
@@ -1505,14 +1523,17 @@ public class MainFrame extends JFrame implements
         });
 
         // Separate toolbar for about dialog (ensures correct geometry handling)
-        JToolBar aboutPanel = new JToolBar();
+        aboutPanel = new JToolBar();
         aboutPanel.setFloatable(false);
+
+        aboutPanel.add(buttonExit);
         aboutPanel.add(buttonAbout);
         jToolBarPanel.add(aboutPanel, BorderLayout.LINE_END);
 
         jToolBarPanel.add(jToolBarMainFunctions, BorderLayout.CENTER);
         getContentPane().add(jToolBarPanel, java.awt.BorderLayout.PAGE_START);
 
+        setMinimumSize(new Dimension(jToolBarMainFunctions.getWidth() + aboutPanel.getWidth(), 400));
         statusBarPanel.setLayout(new java.awt.GridLayout(1, 0, 10, 0));
 
         progressClearTimer.setMinimumSize(new java.awt.Dimension(10, 25));
@@ -1556,7 +1577,8 @@ public class MainFrame extends JFrame implements
         {
             FgGPGProcess.clearClipboardIfNotChanged();
             this.clipboard = false;
-            System.exit(1);
+            System.exit(0);
+            Stream.of(Window.getWindows()).forEach(Window::dispose);
         }
     }
 
@@ -1693,6 +1715,7 @@ public class MainFrame extends JFrame implements
                 break;
             case PREF_LOOK_AND_FEEL:
                 LAFChooser.get().set((String) propertyChangeEvent.getNewValue(), INSTANCE);
+                SwingUtilities.invokeLater(() -> handleUiWidth());
                 break;
             case PREF_SHOW_TB_BUTTON_TEXT:
                 prefShowToobarTexts = (boolean) propertyChangeEvent.getNewValue();
