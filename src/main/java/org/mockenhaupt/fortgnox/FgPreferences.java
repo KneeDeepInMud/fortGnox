@@ -2,7 +2,7 @@ package org.mockenhaupt.fortgnox;
 
 public class FgPreferences
 {
-    public static final String PREFERENCE_NODE = "org.mockenhaupt.fortgnox";
+    public static final String PREFERENCE_NODE = "org.mockenhaupt.fortgnox.1";
     public static final String[] PREFERENCE_NODES_OLD = {"org.fmoc.fortgnox", "org.fmoc.jgpg"};
 
 

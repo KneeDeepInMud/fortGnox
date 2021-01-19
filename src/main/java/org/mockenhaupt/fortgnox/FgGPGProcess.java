@@ -938,7 +938,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
 
         prefGpgConfCommand = preferences.get(FgPreferences.PREF_GPGCONF_COMMAND, "gpgconf");
 
-        defaultFileLocation = "/";
+        defaultFileLocation = "";
         prefSecretDirsString = preferences.get(FgPreferences.PREF_SECRETDIRS, defaultFileLocation);
         handleSecretPreferenceChanged();
 

@@ -60,7 +60,6 @@ public class FgDirChooser extends JFileChooser
     {
         FgDirChooser dirChooser = new FgDirChooser();
         dirChooser.showDirectoryDialog(null, null);
-        System.out.println("XXX dirChooser.getSelectedFiles() = " + dirChooser.getSelectedDirectories());
     }
 
     public Response showDirectoryDialog (Component parent, List<String> directoryList)
@@ -80,23 +79,24 @@ public class FgDirChooser extends JFileChooser
         return selectedDirectories;
     }
 
-    public boolean disableTF(Container c) {
-        Component[] cmps = c.getComponents();
-        for (Component cmp : cmps) {
-            if (cmp instanceof JTextField) {
-                ((JTextField)cmp).setEnabled(false);
-                return true;
-            }
-            if (cmp instanceof Container) {
-                if(disableTF((Container) cmp)) return true;
-            }
-        }
-        return false;
-    }
+//    public boolean disableTF(Container c) {
+//        Component[] cmps = c.getComponents();
+//        for (Component cmp : cmps) {
+//            if (cmp instanceof JTextField) {
+//                ((JTextField)cmp).setEnabled(false);
+//                return true;
+//            }
+//            if (cmp instanceof Container) {
+//                if(disableTF((Container) cmp)) return true;
+//            }
+//        }
+//        return false;
+//    }
 
     private void initialize ()
     {
 //        disableTF(this);
+        setDialogTitle("Select directory(ies) for storing password files");
         setAcceptAllFileFilterUsed(false);
         setFileHidingEnabled(false);
         setMultiSelectionEnabled(true);

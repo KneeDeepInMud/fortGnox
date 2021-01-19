@@ -17,6 +17,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -174,8 +175,53 @@ public class FgOptionsDialog extends javax.swing.JDialog
 
         this.lookAndFeelInfoJComboBox.setSelectedItem(pa.get(PREF_LOOK_AND_FEEL));
 
+///home/fmoc/work/password;/home/fmoc/work/password/google;/home/fmoc/work/password/orthogon;/home/fmoc/work/password/shops
+        if (jTextSecretDirs.getText().isEmpty())
+        {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Select directory(ies) for storing password files");
+            chooser.setAcceptAllFileFilterUsed(false);
+            chooser.setFileHidingEnabled(false);
+            chooser.setMultiSelectionEnabled(true);
+            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+//            FgDirChooser dirChooser = new FgDirChooser();
+            int res = chooser.showDialog(this, "");
+//            S = dirChooser.showDirectoryDialog(FgOptionsDialog.this,
+//                    Arrays.asList(jTextSecretDirs.getText().split(";")));
+//            if (response == FgDirChooser.Response.APPLY)
+            if (res != JFileChooser.CANCEL_OPTION)
+            {
+//                String[] dirs = dirChooser.getSelectedDirectories().toArray(new String[]{});
+//                jTextSecretDirs.setText(String.join(";", dirs));
+                String[] dirs = Arrays.stream(chooser.getSelectedFiles()).map(file -> file.getAbsolutePath()).toArray(a->new String[1]);
+                jTextSecretDirs.setText(String.join(";", dirs));
+            }
+        }
     }
 
+//     if (jTextSecretDirs.getText().isEmpty())
+//    {
+//        JFileChooser chooser = new JFileChooser();
+//        chooser.setDialogTitle("Select directory(ies) for storing password files");
+//        chooser.setAcceptAllFileFilterUsed(false);
+//        chooser.setFileHidingEnabled(false);
+//        chooser.setMultiSelectionEnabled(true);
+//        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+//
+////            FgDirChooser dirChooser = new FgDirChooser();
+//        int res = chooser.showDialog(this, "");
+////            S = dirChooser.showDirectoryDialog(FgOptionsDialog.this,
+////                    Arrays.asList(jTextSecretDirs.getText().split(";")));
+////            if (response == FgDirChooser.Response.APPLY)
+//        if (res != JFileChooser.CANCEL_OPTION)
+//        {
+////                String[] dirs = dirChooser.getSelectedDirectories().toArray(new String[]{});
+////                jTextSecretDirs.setText(String.join(";", dirs));
+//            String[] dirs = Arrays.stream(chooser.getSelectedFiles()).map(file -> file.getAbsolutePath()).toArray(a->new String[]{});
+//            jTextSecretDirs.setText(String.join(";", dirs));
+//        }
+//    }
 
     private void initGpgSettings ()
     {
@@ -321,22 +367,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
             }
         });
 
-        FgDirChooser dirChooser = new FgDirChooser();
-        jTextSecretDirs.setEditable(false);
-        jTextSecretDirs.addMouseListener(new MouseAdapter()
-        {
-            @Override
-            public void mouseClicked (MouseEvent e)
-            {
-                FgDirChooser.Response response = dirChooser.showDirectoryDialog(FgOptionsDialog.this,
-                        Arrays.asList(jTextSecretDirs.getText().split(";")));
-                if (response == FgDirChooser.Response.APPLY)
-                {
-                    String[] dirs = dirChooser.getSelectedDirectories().toArray(new String[]{});
-                    jTextSecretDirs.setText(String.join(";", dirs));
-                }
-            }
-        });
+//        jTextSecretDirs.setEditable(false);
 
         updateLafList();
 
@@ -642,7 +673,8 @@ public class FgOptionsDialog extends javax.swing.JDialog
 
     @Override
     public void setVisible(boolean b) {
-        initPreferences();
+
+        if (b) initPreferences();
 
         Point location = MouseInfo.getPointerInfo().getLocation();
         setLocation(location);
