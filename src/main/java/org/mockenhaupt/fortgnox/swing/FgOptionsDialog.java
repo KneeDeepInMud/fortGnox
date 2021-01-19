@@ -33,8 +33,11 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
 
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CHARSET;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CLEAR_SECONDS;
@@ -314,6 +317,23 @@ public class FgOptionsDialog extends javax.swing.JDialog
                 if (LAFChooser.get().set(selected,  FgOptionsDialog.this))
                 {
                     FgPreferences.get().putPreference(PREF_LOOK_AND_FEEL, selected);
+                }
+            }
+        });
+
+        FgDirChooser dirChooser = new FgDirChooser();
+        jTextSecretDirs.setEditable(false);
+        jTextSecretDirs.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked (MouseEvent e)
+            {
+                FgDirChooser.Response response = dirChooser.showDirectoryDialog(FgOptionsDialog.this,
+                        Arrays.asList(jTextSecretDirs.getText().split(";")));
+                if (response == FgDirChooser.Response.APPLY)
+                {
+                    String[] dirs = dirChooser.getSelectedDirectories().toArray(new String[]{});
+                    jTextSecretDirs.setText(String.join(";", dirs));
                 }
             }
         });
