@@ -116,6 +116,7 @@ public class FgTextFilter extends JPanel
     private void cleanButtonActionPerformed (ActionEvent evt)
     {
         textFilter.setText("");
+        requestFocus();
         callHandler();
     }
 }
