@@ -942,21 +942,23 @@ public class MainFrame extends JFrame implements
 
     private void compressFavorites ()
     {
-        final LinkedHashMap<String, Integer> newFavorites = new LinkedHashMap<>(favorites);
-
-        AtomicInteger i = new AtomicInteger(newFavorites.size() + 1 + prefFavoritesMinHitCount);
+        final LinkedHashMap<String, Integer> oldFavorites = new LinkedHashMap<>(favorites);
+        int high = prefNumberFavorites >0 ? prefNumberFavorites : favorites.size();
+        AtomicInteger i = new AtomicInteger(high + 1 + prefFavoritesMinHitCount);
 
         favorites.clear();
 
-        newFavorites.entrySet()
+        oldFavorites.entrySet()
                 .stream().sorted((t2, t1) -> t1.getValue() - t2.getValue())
                 .forEach(stringIntegerEntry ->
                 {
-                    favorites.put(stringIntegerEntry.getKey(), i.decrementAndGet());
+                    if (i.get() > 0)
+                    {
+                        favorites.put(stringIntegerEntry.getKey(), i.decrementAndGet());
+                    }
                 });
         refreshFavorites();
         FgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
-
     }
 
 
