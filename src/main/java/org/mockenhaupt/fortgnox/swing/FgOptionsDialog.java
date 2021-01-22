@@ -18,15 +18,11 @@ import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JEditorPane;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
@@ -34,13 +30,10 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.MouseInfo;
-import java.awt.Panel;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
@@ -90,6 +83,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
 
 
     private javax.swing.JButton jButtonClose;
+    private javax.swing.JButton jButtonApply;
     private javax.swing.JButton jButtonSave;
     private JCheckBoxPersistent jCheckBoxUsePassDialog;
     private javax.swing.JCheckBox jCheckBoxPasswordShortcuts;
@@ -315,7 +309,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         jLabelPassClearTimeout = new javax.swing.JLabel();
         jFormattedTextPassClearTimeout = new javax.swing.JFormattedTextField();
         jLabelTextClearTimeout = new javax.swing.JLabel();
-        jFormattedTextareaClearTimeout = new JTextfieldAutoSave();
+        jFormattedTextareaClearTimeout = new javax.swing.JFormattedTextField();
         jCheckBoxUsePassDialog = new JCheckBoxPersistent(PREF_USE_PASS_DIALOG);
         jCheckBoxPasswordShortcuts = new JCheckBoxPersistent(PREF_SHOW_PASSWORD_SHORTCUT_BAR);
         jCheckBoxShowTbButtonText = new JCheckBoxPersistent(PREF_SHOW_TB_BUTTON_TEXT);
@@ -325,6 +319,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         jCheckBoxGpgUseAsciiFormat = new JCheckBoxPersistent(PREF_GPG_USE_ASCII);
         jCheckBoxFilterFavorites = new JCheckBoxPersistent(PREF_FILTER_FAVORITES);
         jCheckBoxShowFavoritesCount = new JCheckBoxPersistent(PREF_FAVORITES_SHOW_COUNT);
+        jButtonApply = new javax.swing.JButton();
         jButtonSave = new javax.swing.JButton();
         jButtonClose = new javax.swing.JButton();
         jCheckBoxShowDebugWindow = new JCheckBox("Show debug window");
@@ -495,18 +490,29 @@ public class FgOptionsDialog extends javax.swing.JDialog
 
         // ==============================================================
 
-        jButtonSave.setText("Apply");
-        jButtonSave.setMnemonic(KeyEvent.VK_A);
+        jButtonApply.setText("Apply");
+        jButtonApply.setMnemonic(KeyEvent.VK_A);
+        jButtonApply.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jButtonApplyActionPerformed(evt);
+            }
+        });
+
+        jButtonSave.setText("Save");
+        jButtonSave.setMnemonic(KeyEvent.VK_S);
         jButtonSave.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                jButtonSaveActionPerformed(evt);
+                jButtonApplyActionPerformed(evt);
+                setVisible(false);
             }
         });
 
         jButtonClose.setText("Close");
-        jButtonSave.setMnemonic(KeyEvent.VK_L);
+        jButtonApply.setMnemonic('c');
         jButtonClose.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -515,6 +521,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
             }
         });
 
+        buttonPanel.add(jButtonApply);
         buttonPanel.add(jButtonSave);
         buttonPanel.add(jButtonClose);
 
@@ -526,7 +533,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         setVisible(false);
     }
 
-    private void jButtonSaveActionPerformed(java.awt.event.ActionEvent evt)
+    private void jButtonApplyActionPerformed (java.awt.event.ActionEvent evt)
     {
 
         Integer clearTimeout;
@@ -645,8 +652,6 @@ public class FgOptionsDialog extends javax.swing.JDialog
         FgPreferences.get().put(PREF_GPG_DEFAULT_RID, jTexfFieldGpgDefaultRID.getText());
         FgPreferences.get().put(PREF_GPG_USE_ASCII, jCheckBoxGpgUseAsciiFormat.isSelected());
         FgPreferences.get().put(PREF_GPG_POST_COMMAND, jTextGpgPostCommand.getText());
-
-        setVisible(false);
     }
 
 
