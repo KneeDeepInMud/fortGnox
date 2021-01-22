@@ -68,10 +68,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -616,6 +621,31 @@ public class MainFrame extends JFrame implements
         setSize(880, 640);
 
         SwingUtilities.invokeLater(()->handleUiWidth());
+
+
+        Logger focusLog = Logger.getLogger("java.awt.focus.Component");
+
+        // The logger should log all messages
+        focusLog.setLevel(Level.ALL);
+
+        // Create a new handler
+//        ConsoleHandler handler = new ConsoleHandler();
+
+        // The handler must handle all messages
+//        handler.setLevel(Level.ALL);
+
+        // Add the handler to the logger
+        focusLog.addHandler(new ConsoleHandler(){
+            @Override
+            public void publish (LogRecord record)
+            {
+//                super.publish(record);
+                if (record.getMessage().toLowerCase().contains("focus"))
+                {
+                    System.err.println(record.getMessage());
+                }
+            }
+        });
     }
 
 
@@ -731,6 +761,22 @@ public class MainFrame extends JFrame implements
             public void valueChanged (ListSelectionEvent e)
             {
                 handleListSelection();
+            }
+        });
+        jListSecrets.addKeyListener(new KeyAdapter()
+        {
+            @Override
+            public void keyTyped (KeyEvent e)
+            {
+                super.keyTyped(e);
+                super.keyTyped(e);
+                if (((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0)
+                        || ((e.getModifiersEx() & KeyEvent.ALT_DOWN_MASK) != 0))
+                {
+                    return;
+                }
+                fgTextFilter.setText(fgTextFilter.getText() + e.getKeyChar());
+                fgTextFilter.requestFocus();
             }
         });
     }
@@ -944,6 +990,7 @@ public class MainFrame extends JFrame implements
     {
         final LinkedHashMap<String, Integer> oldFavorites = new LinkedHashMap<>(favorites);
         int high = prefNumberFavorites >0 ? prefNumberFavorites : favorites.size();
+        high = Math.min(high, favorites.size());
         AtomicInteger i = new AtomicInteger(high + 1 + prefFavoritesMinHitCount);
 
         favorites.clear();
@@ -1287,6 +1334,7 @@ public class MainFrame extends JFrame implements
         jToolBarPanel = new JPanel(new BorderLayout());
         jToolBarMainFunctions = new JToolBar();
         jToolBarMainFunctions.setFloatable(false);
+        jToolBarMainFunctions.setFocusable(false);
         buttonClearPass = new JButton();
         buttonClearFavorites = new JButton();
         buttonClearPass.setMnemonic(KeyEvent.VK_P);
@@ -1337,6 +1385,7 @@ public class MainFrame extends JFrame implements
         panelList.add(scrollPaneSecrets, java.awt.BorderLayout.CENTER);
         panelList.add(labelSecretInfo, BorderLayout.SOUTH);
         labelSecretInfo.setVisible(false);
+        labelSecretInfo.setFocusable(false);
 
         jSplitPaneLR.setLeftComponent(panelList);
 
@@ -1524,7 +1573,7 @@ public class MainFrame extends JFrame implements
         // Separate toolbar for about dialog (ensures correct geometry handling)
         aboutPanel = new JToolBar();
         aboutPanel.setFloatable(false);
-
+        aboutPanel.setFocusable(false);
         aboutPanel.add(buttonExit);
         aboutPanel.add(buttonAbout);
         jToolBarPanel.add(aboutPanel, BorderLayout.LINE_END);
@@ -1555,7 +1604,6 @@ public class MainFrame extends JFrame implements
         focusComponentVector.add(fgPanelTextArea.getFocusComponent());
         FgFocusTraversalPolicy fgFocusTraversalPolicy = new FgFocusTraversalPolicy(focusComponentVector);
         this.setFocusTraversalPolicy(fgFocusTraversalPolicy);
-
         pack();
     }
 

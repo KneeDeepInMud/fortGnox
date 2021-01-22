@@ -75,6 +75,7 @@ public class FgTextFilter extends JPanel
         });
 
         JButton cleanButton = new JButton();
+        cleanButton.setFocusable(false);
         cleanButton.setMinimumSize(new java.awt.Dimension(30, 30));
         cleanButton.setPreferredSize(new java.awt.Dimension(30, 30));
         ImageIcon cleanButtonIcon = FileUtils.getScaledIcon(getClass(), "/org/mockenhaupt/fortgnox/cross32.png", 28);
