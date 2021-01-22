@@ -51,7 +51,8 @@
                 </includes>
             </resource>
         </resources>
-        <finalName>${project.artifactId}-${project.version}-${buildNumber}</finalName>
+        <finalName>${project.artifactId}-${buildNumber}</finalName>
+        <!-- <finalName>${project.artifactId}-${project.version}-${buildNumber}</finalName> -->
         <!--        <finalName>${project.artifactId}-${project.version}</finalName>-->
 
 
@@ -148,6 +149,25 @@
                     <target>8</target>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.1.1</version>
+                <executions>
+                    <execution>
+                        <id>some-execution</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>${basedir}/bin/release.sh</executable>
+                </configuration>
+            </plugin>
+
 
             <!-- ======================================================================  -->
             <plugin>
