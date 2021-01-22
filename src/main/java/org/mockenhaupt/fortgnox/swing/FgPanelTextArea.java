@@ -98,8 +98,8 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         PASSWORD_FIRST_LINE
     }
 
-    private List<String> maskPasswordPatterns;
-    private List<String> maskUsernamePatterns;
+    private List<String> maskPasswordPatterns = new ArrayList<>();
+    private List<String> maskUsernamePatterns = new ArrayList<>();
     private boolean prefCompressBlankLines = true;
     private String prefOpenUrlCommand = "";
     private boolean prefOpenUrls = true;
@@ -112,7 +112,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     private int caretPointer = -1;
 
     public static Color BACKGROUND = new java.awt.Color(62, 62, 62);
-    public static final String PATERN_DELIMITER = "|";
+    public static final String PATTERN_DELIMITER = "|";
     public static final String PASSWORD_PREFIX = "oghogoo3eaTheephe7:";
     public static final String COLOR_LINK = "#9fbfff";
     public static final String COLOR_CLIPBOARD = "#fff8ac";
@@ -182,12 +182,16 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     }
     private void setMaskPasswordPatterns (String maskPasswordPatterns)
     {
-        this.maskPasswordPatterns = Arrays.asList(maskPasswordPatterns.split("\\" + PATERN_DELIMITER));
+        this.maskPasswordPatterns.clear();
+        this.maskPasswordPatterns.addAll( Arrays.asList(maskPasswordPatterns.split("\\" + PATTERN_DELIMITER))
+                .stream()
+                .filter(s -> s != null && !s.isEmpty())
+                .collect(Collectors.toList()));
         SwingUtilities.invokeLater(() -> updateText());
     }
     public static String getDefaultMaskPatterns ()
     {
-        return DEFAULT_MASK_PATTERNS.stream().collect(Collectors.joining(PATERN_DELIMITER));
+        return DEFAULT_MASK_PATTERNS.stream().collect(Collectors.joining(PATTERN_DELIMITER));
     }
 
     private List<String> getMaskUsernamePatterns ()
@@ -197,12 +201,16 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
     public String getDefaultMaskUsernamePatterns ()
     {
-        return DEFAULT_USERNAME_PATTERNS.stream().collect(Collectors.joining(PATERN_DELIMITER));
+        return DEFAULT_USERNAME_PATTERNS.stream().collect(Collectors.joining(PATTERN_DELIMITER));
     }
 
     public void setMaskUsernamePatterns (String maskUsernamePatterns)
     {
-        this.maskUsernamePatterns = Arrays.asList(maskUsernamePatterns.split("\\" + PATERN_DELIMITER));
+        this.maskUsernamePatterns.clear();
+        this.maskUsernamePatterns.addAll( Arrays.asList(maskUsernamePatterns.split("\\" + PATTERN_DELIMITER))
+                .stream()
+                .filter(s -> s != null && !s.isEmpty())
+                .collect(Collectors.toList()));
         SwingUtilities.invokeLater(() -> updateText());
     }
 
