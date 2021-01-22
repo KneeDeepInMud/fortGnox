@@ -7,15 +7,15 @@ here=$(cd $here/.. && pwd -P)
 lasttag=$(git tag | tail -1)
 
 [[ -z $lasttag ]] && {
-    echo Cannot determin tag
-    exit 1
+    echo Cannot determine tag, skipped
+    exit 0
 }
 
 jar=$(ls -1rt $here/target/fortgnox*jar | tail -1)
 
 [[ -z $jar ]] && {
-    echo No jar file found
-    exit 1
+    echo No jar file found, skipped
+    exit 0
 }
 
 bjar=$(basename $jar)
