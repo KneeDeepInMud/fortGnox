@@ -12,6 +12,7 @@ import org.mockenhaupt.fortgnox.FgPreferences;
 import org.mockenhaupt.fortgnox.MainFrame;
 import org.mockenhaupt.fortgnox.PreferencesAccess;
 
+import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
@@ -304,16 +305,59 @@ public class FgOptionsDialog extends javax.swing.JDialog
         });
     }
 
+    class JTextfieldAutoSave extends JTextFieldChangeAction
+    {
+        public JTextfieldAutoSave ()
+        {
+            super(()->jButtonSaveActionPerformed(null));
+        }
+    }
+
+
+    class JComboboxAutoSave extends JComboBox
+    {
+        public JComboboxAutoSave ()
+        {
+            initAutoSave();
+        }
+
+        public JComboboxAutoSave (Object[] items)
+        {
+            super(items);
+            initAutoSave();
+        }
+
+        public JComboboxAutoSave (ComboBoxModel aModel)
+        {
+            super(aModel);
+            initAutoSave();
+        }
+
+        private void initAutoSave ()
+        {
+            addActionListener(new ActionListener()
+            {
+                @Override
+                public void actionPerformed (ActionEvent actionEvent)
+                {
+                  jButtonSaveActionPerformed(null);
+                }
+            });
+
+        }
+    }
+
+
     private void initComponents()
     {
-        jTextGpgExe = new javax.swing.JTextField();
-        jTextGpgPostCommand = new javax.swing.JTextField();
+        jTextGpgExe = new JTextfieldAutoSave();
+        jTextGpgPostCommand = new JTextfieldAutoSave();
         labelGpgHome = new javax.swing.JLabel();
-        jTextGpgHome = new javax.swing.JTextField();
+        jTextGpgHome = new JTextfieldAutoSave();
         labelDataDirs = new javax.swing.JLabel();
-        jTextSecretDirs = new javax.swing.JTextField();
+        jTextSecretDirs = new JTextfieldAutoSave();
         jLabelPassClearTimeout = new javax.swing.JLabel();
-        jFormattedTextPassClearTimeout = new javax.swing.JFormattedTextField();
+        jFormattedTextPassClearTimeout = new JTextfieldAutoSave();
         jLabelTextClearTimeout = new javax.swing.JLabel();
         jFormattedTextareaClearTimeout = new JTextfieldAutoSave();
         jCheckBoxUsePassDialog = new JCheckBoxPersistent(PREF_USE_PASS_DIALOG);
@@ -328,12 +372,12 @@ public class FgOptionsDialog extends javax.swing.JDialog
         jButtonSave = new javax.swing.JButton();
         jButtonClose = new javax.swing.JButton();
         jCheckBoxShowDebugWindow = new JCheckBox("Show debug window");
-        jFormattedTextareaClipTimeout = new javax.swing.JFormattedTextField();
-        jFormattedTextFieldResetMaskButton = new javax.swing.JFormattedTextField();
-        jFormattedTextFieldNumberFavorites = new javax.swing.JFormattedTextField();
-        jFormattedTextFieldMinFavoriteCount = new javax.swing.JFormattedTextField();
-        jFormattedTextTextAreaFontSize = new javax.swing.JFormattedTextField();
-        jFormattedTextSecretListFontSize = new javax.swing.JFormattedTextField();
+        jFormattedTextareaClipTimeout = new JTextfieldAutoSave();
+        jFormattedTextFieldResetMaskButton = new JTextfieldAutoSave();
+        jFormattedTextFieldNumberFavorites = new JTextfieldAutoSave();
+        jFormattedTextFieldMinFavoriteCount = new JTextfieldAutoSave();
+        jFormattedTextTextAreaFontSize = new JTextfieldAutoSave();
+        jFormattedTextSecretListFontSize = new JTextfieldAutoSave();
         lookAndFeelInfoJComboBox = new JComboBox<>();
         lookAndFeelInfoJComboBox.addActionListener(new ActionListener()
         {
@@ -376,11 +420,11 @@ public class FgOptionsDialog extends javax.swing.JDialog
         jFormattedTextFieldMinFavoriteCount.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
 
         JLabel jLabelPassPatterns = new JLabel("Password patterns (\"|\" separated)");
-        textFieldPassPatterns = new JTextField();
+        textFieldPassPatterns = new JTextfieldAutoSave();
 
         JLabel labelCharset = new JLabel("Character Set");
         String[] charsets = {"ISO-8859-15", "ISO-8859-1", "UTF-8"};
-        comboBoxCharset = new JComboBox(charsets);
+        comboBoxCharset = new JComboboxAutoSave(charsets);
 
         JLabel jLabelFontSize = new JLabel("Font size (text area)");
         jFormattedTextTextAreaFontSize.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
@@ -389,7 +433,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         jFormattedTextSecretListFontSize.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
 
         JLabel labelUsernamePatterns = new JLabel("Username patterns (\"|\" separated)");
-        textFieldUsernamePatterns = new JTextField();
+        textFieldUsernamePatterns = new JTextfieldAutoSave();
         JLabel labelLAF = new JLabel("Application \"Look and Feel\"");
 
         jCheckBoxUsePassDialog.setText("Show password dialog (might not be required with GPG agent)");
@@ -525,10 +569,10 @@ public class FgOptionsDialog extends javax.swing.JDialog
     {
         setVisible(false);
     }
-
+int o  = 0;
     private void jButtonSaveActionPerformed(java.awt.event.ActionEvent evt)
     {
-
+        System.err.println("XXXXXXXXXXXXXXXXXX  SAVE XXXXXXXXXXXXXXXXXXXXXXXX " + ++o);
         Integer clearTimeout;
         Integer clipTimeout;
         Integer passTimeout;
@@ -645,8 +689,6 @@ public class FgOptionsDialog extends javax.swing.JDialog
         FgPreferences.get().put(PREF_GPG_DEFAULT_RID, jTexfFieldGpgDefaultRID.getText());
         FgPreferences.get().put(PREF_GPG_USE_ASCII, jCheckBoxGpgUseAsciiFormat.isSelected());
         FgPreferences.get().put(PREF_GPG_POST_COMMAND, jTextGpgPostCommand.getText());
-
-        setVisible(false);
     }
 
 
