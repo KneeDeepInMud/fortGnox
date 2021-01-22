@@ -621,31 +621,6 @@ public class MainFrame extends JFrame implements
         setSize(880, 640);
 
         SwingUtilities.invokeLater(()->handleUiWidth());
-
-
-        Logger focusLog = Logger.getLogger("java.awt.focus.Component");
-
-        // The logger should log all messages
-        focusLog.setLevel(Level.ALL);
-
-        // Create a new handler
-//        ConsoleHandler handler = new ConsoleHandler();
-
-        // The handler must handle all messages
-//        handler.setLevel(Level.ALL);
-
-        // Add the handler to the logger
-        focusLog.addHandler(new ConsoleHandler(){
-            @Override
-            public void publish (LogRecord record)
-            {
-//                super.publish(record);
-                if (record.getMessage().toLowerCase().contains("focus"))
-                {
-                    System.err.println(record.getMessage());
-                }
-            }
-        });
     }
 
 
