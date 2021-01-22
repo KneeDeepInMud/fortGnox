@@ -15,13 +15,18 @@ import org.mockenhaupt.fortgnox.PreferencesAccess;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JEditorPane;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
@@ -29,12 +34,17 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.MouseInfo;
+import java.awt.Panel;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CHARSET;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CLEAR_SECONDS;
@@ -179,6 +189,26 @@ public class FgOptionsDialog extends javax.swing.JDialog
         GroupLayout gl = new GroupLayout(gpgPanel);
         gpgPanel.setLayout(gl);
 
+        JPanel secretDirPanel = new JPanel(new BorderLayout());
+        secretDirPanel.add(jTextSecretDirs, BorderLayout.CENTER);
+        JButton dirChooserButton;
+        secretDirPanel.add(dirChooserButton = new JButton("Edit"), BorderLayout.EAST);
+        dirChooserButton.addActionListener(e -> {
+            FgDirChooser dirChooser = new FgDirChooser();
+            FgDirChooser.Response response = dirChooser.showDirectoryDialog(FgOptionsDialog.this,
+                    Arrays.asList(jTextSecretDirs.getText().split(";")));
+            if (response != FgDirChooser.Response.CANCEL)
+            {
+
+                String[] newDirs = dirChooser.getSelectedDirectories()
+                        .stream()
+                        .filter(s -> s != null && !s.isEmpty())
+                        .collect(Collectors.toList())
+                        .toArray(new String[]{});
+                jTextSecretDirs.setText(String.join(";", newDirs));
+            }
+        });
+
         JLabel jLabelGpgConf = new JLabel("GPGCONF Executable");
         jTexfFieldGpgConf = new JTextField();
         labelGpgHome.setText("GPG Home (optional or leave blank)");
@@ -212,7 +242,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                                     .addComponent(jTextGpgExe, 10, 300, 600)
                                     .addComponent(jTexfFieldGpgConf, 10, 300, 600)
                                     .addComponent(jTextGpgHome, 10, 300, 600)
-                                    .addComponent(jTextSecretDirs, 10, 300, 600)
+                                    .addComponent(secretDirPanel, 10, 300, 600)
                                     .addComponent(jTexfFieldGpgRIDFile, 10, 300, 600)
                                     .addComponent(jTexfFieldGpgDefaultRID, 10, 300, 600)
                                     .addComponent(jTextGpgPostCommand, 10, 300, 600)
@@ -226,7 +256,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                     .addGroup(gl.createParallelGroup().addComponent(labelGpgExe).addComponent(jTextGpgExe))
                     .addGroup(gl.createParallelGroup().addComponent(jLabelGpgConf).addComponent(jTexfFieldGpgConf))
                     .addGroup(gl.createParallelGroup().addComponent(labelGpgHome).addComponent(jTextGpgHome))
-                    .addGroup(gl.createParallelGroup().addComponent(labelDataDirs).addComponent(jTextSecretDirs))
+                    .addGroup(gl.createParallelGroup().addComponent(labelDataDirs).addComponent(secretDirPanel))
                     .addGroup(gl.createParallelGroup().addComponent(labelRID).addComponent(jTexfFieldGpgRIDFile))
                     .addGroup(gl.createParallelGroup().addComponent(labelDefaultRID).addComponent(jTexfFieldGpgDefaultRID))
                     .addGroup(gl.createParallelGroup().addComponent(labelGpgPostCommand).addComponent(jTextGpgPostCommand))
@@ -622,7 +652,8 @@ public class FgOptionsDialog extends javax.swing.JDialog
 
     @Override
     public void setVisible(boolean b) {
-        initPreferences();
+
+        if (b) initPreferences();
 
         Point location = MouseInfo.getPointerInfo().getLocation();
         setLocation(location);
