@@ -2,40 +2,58 @@ package org.mockenhaupt.fortgnox.swing;
 
 import org.mockenhaupt.fortgnox.misc.FileUtils;
 
+import javax.swing.AbstractListModel;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
-import javax.swing.filechooser.FileFilter;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
+import java.awt.Window;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static java.awt.Dialog.ModalityType.APPLICATION_MODAL;
 import static javax.swing.BoxLayout.Y_AXIS;
 
-public class FgDirChooser extends JFileChooser
+public class FgDirChooser extends JDialog
 {
-    JDialog dialog;
 
     final JPanel list = new JPanel();
     final SortedSet<String> selectedDirectories = new TreeSet<>();
     private Response response = Response.CANCEL;
+    Window owner;
+    boolean showHiddenFiles = false;
+    private File selectedDirectory;
+    JButton buttonAdd;
+    private String currentAddValue = null;
+    JCheckBox cbHidden;
+
+    public FgDirChooser (Window owner)
+    {
+        super(owner, APPLICATION_MODAL);
+        this.owner = owner;
+    }
 
     public enum Response
     {
@@ -43,10 +61,10 @@ public class FgDirChooser extends JFileChooser
         CANCEL
     }
 
-    public FgDirChooser ()
-    {
-        super();
-    }
+//    public FgDirChooser ()
+//    {
+//        super();
+//    }
 
 
     class DirTextField extends JPanel
@@ -85,19 +103,19 @@ public class FgDirChooser extends JFileChooser
 
     public static void main (String[] a)
     {
-        FgDirChooser dirChooser = new FgDirChooser();
-        dirChooser.showDirectoryDialog(null, null);
+        FgDirChooser dirChooser = new FgDirChooser(null);
+        dirChooser.showDirectoryDialog(null);
     }
 
-    public Response showDirectoryDialog (Component parent, List<String> directoryList)
+    public Response showDirectoryDialog (List<String> directoryList)
     {
-        initialize();
         if (directoryList != null)
         {
             selectedDirectories.addAll(directoryList.stream().filter(s -> s != null && !s.isEmpty()).collect(Collectors.toList()));
-            handleSelectedFilesChanged();
         }
-        showDialog(parent, "");
+        initialize();
+        handleSelectedFilesChanged();
+        setVisible(true);
         return response;
     }
 
@@ -109,53 +127,39 @@ public class FgDirChooser extends JFileChooser
 
     private void initialize ()
     {
-        setDialogTitle("Select directory(ies) for storing password files");
-        setAcceptAllFileFilterUsed(false);
-        setMultiSelectionEnabled(true);
-        setControlButtonsAreShown(false);
-        setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        setFileFilter(new FileFilter()
-        {
-            @Override
-            public boolean accept (File f)
-            {
-                return true;
-            }
-
-            @Override
-            public String getDescription ()
-            {
-                return "Directory";
-            }
-        });
+        setTitle("Select directory(ies) for storing password files");
+        createDialog(getParent());
+        handleAddValue();
+        setSize(new Dimension(600, 400));
     }
 
 
-    @Override
     protected JDialog createDialog (Component parent) throws HeadlessException
     {
-        dialog = super.createDialog(parent);
-
         JPanel dirPanel = new JPanel(new BorderLayout());
         JScrollPane scrollPaneList = new JScrollPane(list);
         BoxLayout boxLayout = new BoxLayout(list, Y_AXIS);
         list.setLayout(boxLayout);
 
-        JButton buttonAdd = new JButton("Add selected");
+        buttonAdd = new JButton("Add selected");
         buttonAdd.addActionListener(e ->
         {
-            selectedDirectories.addAll(Arrays.asList(getSelectedFiles()).stream().map(file -> file.getAbsolutePath()).collect(Collectors.toList()));
-            handleSelectedFilesChanged();
+            if (currentAddValue != null)
+            {
+                selectedDirectories.add(currentAddValue);
+                handleSelectedFilesChanged();
+            }
+
         });
 
         JButton buttonClose = new JButton("Cancel");
-        buttonClose.addActionListener(e -> dialog.dispose());
+        buttonClose.addActionListener(e -> dispose());
 
-        JButton buttonOk = new JButton("Apply");
+        JButton buttonOk = new JButton("Ok");
         buttonOk.addActionListener(e ->
         {
             response = Response.APPLY;
-            dialog.dispose();
+            dispose();
         });
 
 //        JButton buttonClear = new JButton("Clear");
@@ -165,10 +169,10 @@ public class FgDirChooser extends JFileChooser
 //        buttonPanel.add(buttonClear);
         buttonPanel.add(buttonOk);
         buttonPanel.add(buttonClose);
-        JCheckBox cbHidden = new JCheckBox("show hidden");
-        cbHidden.setSelected(!isFileHidingEnabled());
+        cbHidden = new JCheckBox("show hidden");
+        cbHidden.setSelected(isShowHiddenFiles());
         buttonPanel.add(cbHidden);
-        cbHidden.addActionListener(e -> setFileHidingEnabled(!cbHidden.isSelected()));
+        cbHidden.addActionListener(e -> setShowHiddenFiles(cbHidden.isSelected()));
 
 //        buttonClear.addActionListener(e -> {
 //            selectedDirectories.clear();
@@ -177,10 +181,122 @@ public class FgDirChooser extends JFileChooser
 
         dirPanel.add(scrollPaneList, BorderLayout.CENTER);
         dirPanel.add(buttonPanel, BorderLayout.SOUTH);
-        dialog.getContentPane().add(dirPanel, BorderLayout.EAST);
-        dialog.setSize(new Dimension(800, dialog.getHeight()));
-        return dialog;
+        getContentPane().add(getFileList(), BorderLayout.CENTER);
+        getContentPane().add(dirPanel, BorderLayout.EAST);
+        setSize(new Dimension(800, getHeight()));
+        return this;
     }
+
+    private JList jListDirectories;
+    private JScrollPane scrollPaneListDirectories = null;
+
+    private Component getFileList ()
+    {
+        if (scrollPaneListDirectories == null)
+        {
+            jListDirectories = new JList();
+            jListDirectories.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            scrollPaneListDirectories = new JScrollPane(jListDirectories);
+
+            jListDirectories.addListSelectionListener(new ListSelectionListener()
+            {
+                @Override
+                public void valueChanged (ListSelectionEvent e)
+                {
+                    if (!e.getValueIsAdjusting())
+                    {
+                        handleAddValue();
+                    }
+                }
+            });
+            jListDirectories.addMouseListener(new MouseAdapter()
+            {
+                @Override
+                public void mouseClicked (MouseEvent e)
+                {
+                    if (e.getClickCount() == 2)
+                    {
+                        setSelectedDirectory(new File(selectedDirectory + File.separator + jListDirectories.getSelectedValue()));
+                    }
+                }
+            });
+            String initialDir = selectedDirectories.stream()
+                    .filter(s -> new File(s).isDirectory())
+                    .findFirst()
+                    .orElse("/");
+            setSelectedDirectory(new File(initialDir));
+        }
+        return scrollPaneListDirectories;
+    }
+
+    private void handleAddValue ()
+    {
+
+        buttonAdd.setEnabled(jListDirectories.getSelectedValue() != null);
+        currentAddValue = null;
+        if (buttonAdd.isEnabled())
+        {
+            try
+            {
+                currentAddValue = new File(getSelectedDirectory() + File.separator + jListDirectories.getSelectedValue()).getCanonicalPath();
+            }
+            catch (IOException e)
+            {
+                // ignore here
+            }
+        }
+    }
+
+    private void setSelectedDirectory (File directory)
+    {
+        if (directory == null) return;
+        if (!directory.isDirectory())
+        {
+            return;
+        }
+        try
+        {
+            this.selectedDirectory = new File(directory.getCanonicalPath());
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+
+        File[] subDirs = selectedDirectory.listFiles(new FileFilter()
+        {
+            @Override
+            public boolean accept (File pathname)
+            {
+                boolean accept = !pathname.isHidden() || (pathname.isHidden() && cbHidden.isSelected());
+                return accept && pathname != null && pathname.isDirectory();
+            }
+        });
+
+        List<String> fileList = new ArrayList<>();
+        fileList.add(".");
+        if (selectedDirectory.getParentFile() != null)
+        {
+            fileList.add("..");
+        }
+
+        fileList.addAll(Arrays.asList(subDirs).stream().map(file -> file.getName()).collect(Collectors.toList()));
+        jListDirectories.setModel(new AbstractListModel()
+        {
+            @Override
+            public int getSize ()
+            {
+                return fileList.size();
+            }
+
+            @Override
+            public Object getElementAt (int index)
+            {
+                return fileList.get(index);
+            }
+        });
+    }
+
 
     private void handleSelectedFilesChanged ()
     {
@@ -190,15 +306,33 @@ public class FgDirChooser extends JFileChooser
             list.add(new DirTextField(s,
                     () ->
                     {
-                        setCurrentDirectory(new File(s + File.separator + ".."));
+                        setSelectedDirectory(new File(s + File.separator + ".."));
                         selectedDirectories.remove(s);
                         handleSelectedFilesChanged();
                     },
-//                    () -> setCurrentDirectory(new File(s + File.separator + ".."))
-                    () -> setCurrentDirectory(new File(s))
+
+                    () -> setSelectedDirectory(new File(s))
+
             ));
         });
         list.revalidate();
         list.repaint();
+    }
+
+
+    public boolean isShowHiddenFiles ()
+    {
+        return showHiddenFiles;
+    }
+
+    public void setShowHiddenFiles (boolean showHiddenFiles)
+    {
+        this.showHiddenFiles = showHiddenFiles;
+        setSelectedDirectory(selectedDirectory);
+    }
+
+    public File getSelectedDirectory ()
+    {
+        return selectedDirectory;
     }
 }

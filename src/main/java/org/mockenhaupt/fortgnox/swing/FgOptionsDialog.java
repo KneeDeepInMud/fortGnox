@@ -18,6 +18,7 @@ import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -119,11 +120,12 @@ public class FgOptionsDialog extends javax.swing.JDialog
     private javax.swing.JFormattedTextField jFormattedTextTextAreaFontSize;
     private javax.swing.JFormattedTextField jFormattedTextSecretListFontSize;
     private JComboBox<String> lookAndFeelInfoJComboBox;
-    // End of variables declaration
+    private JFrame parent;
 
     public FgOptionsDialog (MainFrame parent)
     {
         super(parent, "fortGnox Settings", true);
+        this.parent = parent;
         this.setPreferredSize(new Dimension(960, 740));
         optionsPanel = new JPanel();
         gpgPanel = new JPanel();
@@ -188,9 +190,10 @@ public class FgOptionsDialog extends javax.swing.JDialog
         JButton dirChooserButton;
         secretDirPanel.add(dirChooserButton = new JButton("Edit"), BorderLayout.EAST);
         dirChooserButton.addActionListener(e -> {
-            FgDirChooser dirChooser = new FgDirChooser();
-            FgDirChooser.Response response = dirChooser.showDirectoryDialog(FgOptionsDialog.this,
-                    Arrays.asList(jTextSecretDirs.getText().split(";")));
+            FgDirChooser dirChooser = new FgDirChooser(this);
+            dirChooser.setLocation(MouseInfo.getPointerInfo().getLocation());
+
+            FgDirChooser.Response response = dirChooser.showDirectoryDialog(Arrays.asList(jTextSecretDirs.getText().split(";")));
             if (response != FgDirChooser.Response.CANCEL)
             {
 
@@ -500,7 +503,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
             }
         });
 
-        jButtonSave.setText("Save");
+        jButtonSave.setText("Save and Close");
         jButtonSave.setMnemonic(KeyEvent.VK_S);
         jButtonSave.addActionListener(new java.awt.event.ActionListener()
         {
