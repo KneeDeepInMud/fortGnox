@@ -360,16 +360,19 @@ public class MainFrame extends JFrame implements
         }
     }
 
-    public void clearTextArea ()
+    public void clearTextArea (boolean setFocus)
     {
         clearTextArea(toDecode.isEmpty() ? "" : "Cleared contents of " + toDecode);
+        if (setFocus)
+        {
+            fgTextFilter.requestFocus();
+        }
     }
 
     private void clearTextArea (String err)
     {
         fgPanelTextArea.clear(err);
         stopClearTimer();
-        fgTextFilter.requestFocus();
     }
 
     public void startTimer ()
@@ -426,12 +429,11 @@ public class MainFrame extends JFrame implements
         if (clearTimer != null && clearTimer.isRunning())
         {
             clearTimer.stop();
-            clearTextArea();
+            clearTextArea(false);
         }
         progressClearTimer.setVisible(false);
         FgGPGProcess.clearClipboardIfNotChanged();
         this.clipboard = false;
-
     }
 
     private void startPassTimer ()
@@ -1180,7 +1182,7 @@ public class MainFrame extends JFrame implements
             {
                 editWindow.setText(out, "Loaded for editing " + filename, filename);
                 setEditMode(true);
-                clearTextArea();
+                clearTextArea(true);
                 return;
             }
             else
@@ -1588,10 +1590,6 @@ public class MainFrame extends JFrame implements
     }
 
 
-    private void buttonClearTextareaActionPerformed (java.awt.event.ActionEvent evt)
-    {
-        clearTextArea();
-    }
 
     private void buttonExitActionPerformed (java.awt.event.ActionEvent evt)
     {

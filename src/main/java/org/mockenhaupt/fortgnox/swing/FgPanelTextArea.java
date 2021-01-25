@@ -569,7 +569,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         {
             public void actionPerformed (java.awt.event.ActionEvent evt)
             {
-                mainFrame.clearTextArea();
+                mainFrame.clearTextArea(true);
             }
         });
 
