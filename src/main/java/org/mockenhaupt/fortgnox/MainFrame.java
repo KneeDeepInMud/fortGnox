@@ -1401,7 +1401,12 @@ public class MainFrame extends JFrame implements
             {
                 if (jListSecrets.getSelectedValue() instanceof String)
                 {
-                    decrypt(false, jListSecrets.getSelectedValue(), CLIENTDATA_EDIT);
+                    if (JOptionPane.showConfirmDialog(MainFrame.this,
+                            "The file content will be shown unencrypted, continue?",
+                            "Confirm edit", OK_CANCEL_OPTION) == OK_OPTION)
+                    {
+                        decrypt(false, jListSecrets.getSelectedValue(), CLIENTDATA_EDIT);
+                    }
                 }
             }
         });
