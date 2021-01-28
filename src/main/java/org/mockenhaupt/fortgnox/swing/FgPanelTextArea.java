@@ -1044,7 +1044,6 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                                 {
                                     String link = getLink(GPG_FILE_PASSWORD_PREFIX + entry.getKey(), passwordFile, COLOR_GPG_FILE);
                                     line = line.replaceAll(passwordFile, link);
-                                    lineHandled = true;
                                     break;
                                 }
                             }
