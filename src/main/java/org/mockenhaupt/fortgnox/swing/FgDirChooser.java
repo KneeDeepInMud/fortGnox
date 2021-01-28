@@ -8,6 +8,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -181,12 +182,14 @@ public class FgDirChooser extends JDialog
 
         dirPanel.add(scrollPaneList, BorderLayout.CENTER);
         dirPanel.add(buttonPanel, BorderLayout.SOUTH);
+        getContentPane().add(jLabelSelectedDirectory = new JLabel(""), BorderLayout.NORTH);
         getContentPane().add(getFileList(), BorderLayout.CENTER);
         getContentPane().add(dirPanel, BorderLayout.EAST);
         setSize(new Dimension(800, getHeight()));
         return this;
     }
 
+    private JLabel jLabelSelectedDirectory;
     private JList jListDirectories;
     private JScrollPane scrollPaneListDirectories = null;
 
@@ -280,6 +283,14 @@ public class FgDirChooser extends JDialog
             fileList.add("..");
         }
 
+        try
+        {
+            jLabelSelectedDirectory.setText(selectedDirectory.getCanonicalPath());
+        }
+        catch (IOException e)
+        {
+            jLabelSelectedDirectory.setText(selectedDirectory.getAbsolutePath());
+        }
         fileList.addAll(Arrays.asList(subDirs).stream().map(file -> file.getName()).collect(Collectors.toList()));
         jListDirectories.setModel(new AbstractListModel()
         {
