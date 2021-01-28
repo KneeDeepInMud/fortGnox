@@ -513,6 +513,17 @@ public class MainFrame extends JFrame implements
 
     private boolean clipboard = false;
 
+    public void decrypt (File file)
+    {
+        try
+        {
+            decrypt(false, file.getCanonicalPath(), null);
+        }
+        catch (IOException e)
+        {
+            setUserTextareaStatus("Failed to decrypt " + file.getName());
+        }
+    }
     private void decrypt (boolean toClipboard, Object filename, Object clientData)
     {
         this.clipboard = toClipboard;
@@ -829,6 +840,18 @@ public class MainFrame extends JFrame implements
         }
         return popupMenu;
     }
+
+
+    public Map<String, String> getSecretsList ()
+    {
+        Map<String, String> dict = new HashMap<>();
+        Arrays.stream(allSecretFiles).forEach(s -> {
+            File f = new File(s);
+            dict.put(s, f.getName());
+        });
+        return dict;
+    }
+
 
     private void initSecretListCellRenderer ()
     {

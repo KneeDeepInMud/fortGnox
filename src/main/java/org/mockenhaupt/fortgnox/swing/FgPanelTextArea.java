@@ -40,12 +40,15 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -91,6 +94,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
     enum LineMaskingOrder
     {
+        PASSWORDS_FILES,
         PASSWORDS_TEXT,
         USER_NAMES,
         HTTP_LINKS,
@@ -114,7 +118,9 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     public static Color BACKGROUND = new java.awt.Color(62, 62, 62);
     public static final String PATTERN_DELIMITER = "|";
     public static final String PASSWORD_PREFIX = "oghogoo3eaTheephe7:";
+    public static final String GPG_FILE_PASSWORD_PREFIX = "oghogoo3eaTheephe8:";
     public static final String COLOR_LINK = "#9fbfff";
+    public static final String COLOR_GPG_FILE = "#8DDE7EFF";
     public static final String COLOR_CLIPBOARD = "#fff8ac";
     public static final String COLOR_EMAIL = COLOR_CLIPBOARD;
     public static final String COLOR_PASSWORD = "#ed8cc5";
@@ -328,6 +334,11 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                                 String pass = e.getDescription().replaceFirst(PASSWORD_PREFIX, "");
                                 MainFrame.toClipboard(pass, "selected password", true);
                             }
+                            else if (e.getDescription().startsWith(GPG_FILE_PASSWORD_PREFIX))
+                            {
+                                String gpgFile = e.getDescription().replaceFirst(GPG_FILE_PASSWORD_PREFIX, "");
+                                mainFrame.decrypt(new File(gpgFile));
+                            }
                             else
                             {
                                 copyToClipboard(e);
@@ -357,6 +368,12 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                     else if (desc.startsWith(PASSWORD_PREFIX))
                     {
                         setStatusText("Copy password to clipboard");
+                    }
+                    else if (desc.startsWith(GPG_FILE_PASSWORD_PREFIX))
+                    {
+                        String gpgFile = e.getDescription().replaceFirst(GPG_FILE_PASSWORD_PREFIX, "");
+
+                        setStatusText("Decrypt file: " + gpgFile);
                     }
                     else
                     {
@@ -1010,6 +1027,26 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                             {
                                 line = matcher.replaceAll("$1" + getEmailLink(matcher.group(2)) + "$3");
                                 lineHandled = true;
+                            }
+                        }
+                        break;
+
+                    case PASSWORDS_FILES:
+                        if (!lineHandled)
+                        {
+                            Iterator<Map.Entry<String, String>> iter =  mainFrame.getSecretsList().entrySet().iterator();
+
+                            while (iter.hasNext())
+                            {
+                                Map.Entry<String, String> entry = iter.next();
+                                String passwordFile = entry.getValue();
+                                if (line.contains(passwordFile))
+                                {
+                                    String link = getLink(GPG_FILE_PASSWORD_PREFIX + entry.getKey(), passwordFile, COLOR_GPG_FILE);
+                                    line = line.replaceAll(passwordFile, link);
+                                    lineHandled = true;
+                                    break;
+                                }
                             }
                         }
                         break;
