@@ -43,7 +43,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +60,7 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_DEFAULT_RID;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_POST_COMMAND;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_USE_ASCII;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_LOOK_AND_FEEL;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_NEW_TEMPLATE;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIRS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_TEXTAREA_FONT_SIZE;
 
@@ -430,10 +436,46 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         }
     }
 
+    private String getNewFileTemplateText (String newFileName) throws IOException
+    {
+        String fname = FgPreferences.get().get(PREF_NEW_TEMPLATE);
+
+        BufferedReader br;
+        if (fname == null || fname.isEmpty())
+        {
+            URL url = this.getClass().getResource("/org/mockenhaupt/fortgnox/template.txt");
+            br = new BufferedReader(new InputStreamReader(url.openStream()));
+        }
+        else
+        {
+            br = new BufferedReader(new FileReader(fname));
+        }
+
+
+        StringBuilder sb = new StringBuilder();
+        br.lines().forEach(s ->
+        {
+            if (s.contains("$FILENAME")){
+                s = s.replaceAll("\\$FILENAME", newFileName);
+            }
+            sb.append(s);
+            sb.append(System.lineSeparator());
+        }
+        );
+        return sb.toString();
+    }
+
     private void handleButtonNewFileSelected (JDialog directoryChooser, JComboBox<String> comboBoxDirectories, JTextField fileNameText)
     {
         String file = getNewFilename(comboBoxDirectories, fileNameText);
-        setText("", "Enter new file " + file, file);
+        try
+        {
+            setText(getNewFileTemplateText(fileNameText.getText()), "Enter new file " + file, file);
+        }
+        catch (IOException e)
+        {
+            setText("", "Failed to open template file, " + e.getMessage() + "\nEnter new file " + file, file);
+        }
         directoryChooser.dispose();
         if (editHandler != null)
         {

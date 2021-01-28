@@ -53,6 +53,7 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_HOMEDIR;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_POST_COMMAND;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_RID_FILE;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_USE_ASCII;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_NEW_TEMPLATE;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETLIST_FONT_SIZE;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_LOOK_AND_FEEL;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_MASK_FIRST_LINE;
@@ -108,6 +109,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
     private javax.swing.JLabel jLabelTextClearTimeout;
     private javax.swing.JTextField jTextGpgExe;
     private javax.swing.JTextField jTextGpgPostCommand;
+    private javax.swing.JTextField jTextNewFileTemplate;
     private JTextField jTexfFieldGpgConf;
     private JTextField jTexfFieldBrowserOpen;
     private JTextField jTexfFieldGpgRIDFile;
@@ -148,6 +150,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         PreferencesAccess pa = FgPreferences.get();
         this.jTextGpgExe.setText(pa.get(PREF_GPG_COMMAND));
         this.jTextGpgPostCommand.setText(pa.get(PREF_GPG_POST_COMMAND));
+        this.jTextNewFileTemplate.setText(pa.get(PREF_NEW_TEMPLATE));
         this.jTextGpgHome.setText(pa.get(PREF_GPG_HOMEDIR));
         this.jTexfFieldGpgConf.setText(pa.get(PREF_GPGCONF_COMMAND));
         this.jTexfFieldBrowserOpen.setText(pa.get(PREF_URL_OPEN_COMMAND));
@@ -216,6 +219,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         JLabel labelRID = new JLabel("Recipient ID hint file");
         JLabel labelDefaultRID = new JLabel("Default recipient ID for password encryption");
         JLabel labelGpgPostCommand = new JLabel("GPG Post Command (will be executed after encryption)");
+        JLabel labelTextNewFileTemplate = new JLabel("Template file for new password entries (overrides default template)");
 
         JLabel labelGpgExe = new JLabel("GPG Executable");
 
@@ -234,6 +238,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                                     .addComponent(labelRID)
                                     .addComponent(labelDefaultRID)
                                     .addComponent(labelGpgPostCommand)
+                                    .addComponent(labelTextNewFileTemplate)
                             )
                             .addGroup(gl.createParallelGroup()
                                     .addComponent(jTextGpgExe, 10, 300, 600)
@@ -243,6 +248,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                                     .addComponent(jTexfFieldGpgRIDFile, 10, 300, 600)
                                     .addComponent(jTexfFieldGpgDefaultRID, 10, 300, 600)
                                     .addComponent(jTextGpgPostCommand, 10, 300, 600)
+                                    .addComponent(jTextNewFileTemplate, 10, 300, 600)
                             )
                     )
                     .addComponent(jCheckBoxGpgUseAsciiFormat)
@@ -257,6 +263,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                     .addGroup(gl.createParallelGroup().addComponent(labelRID).addComponent(jTexfFieldGpgRIDFile))
                     .addGroup(gl.createParallelGroup().addComponent(labelDefaultRID).addComponent(jTexfFieldGpgDefaultRID))
                     .addGroup(gl.createParallelGroup().addComponent(labelGpgPostCommand).addComponent(jTextGpgPostCommand))
+                    .addGroup(gl.createParallelGroup().addComponent(labelTextNewFileTemplate).addComponent(jTextNewFileTemplate))
                     .addComponent(jCheckBoxGpgUseAsciiFormat)
                     .addGap(200)
                     );
@@ -305,6 +312,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
     {
         jTextGpgExe = new javax.swing.JTextField();
         jTextGpgPostCommand = new javax.swing.JTextField();
+        jTextNewFileTemplate = new javax.swing.JTextField();
         labelGpgHome = new javax.swing.JLabel();
         jTextGpgHome = new javax.swing.JTextField();
         labelDataDirs = new javax.swing.JLabel();
@@ -655,6 +663,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         FgPreferences.get().put(PREF_GPG_DEFAULT_RID, jTexfFieldGpgDefaultRID.getText());
         FgPreferences.get().put(PREF_GPG_USE_ASCII, jCheckBoxGpgUseAsciiFormat.isSelected());
         FgPreferences.get().put(PREF_GPG_POST_COMMAND, jTextGpgPostCommand.getText());
+        FgPreferences.get().put(PREF_NEW_TEMPLATE, jTextNewFileTemplate.getText());
     }
 
 
