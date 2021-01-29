@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -1036,6 +1037,8 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                         {
                             Iterator<Map.Entry<String, String>> iter =  mainFrame.getSecretsList().entrySet().iterator();
 
+                            Map<String, String> replacementMap = new HashMap<>();
+                            int i = 0;
                             while (iter.hasNext())
                             {
                                 Map.Entry<String, String> entry = iter.next();
@@ -1043,9 +1046,16 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                                 if (line.contains(passwordFile))
                                 {
                                     String link = getLink(GPG_FILE_PASSWORD_PREFIX + entry.getKey(), passwordFile, COLOR_GPG_FILE);
-                                    line = line.replaceAll(passwordFile, link);
-                                    break;
+                                    String tmpSymbol = "FG_LINE_SYMBOL_" + i++;
+                                    replacementMap.put(tmpSymbol, link);
+                                    line = line.replaceAll(passwordFile, tmpSymbol);
                                 }
+                            }
+                            if (!replacementMap.isEmpty())
+                            {
+                                final String[] finalLine = {line};
+                                replacementMap.entrySet().stream().forEach(e -> finalLine[0] = finalLine[0].replaceAll(e.getKey(), e.getValue()));
+                                line = finalLine[0];
                             }
                         }
                         break;
