@@ -43,6 +43,8 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -333,6 +335,8 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                             if (e.getDescription().startsWith(PASSWORD_PREFIX))
                             {
                                 String pass = e.getDescription().replaceFirst(PASSWORD_PREFIX, "");
+                                // password text comes encoded, decode before adding to clipboard
+                                pass = URLDecoder.decode(pass);
                                 MainFrame.toClipboard(pass, "selected password", true);
                             }
                             else if (e.getDescription().startsWith(GPG_FILE_PASSWORD_PREFIX))
@@ -830,7 +834,9 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         if (isDetectUrls())
         {
             String newMask = mask;
-            password = password.replaceAll("\\$", "\\\\\\$");
+            // #10: backslashes not correcly handled
+            // encode password text before adding to clipboard
+            password = URLEncoder.encode(password);
             return getLink(PASSWORD_PREFIX + password, newMask, COLOR_PASSWORD);
         }
         else
