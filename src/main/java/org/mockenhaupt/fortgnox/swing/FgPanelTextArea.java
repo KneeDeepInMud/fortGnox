@@ -1024,7 +1024,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                         //--------------------------------------------------------------------------------------
                         // email detection
                         //--------------------------------------------------------------------------------------
-                        if (!lineHandled)
+                        if (!lineHandled && !isPasswordMatch(line))
                         {
                             String regex = "(^.*?)([A-Za-z0-9+_.-]+@[^\\s]+)(\\s?.*)$";
                             Pattern pattern = Pattern.compile(regex);
@@ -1127,6 +1127,24 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
         return maskedText;
     }
+
+
+    private boolean isPasswordMatch (String line)
+    {
+        if (getMaskPasswordPatterns() != null && !getMaskPasswordPatterns().isEmpty())
+        {
+            for (String p : getMaskPasswordPatterns())
+            {
+                String regexp = "^(\\s*" + p + "[-a-z/A-Z0-9\\s]*[:=\\s]\\s*)(.*)\\s*$";
+                Pattern pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+                Matcher matcher = pattern.matcher(line);
+                return (matcher.matches() && matcher.groupCount() >= 2);
+            }
+        }
+        return false;
+    }
+
+
 
 
     private void setClipToolbarVisibility (boolean visible)
