@@ -4,7 +4,8 @@ here=$(dirname $0)
 here=$(cd $here/.. && pwd -P)
 
 
-lasttag=$(git tag | tail -1)
+#lasttag=$(git tag | tail -1)
+lasttag=$(git log --decorate | grep ^commit | grep tag | awk -F: '{print $NF}' | sed 's/[ \)]//g' | head -1) || exit 1
 
 [[ -z $lasttag ]] && {
     echo Cannot determine tag, skipped
@@ -19,6 +20,9 @@ jar=$(ls -1rt $here/target/fortgnox*jar | tail -1)
 }
 
 bjar=$(basename $jar)
-njar=$(echo $bjar | sed "s,\(fortgnox-\)\([a-z0-9]\+.jar\),\1${lasttag}-\2,")
+# with sha
+#njar=$(echo $bjar | sed "s,\(fortgnox-\)\([a-z0-9]\+.jar\),\1${lasttag}-\2,")
+# on sha
+njar=$(echo $bjar | sed "s,\(fortgnox-\)\([a-z0-9]\+.jar\),\1${lasttag}.jar,")
 
 cp -v $here/target/$bjar $here/target/$njar
