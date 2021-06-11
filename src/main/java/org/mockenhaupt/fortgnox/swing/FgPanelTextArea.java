@@ -1041,8 +1041,12 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                     case PASSWORDS_FILES:
                         if (!lineHandled)
                         {
-                            Iterator<Map.Entry<String, String>> iter =  mainFrame.getSecretsList().entrySet().iterator();
-
+                            Iterator<Map.Entry<String, String>> iter;
+                            // Sort entries by legth of filename
+                            iter = mainFrame.getSecretsList().entrySet()
+                                    .stream()
+                                    .sorted((o1, o2) -> o2.getValue().length() - o1.getValue().length())
+                                    .collect(Collectors.toList()).iterator();
                             Map<String, String> replacementMap = new HashMap<>();
                             int i = 0;
                             while (iter.hasNext())
