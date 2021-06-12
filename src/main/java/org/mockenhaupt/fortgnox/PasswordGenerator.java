@@ -309,7 +309,7 @@ public class PasswordGenerator
     }
 
 
-    private void resetPasswords ()
+    public void resetPasswords ()
     {
         passwordList.clear();
         comboBoxPasswords.setModel(new DefaultComboBoxModel<String>()

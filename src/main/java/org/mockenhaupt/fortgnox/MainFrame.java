@@ -169,7 +169,7 @@ public class MainFrame extends JFrame implements
     private boolean prefFilterFavoriteList = true;
     private boolean prefShowToobarTexts = true;
     private int prefSecretListFontSize = 12;
-    private boolean editMode = false;
+    private Boolean editMode;
     private FgOptionsDialog fgOptionsDialog;
     static private MainFrame INSTANCE;
 
@@ -1218,7 +1218,18 @@ public class MainFrame extends JFrame implements
 
     private void setEditMode (boolean editMode)
     {
+        if (this.editMode != null && editMode == this.editMode)
+        {
+            return;
+        }
         this.editMode = editMode;
+
+        // may not have been created in initialization phase
+        if (editWindow != null)
+        {
+            editWindow.reset();
+        }
+
         if (editMode)
         {
             jSplitPaneLR.setRightComponent(editWindow.getTextArea());

@@ -99,6 +99,11 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         FgPreferences.get().addPropertyChangeListener(this);
     }
 
+    public void reset ()
+    {
+        passwordGenerator.resetPasswords();
+    }
+
     interface EditHandler
     {
         void handleFinished ();
