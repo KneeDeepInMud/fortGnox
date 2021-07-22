@@ -16,6 +16,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,7 +26,12 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-public class PasswordGenerator
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_DIGIT;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_LOWER;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_SPECIAL;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_UPPER;
+
+public class PasswordGenerator implements PropertyChangeListener
 {
     private JDialog generatorWindow;
     private final JFrame parent;
@@ -32,6 +39,7 @@ public class PasswordGenerator
     private final List<Character> uppercase = new ArrayList<>();
     private final List<Character> lowercase = new ArrayList<>();
     private final List<Character> special = new ArrayList<>();
+
     private final JComboBox<String> comboBoxPasswords = new JComboBox<>();
     private final JFormattedTextField textFieldLength = new JFormattedTextField();
     private final JCheckBoxPersistent cbUpper = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_UPPER, "Uppercase", () -> handleEnabled());
@@ -45,6 +53,20 @@ public class PasswordGenerator
     private final List<String> passwordList = new ArrayList<>();
     private final PasswordInsertListener passwordInsertListener;
     private JPanel generatorPanel;
+
+    @Override
+    public void propertyChange (PropertyChangeEvent propertyChangeEvent)
+    {
+        switch (propertyChangeEvent.getPropertyName())
+        {
+            case PREF_GPG_PASS_CHARPOOL_DIGIT:
+            case PREF_GPG_PASS_CHARPOOL_LOWER:
+            case PREF_GPG_PASS_CHARPOOL_UPPER:
+            case PREF_GPG_PASS_CHARPOOL_SPECIAL:
+                System.err.println("XXXXXXXXXXX");
+                break;
+        }
+    }
 
     public interface PasswordInsertListener
     {
@@ -174,6 +196,7 @@ public class PasswordGenerator
         this.parent = parent;
         initCharacterPools();
         initDialog();
+        FgPreferences.get().addPropertyChangeListener(this);
     }
 
     public PasswordGenerator (PasswordInsertListener listener)
@@ -216,7 +239,6 @@ public class PasswordGenerator
                         uppercase.add(i);
                     if (Character.isLowerCase(i))
                         lowercase.add(i);
-
                 }
                 else
                 {
