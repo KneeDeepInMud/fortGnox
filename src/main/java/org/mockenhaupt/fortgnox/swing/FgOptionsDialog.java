@@ -18,6 +18,7 @@ import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -25,6 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -37,7 +39,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CHARSET;
@@ -50,6 +56,10 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPGCONF_COMMAND;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_COMMAND;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_DEFAULT_RID;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_HOMEDIR;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_DIGIT;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_LOWER;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_SPECIAL;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_UPPER;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_POST_COMMAND;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_RID_FILE;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_USE_ASCII;
@@ -82,6 +92,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
     private JPanel optionsPanel;
     private JPanel buttonPanel;
     private JPanel gpgPanel;
+    private JPanel passwordGeneratorPanel;
 
 
     private javax.swing.JButton jButtonClose;
@@ -103,6 +114,12 @@ public class FgOptionsDialog extends javax.swing.JDialog
     private javax.swing.JFormattedTextField jFormattedTextFieldResetMaskButton;
     private javax.swing.JFormattedTextField jFormattedTextFieldNumberFavorites;
     private javax.swing.JFormattedTextField jFormattedTextFieldMinFavoriteCount;
+
+    private JFormattedTextField textFieldDigits;
+    private JTextField textFieldCharsUpper;
+    private JTextField textFieldCharsLower;
+    private JTextField textFieldSpecial;
+
     private javax.swing.JLabel labelDataDirs;
     private javax.swing.JLabel labelGpgHome;
     private javax.swing.JLabel jLabelPassClearTimeout;
@@ -131,23 +148,151 @@ public class FgOptionsDialog extends javax.swing.JDialog
         this.setPreferredSize(new Dimension(960, 740));
         optionsPanel = new JPanel();
         gpgPanel = new JPanel();
+        passwordGeneratorPanel = new JPanel();
         buttonPanel = new JPanel(new FlowLayout());
 
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(jTabbedPane, BorderLayout.CENTER);
         getContentPane().add(buttonPanel, BorderLayout.SOUTH);
+
+        initCharacterPools();
         initComponents();
         initGpgSettings();
+        initPasswordPanel();
 
         JScrollPane scrollPaneGeneral = new JScrollPane(optionsPanel);
         jTabbedPane.add("General", scrollPaneGeneral);
         JScrollPane scrollPaneGpg = new JScrollPane(gpgPanel);
         jTabbedPane.add("GPG", scrollPaneGpg);
+        JScrollPane scrollPanePasswordGenerator = new JScrollPane(passwordGeneratorPanel);
+        jTabbedPane.add("Password generator characters", scrollPanePasswordGenerator);
     }
+
+    private void initPasswordPanel ()
+    {
+        GroupLayout gl = new GroupLayout(passwordGeneratorPanel);
+        passwordGeneratorPanel.setLayout(gl);
+
+        textFieldDigits = new JFormattedTextField();
+        textFieldDigits.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
+
+        JLabel jLabelDigits = new JLabel("Digits");
+
+        textFieldCharsUpper = new JFormattedTextField();
+        JLabel jLabelCharacters = new JLabel("Uppcarcase Characters");
+
+        textFieldCharsLower = new JFormattedTextField();
+        JLabel jLabelCharactersLower = new JLabel("Lowercase Characters");
+
+        textFieldSpecial = new JFormattedTextField();
+        JLabel jLabelSpecialChars = new JLabel("Special Characters");
+
+        JButton buttonReset = new JButton("Restore default character pools");
+        buttonReset.addActionListener(e ->
+        {
+            resetToDefaultCharacterPools(textFieldDigits, textFieldCharsUpper, textFieldCharsLower, textFieldSpecial);
+        });
+
+        gl.setAutoCreateGaps(true);
+        gl.setAutoCreateContainerGaps(true);
+
+        gl.setHorizontalGroup(
+                gl.createParallelGroup()
+                        .addGroup(
+                                gl.createSequentialGroup().addGroup(
+                                        gl.createParallelGroup()
+                                                .addComponent(jLabelDigits)
+                                                .addComponent(jLabelCharacters)
+                                                .addComponent(jLabelCharactersLower)
+                                                .addComponent(jLabelSpecialChars)
+                                )
+                                        .addGroup(gl.createParallelGroup()
+                                                .addComponent(textFieldDigits)
+                                                .addComponent(textFieldCharsUpper)
+                                                .addComponent(textFieldCharsLower)
+                                                .addComponent(textFieldSpecial)
+                                        )
+                        )
+                        .addComponent(buttonReset)
+        );
+
+        gl.setVerticalGroup(
+                gl.createSequentialGroup()
+                        .addGroup(gl.createParallelGroup().addComponent(jLabelDigits).addComponent(textFieldDigits))
+                        .addGroup(gl.createParallelGroup().addComponent(jLabelCharacters).addComponent(textFieldCharsUpper))
+                        .addGroup(gl.createParallelGroup().addComponent(jLabelCharactersLower).addComponent(textFieldCharsLower))
+                        .addGroup(gl.createParallelGroup().addComponent(jLabelSpecialChars).addComponent(textFieldSpecial))
+                        .addComponent(buttonReset)
+                        .addGap(0, 400, 800)
+
+        );
+    }
+
+    private void resetToDefaultCharacterPools (JTextField textFieldDigits, JTextField textFieldCharsUpper, JTextField textFieldCharsLower, JTextField textFieldSpecial)
+    {
+        textFieldDigits.setText(charlistToString(digits));
+        textFieldCharsUpper.setText(charlistToString(uppercase));
+        textFieldCharsLower.setText(charlistToString(lowercase));
+        textFieldSpecial.setText(charlistToString(special));
+    }
+
+    private final List<Character> digits = new ArrayList<>();
+    private final List<Character> uppercase = new ArrayList<>();
+    private final List<Character> lowercase = new ArrayList<>();
+    private final List<Character> special = new ArrayList<>();
+
+    private static String charlistToString (List<Character> charList)
+    {
+        return String.join("",
+                charList.stream().map(character -> new String(String.valueOf(character))).collect(Collectors.toList()));
+    }
+
+    public void initCharacterPools ()
+    {
+        Set<Character> skip = new HashSet<Character>(Arrays.asList(new Character[]{'"', '\'', '\\'}));
+        for (char i = 33; i <= 126; ++i)
+        {
+            if (skip.contains(i)) continue;
+            if (isPrintableChar(i))
+            {
+                if (Character.isDigit(i))
+                {
+                    digits.add(i);
+                }
+                else if (Character.isAlphabetic(i))
+                {
+                    if (Character.isUpperCase(i))
+                        uppercase.add(i);
+                    if (Character.isLowerCase(i))
+                        lowercase.add(i);
+                }
+                else
+                {
+                    special.add(i);
+                }
+            }
+        }
+    }
+
+    public static boolean isPrintableChar (char c)
+    {
+        Character.UnicodeBlock block = Character.UnicodeBlock.of(c);
+        return (!Character.isISOControl(c)) &&
+                c != KeyEvent.CHAR_UNDEFINED &&
+                block != null &&
+                block != Character.UnicodeBlock.SPECIALS;
+    }
+
 
     void initPreferences ()
     {
         PreferencesAccess pa = FgPreferences.get();
+
+        this.textFieldCharsUpper.setText(pa.get(PREF_GPG_PASS_CHARPOOL_UPPER, charlistToString(uppercase)));
+        this.textFieldCharsLower.setText(pa.get(PREF_GPG_PASS_CHARPOOL_LOWER, charlistToString(lowercase)));
+        this.textFieldDigits.setText(pa.get(PREF_GPG_PASS_CHARPOOL_DIGIT, charlistToString(digits)));
+        this.textFieldSpecial.setText(pa.get(PREF_GPG_PASS_CHARPOOL_SPECIAL, charlistToString(special)));
+
         this.jTextGpgExe.setText(pa.get(PREF_GPG_COMMAND));
         this.jTextGpgPostCommand.setText(pa.get(PREF_GPG_POST_COMMAND));
         this.jTextNewFileTemplate.setText(pa.get(PREF_NEW_TEMPLATE));
@@ -178,9 +323,11 @@ public class FgOptionsDialog extends javax.swing.JDialog
         this.jTexfFieldGpgDefaultRID.setText(pa.get(PREF_GPG_DEFAULT_RID, ""));
         this.jCheckBoxGpgUseAsciiFormat.setSelected(pa.getBoolean(PREF_GPG_USE_ASCII));
 
+
         this.lookAndFeelInfoJComboBox.setSelectedItem(pa.get(PREF_LOOK_AND_FEEL));
 
     }
+
 
 
     private void initGpgSettings ()
@@ -664,19 +811,23 @@ public class FgOptionsDialog extends javax.swing.JDialog
         FgPreferences.get().put(PREF_GPG_USE_ASCII, jCheckBoxGpgUseAsciiFormat.isSelected());
         FgPreferences.get().put(PREF_GPG_POST_COMMAND, jTextGpgPostCommand.getText());
         FgPreferences.get().put(PREF_NEW_TEMPLATE, jTextNewFileTemplate.getText());
+
+        FgPreferences.get().put(PREF_GPG_PASS_CHARPOOL_UPPER, textFieldCharsUpper.getText().toUpperCase());
+        FgPreferences.get().put(PREF_GPG_PASS_CHARPOOL_LOWER, textFieldCharsLower.getText().toLowerCase());
+        FgPreferences.get().put(PREF_GPG_PASS_CHARPOOL_SPECIAL, textFieldSpecial.getText());
+        FgPreferences.get().put(PREF_GPG_PASS_CHARPOOL_DIGIT, textFieldDigits.getText());
+        initPreferences();
     }
 
 
     @Override
-    public void setVisible(boolean b) {
-
-        if (b) initPreferences();
+    public void setVisible (boolean b) {
 
         Point location = MouseInfo.getPointerInfo().getLocation();
         setLocation(location);
-
-        super.setVisible(b);
+        initPreferences();
+        SwingUtilities.invokeLater(() ->
+                super.setVisible(b));
     }
-
 
 }

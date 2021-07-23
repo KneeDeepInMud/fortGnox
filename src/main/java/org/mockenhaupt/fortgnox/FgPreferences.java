@@ -49,6 +49,10 @@ public class FgPreferences
     public static final String PREF_GPG_PASS_LOWER = "PREF_GPG_PASS_LOWER";
     public static final String PREF_GPG_PASS_SPECIAL = "PREF_GPG_PASS_SPECIAL";
     public static final String PREF_GPG_PASS_LENGTH = "PREF_GPG_PASS_LENGTH";
+    public static final String PREF_GPG_PASS_CHARPOOL_UPPER = "PREF_GPG_PASS_CHARPOOL_UPPER";
+    public static final String PREF_GPG_PASS_CHARPOOL_LOWER = "PREF_GPG_PASS_CHARPOOL_LOWER";
+    public static final String PREF_GPG_PASS_CHARPOOL_DIGIT = "PREF_GPG_PASS_CHARPOOL_DIGIT";
+    public static final String PREF_GPG_PASS_CHARPOOL_SPECIAL = "PREF_GPG_PASS_CHARPOOL_SPECIAL";
 
     public static final String PREF_LOOK_AND_FEEL = "PREF_LOOK_AND_FEEL";
 
