@@ -1,5 +1,6 @@
 package org.mockenhaupt.fortgnox;
 
+import org.mockenhaupt.fortgnox.misc.PasswordCharacterPool;
 import org.mockenhaupt.fortgnox.swing.JCheckBoxPersistent;
 import org.mockenhaupt.fortgnox.swing.LAFChooser;
 
@@ -225,10 +226,10 @@ public class PasswordGenerator implements PropertyChangeListener
 
     private void initCharacterPools ()
     {
-        addCharacters(uppercase, FgPreferences.get().get(PREF_GPG_PASS_CHARPOOL_UPPER));
-        addCharacters(lowercase, FgPreferences.get().get(PREF_GPG_PASS_CHARPOOL_LOWER));
-        addCharacters(digits, FgPreferences.get().get(PREF_GPG_PASS_CHARPOOL_DIGIT));
-        addCharacters(special, FgPreferences.get().get(PREF_GPG_PASS_CHARPOOL_SPECIAL));
+        addCharacters(uppercase, FgPreferences.get().get(PREF_GPG_PASS_CHARPOOL_UPPER, PasswordCharacterPool.getUppercase()));
+        addCharacters(lowercase, FgPreferences.get().get(PREF_GPG_PASS_CHARPOOL_LOWER, PasswordCharacterPool.getLowercase()));
+        addCharacters(digits, FgPreferences.get().get(PREF_GPG_PASS_CHARPOOL_DIGIT, PasswordCharacterPool.getDigits()));
+        addCharacters(special, FgPreferences.get().get(PREF_GPG_PASS_CHARPOOL_SPECIAL, PasswordCharacterPool.getSpecial()));
     }
 
     private void addCharacters (List<Character> characters, String s)

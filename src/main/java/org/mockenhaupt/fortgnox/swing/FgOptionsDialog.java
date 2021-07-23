@@ -11,6 +11,7 @@ import org.mockenhaupt.fortgnox.DebugWindow;
 import org.mockenhaupt.fortgnox.FgPreferences;
 import org.mockenhaupt.fortgnox.MainFrame;
 import org.mockenhaupt.fortgnox.PreferencesAccess;
+import org.mockenhaupt.fortgnox.misc.PasswordCharacterPool;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
@@ -155,7 +156,6 @@ public class FgOptionsDialog extends javax.swing.JDialog
         getContentPane().add(jTabbedPane, BorderLayout.CENTER);
         getContentPane().add(buttonPanel, BorderLayout.SOUTH);
 
-        initCharacterPools();
         initComponents();
         initGpgSettings();
         initPasswordPanel();
@@ -230,68 +230,24 @@ public class FgOptionsDialog extends javax.swing.JDialog
 
     private void resetToDefaultCharacterPools (JTextField textFieldDigits, JTextField textFieldCharsUpper, JTextField textFieldCharsLower, JTextField textFieldSpecial)
     {
-        textFieldDigits.setText(charlistToString(digits));
-        textFieldCharsUpper.setText(charlistToString(uppercase));
-        textFieldCharsLower.setText(charlistToString(lowercase));
-        textFieldSpecial.setText(charlistToString(special));
+        textFieldDigits.setText(PasswordCharacterPool.getDigits());
+        textFieldCharsUpper.setText(PasswordCharacterPool.getUppercase());
+        textFieldCharsLower.setText(PasswordCharacterPool.getLowercase());
+        textFieldSpecial.setText(PasswordCharacterPool.getSpecial());
     }
 
-    private final List<Character> digits = new ArrayList<>();
-    private final List<Character> uppercase = new ArrayList<>();
-    private final List<Character> lowercase = new ArrayList<>();
-    private final List<Character> special = new ArrayList<>();
 
-    private static String charlistToString (List<Character> charList)
-    {
-        return String.join("",
-                charList.stream().map(character -> new String(String.valueOf(character))).collect(Collectors.toList()));
-    }
 
-    public void initCharacterPools ()
-    {
-        Set<Character> skip = new HashSet<Character>(Arrays.asList(new Character[]{'"', '\'', '\\'}));
-        for (char i = 33; i <= 126; ++i)
-        {
-            if (skip.contains(i)) continue;
-            if (isPrintableChar(i))
-            {
-                if (Character.isDigit(i))
-                {
-                    digits.add(i);
-                }
-                else if (Character.isAlphabetic(i))
-                {
-                    if (Character.isUpperCase(i))
-                        uppercase.add(i);
-                    if (Character.isLowerCase(i))
-                        lowercase.add(i);
-                }
-                else
-                {
-                    special.add(i);
-                }
-            }
-        }
-    }
-
-    public static boolean isPrintableChar (char c)
-    {
-        Character.UnicodeBlock block = Character.UnicodeBlock.of(c);
-        return (!Character.isISOControl(c)) &&
-                c != KeyEvent.CHAR_UNDEFINED &&
-                block != null &&
-                block != Character.UnicodeBlock.SPECIALS;
-    }
 
 
     void initPreferences ()
     {
         PreferencesAccess pa = FgPreferences.get();
 
-        this.textFieldCharsUpper.setText(pa.get(PREF_GPG_PASS_CHARPOOL_UPPER, charlistToString(uppercase)));
-        this.textFieldCharsLower.setText(pa.get(PREF_GPG_PASS_CHARPOOL_LOWER, charlistToString(lowercase)));
-        this.textFieldDigits.setText(pa.get(PREF_GPG_PASS_CHARPOOL_DIGIT, charlistToString(digits)));
-        this.textFieldSpecial.setText(pa.get(PREF_GPG_PASS_CHARPOOL_SPECIAL, charlistToString(special)));
+        this.textFieldCharsUpper.setText(pa.get(PREF_GPG_PASS_CHARPOOL_UPPER, PasswordCharacterPool.getUppercase()));
+        this.textFieldCharsLower.setText(pa.get(PREF_GPG_PASS_CHARPOOL_LOWER, PasswordCharacterPool.getLowercase()));
+        this.textFieldDigits.setText(pa.get(PREF_GPG_PASS_CHARPOOL_DIGIT, PasswordCharacterPool.getDigits()));
+        this.textFieldSpecial.setText(pa.get(PREF_GPG_PASS_CHARPOOL_SPECIAL, PasswordCharacterPool.getSpecial()));
 
         this.jTextGpgExe.setText(pa.get(PREF_GPG_COMMAND));
         this.jTextGpgPostCommand.setText(pa.get(PREF_GPG_POST_COMMAND));
