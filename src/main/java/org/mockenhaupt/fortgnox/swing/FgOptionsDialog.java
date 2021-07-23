@@ -26,6 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -55,6 +56,10 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPGCONF_COMMAND;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_COMMAND;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_DEFAULT_RID;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_HOMEDIR;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_DIGIT;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_LOWER;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_SPECIAL;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_UPPER;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_POST_COMMAND;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_RID_FILE;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_USE_ASCII;
@@ -160,7 +165,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         JScrollPane scrollPaneGpg = new JScrollPane(gpgPanel);
         jTabbedPane.add("GPG", scrollPaneGpg);
         JScrollPane scrollPanePasswordGenerator = new JScrollPane(passwordGeneratorPanel);
-        jTabbedPane.add("Passwords", scrollPanePasswordGenerator);
+        jTabbedPane.add("Password generator characters", scrollPanePasswordGenerator);
     }
 
     private void initPasswordPanel ()
@@ -182,7 +187,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         textFieldSpecial = new JFormattedTextField();
         JLabel jLabelSpecialChars = new JLabel("Special Characters");
 
-        JButton buttonReset = new JButton("Reset character pools");
+        JButton buttonReset = new JButton("Restore default character pools");
         buttonReset.addActionListener(e ->
         {
             resetToDefaultCharacterPools(textFieldDigits, textFieldCharsUpper, textFieldCharsLower, textFieldSpecial);
@@ -225,16 +230,22 @@ public class FgOptionsDialog extends javax.swing.JDialog
 
     private void resetToDefaultCharacterPools (JTextField textFieldDigits, JTextField textFieldCharsUpper, JTextField textFieldCharsLower, JTextField textFieldSpecial)
     {
-        textFieldDigits.setText(String.join("",  digits.stream().map(character -> new String(String.valueOf(character))).collect(Collectors.toList())));
-        textFieldCharsUpper.setText(String.join("",  uppercase.stream().map(character -> new String(String.valueOf(character))).collect(Collectors.toList())));
-        textFieldCharsLower.setText(String.join("",  lowercase.stream().map(character -> new String(String.valueOf(character))).collect(Collectors.toList())));
-        textFieldSpecial.setText(String.join("",  special.stream().map(character -> new String(String.valueOf(character))).collect(Collectors.toList())));
+        textFieldDigits.setText(charlistToString(digits));
+        textFieldCharsUpper.setText(charlistToString(uppercase));
+        textFieldCharsLower.setText(charlistToString(lowercase));
+        textFieldSpecial.setText(charlistToString(special));
     }
 
     private final List<Character> digits = new ArrayList<>();
     private final List<Character> uppercase = new ArrayList<>();
     private final List<Character> lowercase = new ArrayList<>();
     private final List<Character> special = new ArrayList<>();
+
+    private static String charlistToString (List<Character> charList)
+    {
+        return String.join("",
+                charList.stream().map(character -> new String(String.valueOf(character))).collect(Collectors.toList()));
+    }
 
     public void initCharacterPools ()
     {
@@ -276,6 +287,12 @@ public class FgOptionsDialog extends javax.swing.JDialog
     void initPreferences ()
     {
         PreferencesAccess pa = FgPreferences.get();
+
+        this.textFieldCharsUpper.setText(pa.get(PREF_GPG_PASS_CHARPOOL_UPPER, charlistToString(uppercase)));
+        this.textFieldCharsLower.setText(pa.get(PREF_GPG_PASS_CHARPOOL_LOWER, charlistToString(lowercase)));
+        this.textFieldDigits.setText(pa.get(PREF_GPG_PASS_CHARPOOL_DIGIT, charlistToString(digits)));
+        this.textFieldSpecial.setText(pa.get(PREF_GPG_PASS_CHARPOOL_SPECIAL, charlistToString(special)));
+
         this.jTextGpgExe.setText(pa.get(PREF_GPG_COMMAND));
         this.jTextGpgPostCommand.setText(pa.get(PREF_GPG_POST_COMMAND));
         this.jTextNewFileTemplate.setText(pa.get(PREF_NEW_TEMPLATE));
@@ -306,9 +323,11 @@ public class FgOptionsDialog extends javax.swing.JDialog
         this.jTexfFieldGpgDefaultRID.setText(pa.get(PREF_GPG_DEFAULT_RID, ""));
         this.jCheckBoxGpgUseAsciiFormat.setSelected(pa.getBoolean(PREF_GPG_USE_ASCII));
 
+
         this.lookAndFeelInfoJComboBox.setSelectedItem(pa.get(PREF_LOOK_AND_FEEL));
 
     }
+
 
 
     private void initGpgSettings ()
@@ -792,19 +811,23 @@ public class FgOptionsDialog extends javax.swing.JDialog
         FgPreferences.get().put(PREF_GPG_USE_ASCII, jCheckBoxGpgUseAsciiFormat.isSelected());
         FgPreferences.get().put(PREF_GPG_POST_COMMAND, jTextGpgPostCommand.getText());
         FgPreferences.get().put(PREF_NEW_TEMPLATE, jTextNewFileTemplate.getText());
+
+        FgPreferences.get().put(PREF_GPG_PASS_CHARPOOL_UPPER, textFieldCharsUpper.getText().toUpperCase());
+        FgPreferences.get().put(PREF_GPG_PASS_CHARPOOL_LOWER, textFieldCharsLower.getText().toLowerCase());
+        FgPreferences.get().put(PREF_GPG_PASS_CHARPOOL_SPECIAL, textFieldSpecial.getText());
+        FgPreferences.get().put(PREF_GPG_PASS_CHARPOOL_DIGIT, textFieldDigits.getText());
+        initPreferences();
     }
 
 
     @Override
-    public void setVisible(boolean b) {
-
-        if (b) initPreferences();
+    public void setVisible (boolean b) {
 
         Point location = MouseInfo.getPointerInfo().getLocation();
         setLocation(location);
-
-        super.setVisible(b);
+        initPreferences();
+        SwingUtilities.invokeLater(() ->
+                super.setVisible(b));
     }
-
 
 }
