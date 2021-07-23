@@ -20,6 +20,7 @@ jar=$(ls -1rt $here/target/fortgnox*jar | tail -1)
 }
 
 bjar=$(basename $jar)
-njar=$(echo $bjar | sed "s,\(fortgnox-\)\([a-z0-9]\+.jar\),\1${lasttag}-\2,")
+#njar=$(echo $bjar | sed "s,\(fortgnox-\)\([a-z0-9]\+.jar\),\1${lasttag}-\2,")
+njar=$(echo $bjar | sed "s,\(fortgnox-\)\([a-z0-9]\+\)\(.jar\),\1${lasttag}\3,")
 
 cp -v $here/target/$bjar $here/target/$njar
