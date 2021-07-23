@@ -10,6 +10,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
@@ -285,8 +286,16 @@ public class PasswordGenerator implements PropertyChangeListener
         {
             int poolIx = Math.abs(rnd.nextInt()) % pool.size();
             List<Character> cSet = pool.get(poolIx);
-            int cSetIx = Math.abs(rnd.nextInt()) % cSet.size();
-            sb.append(cSet.get(cSetIx));
+            if (cSet.size() <= 0)
+            {
+                JOptionPane.showMessageDialog(parent, "Empty character set in preferences", "fortGnox WARNING", JOptionPane.ERROR_MESSAGE);
+                break;
+            }
+            else
+            {
+                int cSetIx = Math.abs(rnd.nextInt()) % cSet.size();
+                sb.append(cSet.get(cSetIx));
+            }
         }
 
         addPassword(sb.toString());
