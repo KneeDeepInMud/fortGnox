@@ -196,8 +196,13 @@ public class FgOptionsDialog extends javax.swing.JDialog
         gl.setAutoCreateGaps(true);
         gl.setAutoCreateContainerGaps(true);
 
+
+        JLabel labelInfoMessage = new JLabel();
+        labelInfoMessage.setText("<html>Random characters from these sets will be used in the password generator<hr></html>");
+
         gl.setHorizontalGroup(
                 gl.createParallelGroup()
+                        .addComponent(labelInfoMessage)
                         .addGroup(
                                 gl.createSequentialGroup().addGroup(
                                         gl.createParallelGroup()
@@ -218,6 +223,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
 
         gl.setVerticalGroup(
                 gl.createSequentialGroup()
+                        .addComponent(labelInfoMessage)
                         .addGroup(gl.createParallelGroup().addComponent(jLabelDigits).addComponent(textFieldDigits))
                         .addGroup(gl.createParallelGroup().addComponent(jLabelCharacters).addComponent(textFieldCharsUpper))
                         .addGroup(gl.createParallelGroup().addComponent(jLabelCharactersLower).addComponent(textFieldCharsLower))
