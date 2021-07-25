@@ -32,13 +32,15 @@ public class DebugWindow
     public static int CAT_FAVORITES = 1<<2;
     public static int CAT_LIST = 1<<3;
     public static int CAT_DIR = 1<<4;
+    public static int CAT_ANY = 1<<5;
 
     public enum Category {
         FILTER(CAT_FILTER),
         GPG(CAT_GPG),
         FAV(CAT_FAVORITES),
         LIST(CAT_LIST),
-        DIR(CAT_DIR)
+        DIR(CAT_DIR),
+        ANY(CAT_ANY)
         ;
 
         private final int value;

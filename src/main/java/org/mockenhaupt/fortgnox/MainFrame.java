@@ -68,15 +68,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -84,6 +79,7 @@ import java.util.stream.Stream;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.OK_OPTION;
+import static org.mockenhaupt.fortgnox.DebugWindow.Category.ANY;
 import static org.mockenhaupt.fortgnox.DebugWindow.Category.DIR;
 import static org.mockenhaupt.fortgnox.DebugWindow.Category.FAV;
 import static org.mockenhaupt.fortgnox.DebugWindow.Category.FILTER;
@@ -1665,10 +1661,17 @@ public class MainFrame extends JFrame implements
 
     private void buttonAboutActionPerformed (java.awt.event.ActionEvent evt)
     {
+        StringBuilder sb = new StringBuilder();
+
+        String name = getMyVersionFromJar();
+        if (name != null && !name.isEmpty())
+        {
+            sb.append(name);
+            sb.append(FgGPGProcess.LINE_SEP);
+        }
 
         URL is = getClass().getResource("/org/mockenhaupt/fortgnox/about.txt");
 
-        StringBuilder sb = new StringBuilder();
         try
         {
             BufferedReader br = new BufferedReader(new InputStreamReader((is.openStream())));
@@ -1684,11 +1687,34 @@ public class MainFrame extends JFrame implements
         }
 
 
+
+
         JOptionPane.showMessageDialog(this,
                 sb.toString(),
                 "About fortGnox " + getVersionFromManifest().computeIfAbsent(VERSION_PROJECT, k -> "UNKNOWN"),
                 JOptionPane.INFORMATION_MESSAGE,
                 getIcon("/org/mockenhaupt/fortgnox/fortGnox128.png", 128));
+    }
+
+    private String getMyVersionFromJar ()
+    {
+        String name = "";
+
+        try
+        {
+            String getJarPath = this.getClass().getProtectionDomain()
+                    .getCodeSource()
+                    .getLocation()
+                    .getPath();
+            name = new File(getJarPath).getName();
+            name = name.replaceAll(".jar", "");
+        }
+        catch (Exception ex)
+        {
+            // ignore
+            DebugWindow.get().debug(ANY, ex.getMessage());
+        }
+        return name;
     }
 
 
