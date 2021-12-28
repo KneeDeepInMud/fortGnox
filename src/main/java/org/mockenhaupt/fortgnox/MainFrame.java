@@ -143,6 +143,8 @@ public class MainFrame extends JFrame implements
 
     public static final String CLIENTDATA_EDIT = "editGpg";
     private JButton buttonClearPass;
+    private JButton buttonHistoryForward;
+    private JButton buttonHistoryBackward;
     //    private JButton buttonClearTextarea;
     private JButton buttonExit;
     private JButton buttonAbout;
@@ -150,6 +152,8 @@ public class MainFrame extends JFrame implements
     private JButton buttonClearFavorites;
     private JButton buttonNew;
     private JButton buttonEdit;
+
+
     private JList jListSecrets;
     private JProgressBar progressClearTimer;
     private JProgressBar progressPassTimer;
@@ -1302,6 +1306,8 @@ public class MainFrame extends JFrame implements
         optionalSetText(s -> buttonEdit.setText(s), "Edit Password");
 //        optionalSetText(s -> buttonClearTextarea.setText(s), "Wipe Textarea");
         optionalSetText(s -> buttonClearPass.setText(s), "Forget Passphrase");
+        optionalSetText(s -> buttonHistoryForward.setText(s), "Forward");
+        optionalSetText(s -> buttonHistoryBackward.setText(s), "Backward");
         optionalSetText(s -> buttonClearFavorites.setText(s), "Clear Favorites");
         optionalSetText(s -> jButtonSettings.setText(s), "Open Settings");
         optionalSetText(s -> buttonAbout.setText(s), "About");
@@ -1343,6 +1349,8 @@ public class MainFrame extends JFrame implements
         jToolBarMainFunctions.setFloatable(false);
         jToolBarMainFunctions.setFocusable(false);
         buttonClearPass = new JButton();
+        buttonHistoryForward = new JButton();
+        buttonHistoryBackward = new JButton();
         buttonClearFavorites = new JButton();
         buttonClearPass.setMnemonic(KeyEvent.VK_P);
 //        buttonClearTextarea = new JButton();
@@ -1403,6 +1411,27 @@ public class MainFrame extends JFrame implements
         getContentPane().add(jSplitPaneLR, java.awt.BorderLayout.CENTER);
 
         jToolBarMainFunctions.setRollover(true);
+
+
+        jToolBarMainFunctions.add(buttonHistoryBackward);
+        buttonHistoryBackward.setToolTipText("TODO");
+        buttonHistoryBackward.setBorderPainted(false);
+        buttonHistoryBackward.setFocusable(false);
+        buttonHistoryBackward.setHorizontalTextPosition(SwingConstants.CENTER);
+        buttonHistoryBackward.setVerticalTextPosition(SwingConstants.BOTTOM);
+        buttonHistoryBackward.setIcon(getIcon("/org/mockenhaupt/fortgnox/backward48.png"));
+
+        jToolBarMainFunctions.add(buttonHistoryForward);
+        buttonHistoryForward.setIcon(getIcon("/org/mockenhaupt/fortgnox/forward48.png"));
+        buttonHistoryForward.setToolTipText("TODO");
+        buttonHistoryForward.setBorderPainted(false);
+        buttonHistoryForward.setFocusable(false);
+        buttonHistoryForward.setHorizontalTextPosition(SwingConstants.CENTER);
+        buttonHistoryForward.setVerticalTextPosition(SwingConstants.BOTTOM);
+
+        // ---------------------------------
+
+
 
 
         buttonNew.setIcon(getIcon("/org/mockenhaupt/fortgnox/addplus48.png"));
@@ -1478,8 +1507,8 @@ public class MainFrame extends JFrame implements
 //        });
 //        jToolBarMainFunctions.add(buttonClearTextarea);
 
-
         // ---------------------------------
+
         buttonClearPass.setIcon(getIcon("/org/mockenhaupt/fortgnox/lock48.png"));
 //        buttonClearPass.setText("Clear");
         buttonClearPass.setToolTipText("Clears the internally stored passphrase and optionally the GPG agenty password (see Settings)");
