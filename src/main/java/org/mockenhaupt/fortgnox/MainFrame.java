@@ -12,6 +12,7 @@ package org.mockenhaupt.fortgnox;
 
 
 import org.mockenhaupt.fortgnox.misc.FileUtils;
+import org.mockenhaupt.fortgnox.misc.History;
 import org.mockenhaupt.fortgnox.swing.FgOptionsDialog;
 import org.mockenhaupt.fortgnox.swing.FgPanelTextArea;
 import org.mockenhaupt.fortgnox.swing.FgTextFilter;
@@ -91,6 +92,7 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES_MIN_HIT_COUNT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES_SHOW_COUNT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FILTER_FAVORITES;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_HISTORY_SIZE;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_LOOK_AND_FEEL;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_NUMBER_FAVORITES;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_PASSWORD_SECONDS;
@@ -145,6 +147,8 @@ public class MainFrame extends JFrame implements
     private JButton buttonClearPass;
     private JButton buttonHistoryForward;
     private JButton buttonHistoryBackward;
+    private History history;
+
     //    private JButton buttonClearTextarea;
     private JButton buttonExit;
     private JButton buttonAbout;
@@ -1193,12 +1197,23 @@ public class MainFrame extends JFrame implements
         SwingUtilities.invokeLater(() -> fgPanelTextArea.requestFocus());
     }
 
+    static String lastFileName = null;
     @Override
     public void handleGpgResult (String out, String err, String filename, Object clientData)
     {
         if (filename != null && !filename.isEmpty())
         {
             jListSecrets.setSelectedValue(filename, true);
+
+            if (lastFileName != null && !history.equals(clientData))
+            {
+                if (!filename.equals(lastFileName))
+                {
+                    history.add(lastFileName);
+                }
+            }
+            lastFileName = filename;
+
 
             // edit file
             if (CLIENTDATA_EDIT.equals(clientData))
@@ -1351,6 +1366,8 @@ public class MainFrame extends JFrame implements
         buttonClearPass = new JButton();
         buttonHistoryForward = new JButton();
         buttonHistoryBackward = new JButton();
+        history = new History(buttonHistoryBackward, buttonHistoryForward);
+
         buttonClearFavorites = new JButton();
         buttonClearPass.setMnemonic(KeyEvent.VK_P);
 //        buttonClearTextarea = new JButton();
@@ -1420,6 +1437,14 @@ public class MainFrame extends JFrame implements
         buttonHistoryBackward.setHorizontalTextPosition(SwingConstants.CENTER);
         buttonHistoryBackward.setVerticalTextPosition(SwingConstants.BOTTOM);
         buttonHistoryBackward.setIcon(getIcon("/org/mockenhaupt/fortgnox/backward48.png"));
+        buttonHistoryBackward.addActionListener(e -> {
+            String lastFile = history.popBack(jListSecrets.getSelectedValue());
+            if (lastFile != null)
+            {
+                decrypt (false, lastFile, history);
+            }
+        });
+
 
         jToolBarMainFunctions.add(buttonHistoryForward);
         buttonHistoryForward.setIcon(getIcon("/org/mockenhaupt/fortgnox/forward48.png"));
@@ -1428,6 +1453,13 @@ public class MainFrame extends JFrame implements
         buttonHistoryForward.setFocusable(false);
         buttonHistoryForward.setHorizontalTextPosition(SwingConstants.CENTER);
         buttonHistoryForward.setVerticalTextPosition(SwingConstants.BOTTOM);
+        buttonHistoryForward.addActionListener(e -> {
+            String lastFile = history.popForward(jListSecrets.getSelectedValue());
+            if (lastFile != null)
+            {
+                decrypt (false, lastFile, history);
+            }
+        });
 
         // ---------------------------------
 
@@ -1686,6 +1718,7 @@ public class MainFrame extends JFrame implements
         {
             gpgProcess.gpgAgendCommand("--reload");
         }
+        history.clear();
     }
 
     private void buttonAboutActionPerformed (java.awt.event.ActionEvent evt)
@@ -1835,6 +1868,9 @@ public class MainFrame extends JFrame implements
                 prefShowToobarTexts = (boolean) propertyChangeEvent.getNewValue();
                 SwingUtilities.invokeLater(() -> updateTbButtonTexts());
                 break;
+            case PREF_HISTORY_SIZE:
+                SwingUtilities.invokeLater(() -> updateHistoryButtonVisibility());
+                break;
             case PREF_SECRETLIST_FONT_SIZE:
                 if (jListSecrets != null)
                 {
@@ -1844,6 +1880,15 @@ public class MainFrame extends JFrame implements
                 break;
         }
         SwingUtilities.invokeLater(() -> updateClearPassVisibility());
+    }
+
+    private void updateHistoryButtonVisibility ()
+    {
+        if (history != null)
+        {
+            buttonHistoryBackward.setVisible(history.isHistoryEnabled());
+            buttonHistoryForward.setVisible(history.isHistoryEnabled());
+        }
     }
 
     @Override
