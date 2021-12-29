@@ -3,14 +3,19 @@ package org.mockenhaupt.fortgnox.misc;
 import org.mockenhaupt.fortgnox.FgPreferences;
 
 import javax.swing.JComponent;
-import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.EmptyStackException;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_HISTORY_SIZE;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_TEXTAREA_FONT_SIZE;
 
 public class History implements PropertyChangeListener
 {
@@ -76,6 +81,13 @@ public class History implements PropertyChangeListener
 
     private void limitHistorySize ()
     {
+        // deduplicate
+        // convert Vector to a LinkedHashSet object.
+        LinkedHashSet<String> dupSet
+                = new LinkedHashSet<>(backward);
+        backward.clear();
+        backward.addAll(dupSet);
+
         while (backward.size() > MAX_SIZE)
         {
             backward.removeElementAt(0);
@@ -89,14 +101,29 @@ public class History implements PropertyChangeListener
         forwardComp.setEnabled(!forward.empty());
         if (!forward.isEmpty())
         {
-            forwardComp.setToolTipText(forward.peek());
+            forwardComp.setToolTipText(getToolTip(forward));
         }
         if (!backward.isEmpty())
         {
-            backwardComp.setToolTipText(backward.peek());
+            backwardComp.setToolTipText(getToolTip(backward));
         }
     }
 
+    private String getToolTip (Stack<String> collection)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<html>");
+        AtomicReference<Integer> i = new AtomicReference<>(1);
+        List<String > copyList = collection.stream().collect(Collectors.toList());
+        Collections.reverse(copyList);
+        copyList.stream().forEach(s -> {
+            File f = new File(s);
+            sb.append(String.format("%3d. ", i.getAndSet(i.get() + 1)));
+            sb.append(f.getName() + "<br>");
+        });
+        sb.append("</html>");
+        return sb.toString();
+    }
 
     public String popBack (Object current)
     {

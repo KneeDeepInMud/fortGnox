@@ -138,6 +138,8 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
     {
         void handleGpgResult (String out, String err);
 
+        void handleGpgResult (String out, String err, String fileName);
+
         void handleGpgResult (String out, String err, String filename, Object clientData);
     }
 

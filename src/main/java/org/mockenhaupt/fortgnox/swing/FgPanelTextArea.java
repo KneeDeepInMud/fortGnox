@@ -8,6 +8,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -83,6 +84,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     private MainFrame mainFrame;
     private JPanel buttonToolbar;
     private Timer resetMaskButtonTimer;
+    private JLabel labelFileName = new JLabel();
 
 
     private static final List<String> DEFAULT_MASK_PATTERNS = new ArrayList(Arrays.asList(
@@ -424,18 +426,35 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         init();
     }
 
+    private void setLabelFileName (String fileName)
+    {
+        if (fileName == null || fileName.isEmpty())
+        {
+            labelFileName.setVisible(false);
+        }
+        else
+        {
+            labelFileName.setText(fileName);
+            labelFileName.setVisible(true);
+        }
 
+    }
     private void init ()
     {
         FgPreferences.get().addPropertyChangeListener(this);
         loadPreferences();
 
+        JPanel textAndHeaderPanel = new JPanel(new BorderLayout());
+        textAndHeaderPanel.add(labelFileName, BorderLayout.NORTH);
+
         scrollPaneTextArea = new JScrollPane();
         scrollPaneTextArea.setViewportView(textPane);
         scrollPaneTextArea.getVerticalScrollBar().setUnitIncrement(14);
 
+        textAndHeaderPanel.add(scrollPaneTextArea, BorderLayout.CENTER);
+
         JPanel searchAndTextPanel = new JPanel(new BorderLayout());
-        searchAndTextPanel.add(scrollPaneTextArea, BorderLayout.CENTER);
+        searchAndTextPanel.add(textAndHeaderPanel, BorderLayout.CENTER);
         fgTextFilter = new FgTextFilter(this);
         searchAndTextPanel.add(fgTextFilter, BorderLayout.NORTH);
         fgTextFilter.addKeyListener(new SearchKeyAdapter(mainFrame) {});
@@ -1199,8 +1218,14 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
     public void setText (String text, String err)
     {
+        setText(text, err, "");
+    }
+
+    public void setText (String text, String err, String fileName)
+    {
         if (text != null)
         {
+            setLabelFileName(fileName);
             this.plainText = text;
             updateText();
         }

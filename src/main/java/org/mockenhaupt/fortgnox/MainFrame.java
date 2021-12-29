@@ -38,6 +38,7 @@ import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.ToolTipManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.BorderLayout;
@@ -1189,10 +1190,16 @@ public class MainFrame extends JFrame implements
         this.labelSecretInfo.setVisible(text != null && !text.isEmpty());
     }
 
-
+    @Override
     public void handleGpgResult (String out, String err)
     {
-        fgPanelTextArea.setText(out, err);
+        handleGpgResult(out, err, "");
+    }
+
+    public void handleGpgResult (String out, String err, String fileName)
+    {
+        File fName = new File(fileName);
+        fgPanelTextArea.setText(out, err, fName.getName());
         startTimer();
         SwingUtilities.invokeLater(() -> fgPanelTextArea.requestFocus());
     }
@@ -1228,7 +1235,7 @@ public class MainFrame extends JFrame implements
                 setEditMode(false);
             }
         }
-        handleGpgResult(out, err);
+        handleGpgResult(out, err, filename);
     }
 
     private void setEditMode (boolean editMode)
@@ -1350,6 +1357,7 @@ public class MainFrame extends JFrame implements
      */
     private void initComponents ()
     {
+        //        ToolTipManager.sharedInstance().setInitialDelay(100);
 
         jSplitPaneLR = new JSplitPane();
         JPanel panelList = new JPanel();
