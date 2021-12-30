@@ -22,7 +22,7 @@ public class JClipboardButton extends JButton
             @Override
             public void actionPerformed (ActionEvent actionEvent)
             {
-                MainFrame.toClipboard(clipboardText, "passwurd number " + JClipboardButton.this.getText(), true);
+                MainFrame.toClipboard(clipboardText, "password number " + JClipboardButton.this.getText(), true);
             }
         });
     }

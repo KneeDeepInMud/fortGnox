@@ -7,6 +7,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EmptyStackException;
 import java.util.LinkedHashSet;
@@ -70,6 +71,7 @@ public class History implements PropertyChangeListener
             }
         }
         this.backward.push(fileName);
+        deduplicate(backward);
         handleHistoryChange();
     }
 
@@ -81,17 +83,27 @@ public class History implements PropertyChangeListener
 
     private void limitHistorySize ()
     {
-        // deduplicate
-        // convert Vector to a LinkedHashSet object.
-        LinkedHashSet<String> dupSet
-                = new LinkedHashSet<>(backward);
-        backward.clear();
-        backward.addAll(dupSet);
-
         while (backward.size() > MAX_SIZE)
         {
             backward.removeElementAt(0);
         }
+    }
+
+    private <E> void deduplicate (Collection<E> aCollection)
+    {
+        reverse(aCollection);
+        LinkedHashSet<E> dupSet = new LinkedHashSet<>(aCollection);
+        aCollection.clear();
+        aCollection.addAll(dupSet);
+        reverse(aCollection);
+    }
+
+    private <E> void reverse (Collection<E> aCollection)
+    {
+        List<E> copyList = aCollection.stream().collect(Collectors.toList());
+        Collections.reverse(copyList);
+        aCollection.clear();
+        aCollection.addAll(copyList);
     }
 
     private void handleSensitivity ()
@@ -99,18 +111,16 @@ public class History implements PropertyChangeListener
         backwardComp.setEnabled(false);
         backwardComp.setEnabled(!backward.empty());
         forwardComp.setEnabled(!forward.empty());
-        if (!forward.isEmpty())
-        {
-            forwardComp.setToolTipText(getToolTip(forward));
-        }
-        if (!backward.isEmpty())
-        {
-            backwardComp.setToolTipText(getToolTip(backward));
-        }
+        forwardComp.setToolTipText(getToolTip(forward));
+        backwardComp.setToolTipText(getToolTip(backward));
     }
 
     private String getToolTip (Stack<String> collection)
     {
+        if (collection == null || collection.isEmpty())
+        {
+            return "no entries";
+        }
         StringBuilder sb = new StringBuilder();
         sb.append("<html>");
         AtomicReference<Integer> i = new AtomicReference<>(1);
@@ -145,6 +155,7 @@ public class History implements PropertyChangeListener
                 if (current instanceof String)
                 {
                     forward.push((String)current);
+                    deduplicate(forward);
                 }
             }
             else
@@ -153,6 +164,7 @@ public class History implements PropertyChangeListener
                 if (current instanceof String)
                 {
                     backward.push((String)current);
+                    deduplicate(backward);
                 }
             }
             handleSensitivity();
