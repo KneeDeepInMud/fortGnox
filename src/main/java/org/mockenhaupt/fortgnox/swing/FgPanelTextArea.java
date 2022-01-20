@@ -304,30 +304,34 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                         }
                         else
                         {
-                            JPopupMenu popupMenu = new JPopupMenu();
-                            JMenuItem miCopy = new JMenuItem("Copy URL to Clipboard");
-                            miCopy.addActionListener(a -> copyToClipboard(e));
-                            JMenuItem miOpen = new JMenuItem("Open URL in Browser");
-                            miOpen.addActionListener(a ->
-                            {
-                                try
-                                {
-                                    openUrlLink(e);
-                                }
-                                catch (URISyntaxException uriSyntaxException)
-                                {
-                                    uriSyntaxException.printStackTrace();
-                                }
-                                catch (IOException ioException)
-                                {
-                                    ioException.printStackTrace();
-                                }
-                            });
-                            popupMenu.add(miOpen);
-                            popupMenu.add(miCopy);
-                            Point pointer = MouseInfo.getPointerInfo().getLocation();
-                            SwingUtilities.convertPointFromScreen(pointer, textPane);
-                            popupMenu.show(textPane, pointer.x, pointer.y);
+                            copyToClipboard(e);
+//                            String text = e.getDescription().trim();
+//                            MainFrame.toClipboard(text, "\"" + text + "\"", false);
+//
+//                            JPopupMenu popupMenu = new JPopupMenu();
+//                            JMenuItem miCopy = new JMenuItem("Copy URL to Clipboard");
+//                            miCopy.addActionListener(a -> copyToClipboard(e));
+//                            JMenuItem miOpen = new JMenuItem("Open URL in Browser");
+//                            miOpen.addActionListener(a ->
+//                            {
+//                                try
+//                                {
+//                                    openUrlLink(e);
+//                                }
+//                                catch (URISyntaxException uriSyntaxException)
+//                                {
+//                                    uriSyntaxException.printStackTrace();
+//                                }
+//                                catch (IOException ioException)
+//                                {
+//                                    ioException.printStackTrace();
+//                                }
+//                            });
+//                            popupMenu.add(miOpen);
+//                            popupMenu.add(miCopy);
+//                            Point pointer = MouseInfo.getPointerInfo().getLocation();
+//                            SwingUtilities.convertPointFromScreen(pointer, textPane);
+//                            popupMenu.show(textPane, pointer.x, pointer.y);
                         }
                     }
                     else
@@ -507,8 +511,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                 setCompressBlankLines(selected);
                 setMaskFirstLine(selected);
                 setDetectUrls(selected);
-                openUrlButton.setEnabled(isDetectUrls());
-
+                openUrlButton.setVisible(isDetectUrls());
                 updateText();
             }
         });
@@ -528,7 +531,11 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         compressBlankLinesButton.setSelected(prefCompressBlankLines);
 
         // ---------------------------------------------------------------------
-        openUrlButton = new JToggleButton(TXT_OPEN_URL);
+        openUrlButton = new JToggleButton();
+        openUrlButton.setPreferredSize(new Dimension(30, 30));
+        openUrlButton.setBorderPainted(false);
+        openUrlButton.setIcon(FileUtils.getScaledIcon(this.getClass(), "/org/mockenhaupt/fortgnox/icons8-link-64.png", 24));
+        openUrlButton.setToolTipText("Directly open URLs in browser");
         openUrlButton.addActionListener(new ActionListener()
         {
             @Override
@@ -580,7 +587,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         buttonToolbar.add(maskToggleButton);
         buttonToolbar.add(compressBlankLinesButton);
         buttonToolbar.add(detectUrlsToggleButton);
-        buttonToolbar.add(openUrlButton);
+//        buttonToolbar.add(openUrlButton);
         buttonToolbar.add(checkSelectAll);
 
         Set<Component> jToggleButtonSet = new HashSet<>();
@@ -619,12 +626,14 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         JPanel toolBarPanel = new JPanel(new BorderLayout());
         JToggleButton buttonTbVisible = new JToggleButton();
         buttonTbVisible.setIcon(new ImageIcon(getClass().getResource("/org/mockenhaupt/fortgnox/settings24.png")));
+        buttonTbVisible.setToolTipText("Show extended options for text area");
         buttonTbVisible.addActionListener(a -> buttonToolbar.setVisible(buttonTbVisible.isSelected()));
         buttonTbVisible.setPreferredSize(new Dimension(30, 30));
 
         JPanel miniButtonPanel = new JPanel(new FlowLayout(CENTER, 0, 0));
         miniButtonPanel.setBorder(BorderFactory.createEmptyBorder());
         miniButtonPanel.add(buttonClearTextarea);
+        miniButtonPanel.add(openUrlButton);
         miniButtonPanel.add(buttonTbVisible);
         toolBarPanel.add(miniButtonPanel, BorderLayout.WEST);
         toolBarPanel.add(buttonToolbar, BorderLayout.CENTER);
@@ -747,7 +756,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
     private void updateCheckboxSelectAll ()
     {
-        this.openUrlButton.setEnabled(isDetectUrls());
+        this.openUrlButton.setVisible(isDetectUrls());
         checkSelectAll.setSelected(isMask()
                 && isMaskFirstLine()
                 && isCompressBlankLines()
