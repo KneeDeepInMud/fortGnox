@@ -1198,8 +1198,14 @@ public class MainFrame extends JFrame implements
 
     public void handleGpgResult (String out, String err, String fileName)
     {
-        File fName = new File(fileName);
-        fgPanelTextArea.setText(out, err, fName.getName());
+        String showFilename = fileName;
+        if (fileName != null)
+        {
+            File fName = new File(fileName);
+            showFilename = fName.getName();
+        }
+        fgPanelTextArea.setText(out, err, showFilename);
+
         startTimer();
         SwingUtilities.invokeLater(() -> fgPanelTextArea.requestFocus());
     }
