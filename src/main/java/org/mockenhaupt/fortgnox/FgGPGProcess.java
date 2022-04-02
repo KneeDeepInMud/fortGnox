@@ -5,6 +5,7 @@
 package org.mockenhaupt.fortgnox;
 
 
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.mockenhaupt.fortgnox.misc.DirectoryWatcher;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
 import org.mockenhaupt.fortgnox.misc.IDirectoryWatcherHandler;
@@ -1064,7 +1065,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
 
         final String sepChar = Pattern.quote(File.separator);
         final Pattern bnPattern = Pattern.compile("([^" + sepChar + "]+)" + sepChar + "([^" + sepChar + "]+)$");
-        completeFileMap.entrySet().stream().forEach(stringStringEntry ->
+        completeFileMap.entrySet().forEach(stringStringEntry ->
         {
             Matcher m = bnPattern.matcher(stringStringEntry.getKey());
 
@@ -1144,7 +1145,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
     @Override
     public void handleDirContentChanged (String directory, String entry, WatchEvent.Kind<?> kind)
     {
-        SwingUtilities.invokeLater(() -> rebuildSecretList());
+        SwingUtilities.invokeLater(this::rebuildSecretList);
     }
 
 
