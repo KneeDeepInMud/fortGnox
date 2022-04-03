@@ -9,6 +9,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.mockenhaupt.fortgnox.misc.DirectoryWatcher;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
 import org.mockenhaupt.fortgnox.misc.IDirectoryWatcherHandler;
+import org.mockenhaupt.fortgnox.tags.TagsStore;
 
 import javax.swing.SwingUtilities;
 import java.awt.Toolkit;
@@ -1145,7 +1146,13 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
     @Override
     public void handleDirContentChanged (String directory, String entry, WatchEvent.Kind<?> kind)
     {
-        SwingUtilities.invokeLater(this::rebuildSecretList);
+        if (entry.toLowerCase().endsWith("gpg") || entry.toLowerCase().endsWith("asc"))
+        {
+            SwingUtilities.invokeLater(this::rebuildSecretList);
+        }
+        else if (entry.toLowerCase().endsWith("yml")) {
+            TagsStore.rebuild(getSecretdirs());
+        }
     }
 
 

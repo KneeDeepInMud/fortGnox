@@ -5,11 +5,12 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class TagsStore
 {
 
-    public void read (String  tagsFileName)
+    public static void read (String tagsFileName)
     {
         File tagsFile = new File(tagsFileName);
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
@@ -25,4 +26,7 @@ public class TagsStore
     }
 
 
+    public static void rebuild (List<String> secretdirs)
+    {
+    }
 }
