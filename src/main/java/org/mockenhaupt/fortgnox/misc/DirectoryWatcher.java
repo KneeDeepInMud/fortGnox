@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 import static org.mockenhaupt.fortgnox.DebugWindow.Category.DIR;
 
@@ -38,7 +39,8 @@ public class DirectoryWatcher
             WatchService watcher = FileSystems.getDefault().newWatchService();
             dir.register(watcher,
                     ENTRY_CREATE,
-                    ENTRY_DELETE);
+                    ENTRY_DELETE,
+                    ENTRY_MODIFY);
             startWatcherThread(watcher);
         }
         catch (Exception e)

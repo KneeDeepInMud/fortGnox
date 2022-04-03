@@ -17,6 +17,7 @@ import org.mockenhaupt.fortgnox.swing.FgOptionsDialog;
 import org.mockenhaupt.fortgnox.swing.FgPanelTextArea;
 import org.mockenhaupt.fortgnox.swing.FgTextFilter;
 import org.mockenhaupt.fortgnox.swing.LAFChooser;
+import org.mockenhaupt.fortgnox.tags.TagsStore;
 
 import javax.swing.AbstractListModel;
 import javax.swing.DefaultListCellRenderer;
@@ -1066,6 +1067,10 @@ public class MainFrame extends JFrame implements
         Matcher m = pattern.matcher(fileName);
         if (m.matches())
         {
+            if (TagsStore.matchesTag(fileName, fgTextFilter.getText()))
+            {
+                return true;
+            }
             String baseName = m.group(1);
             String filter = fgTextFilter.getText();
             String name2 = baseName.toLowerCase().replace(".asc", "");
