@@ -11,12 +11,14 @@
 package org.mockenhaupt.fortgnox;
 
 
+import org.apache.commons.io.FilenameUtils;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
 import org.mockenhaupt.fortgnox.misc.History;
 import org.mockenhaupt.fortgnox.swing.FgOptionsDialog;
 import org.mockenhaupt.fortgnox.swing.FgPanelTextArea;
 import org.mockenhaupt.fortgnox.swing.FgTextFilter;
 import org.mockenhaupt.fortgnox.swing.LAFChooser;
+import org.mockenhaupt.fortgnox.tags.TagsStore;
 
 import javax.swing.AbstractListModel;
 import javax.swing.DefaultListCellRenderer;
@@ -102,6 +104,7 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIR_SORTING;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETLIST_FONT_SIZE;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SHOW_TB_BUTTON_TEXT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_FAVORITES;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_SEARCH_TAGS;
 
 /**
  * @author fmoc
@@ -133,6 +136,7 @@ public class MainFrame extends JFrame implements
     private int prefNumberFavorites = 8;
     private int prefFavoritesMinHitCount = 2;
     private boolean prefShowFavoritesCount = false;
+    private boolean prefUseSearchTags = true;
 
     private String[] allSecretFiles = new String[]{""};
     private final List<String> secretListModel = new ArrayList<>();
@@ -287,6 +291,7 @@ public class MainFrame extends JFrame implements
         prefNumberFavorites = preferences.get(PREF_NUMBER_FAVORITES, prefNumberFavorites);
         prefFavoritesMinHitCount = preferences.get(PREF_FAVORITES_MIN_HIT_COUNT, prefFavoritesMinHitCount);
         prefShowFavoritesCount = preferences.get(PREF_FAVORITES_SHOW_COUNT, prefShowFavoritesCount);
+        prefUseSearchTags = preferences.get(PREF_USE_SEARCH_TAGS, prefUseSearchTags);
         prefFilterFavoriteList = preferences.get(PREF_FILTER_FAVORITES, prefFilterFavoriteList);
         prefShowToobarTexts = preferences.get(PREF_SHOW_TB_BUTTON_TEXT, prefShowToobarTexts);
         prefSecretListFontSize = preferences.get(PREF_SECRETLIST_FONT_SIZE, prefSecretListFontSize);
@@ -836,13 +841,45 @@ public class MainFrame extends JFrame implements
         String editEntry = launchedFromEditor ? toDecode : jList.getSelectedValue().toString();
         if (editEntry != null && !editEntry.isEmpty())
         {
-            JMenuItem miEdit = new JMenuItem("Edit " + editEntry);
+            String shortName = FilenameUtils.getBaseName(editEntry);
+            JMenuItem miEdit = new JMenuItem("Edit file \"" + shortName + "\"");
             miEdit.addActionListener(actionEvent ->
             {
                 decrypt(false, editEntry, CLIENTDATA_EDIT);
             });
             popupMenu.add(miEdit);
+
+
+            // Tags menu
+            JMenuItem miTags = new JMenuItem("Tags for \"" + shortName + "\"");
+            miTags.addActionListener(e ->
+            {
+                String newTags = (String) JOptionPane.showInputDialog(
+                        this,
+                        "Add / edit alias search tags for file \"" + shortName + "\"\n"
+                        + "(white space separated list)",
+                        "Tags for " + shortName,
+                        JOptionPane.PLAIN_MESSAGE,
+                        null,
+                        null,
+                        TagsStore.getTagsOfFile(editEntry, true));
+
+                if (newTags != null)
+                {
+                    try
+                    {
+                        TagsStore.saveTagsForFile(editEntry, newTags);
+                    }
+                    catch (IOException ex)
+                    {
+                        handleGpgResult("", "Error saving tags, " + ex.getMessage());
+                    }
+                }
+            });
+            popupMenu.add(miTags);
         }
+
+
         return popupMenu;
     }
 
@@ -1066,6 +1103,10 @@ public class MainFrame extends JFrame implements
         Matcher m = pattern.matcher(fileName);
         if (m.matches())
         {
+            if (prefUseSearchTags && TagsStore.matchesTag(fileName, fgTextFilter.getText()))
+            {
+                return true;
+            }
             String baseName = m.group(1);
             String filter = fgTextFilter.getText();
             String name2 = baseName.toLowerCase().replace(".asc", "");
@@ -1204,7 +1245,7 @@ public class MainFrame extends JFrame implements
             File fName = new File(fileName);
             showFilename = fName.getName();
         }
-        fgPanelTextArea.setText(out, err, showFilename);
+        fgPanelTextArea.setText(out, err, showFilename, fileName);
 
         startTimer();
         SwingUtilities.invokeLater(() -> fgPanelTextArea.requestFocus());
@@ -1873,6 +1914,10 @@ public class MainFrame extends JFrame implements
             case PREF_FAVORITES_SHOW_COUNT:
                 prefShowFavoritesCount = (Boolean) propertyChangeEvent.getNewValue();
                 refreshFavorites();
+                break;
+            case PREF_USE_SEARCH_TAGS:
+                prefUseSearchTags = (Boolean) propertyChangeEvent.getNewValue();
+                refreshSecretList();
                 break;
             case PREF_LOOK_AND_FEEL:
                 LAFChooser.get().set((String) propertyChangeEvent.getNewValue(), INSTANCE);

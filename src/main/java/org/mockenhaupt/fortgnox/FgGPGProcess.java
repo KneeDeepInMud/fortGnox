@@ -8,6 +8,8 @@ package org.mockenhaupt.fortgnox;
 import org.mockenhaupt.fortgnox.misc.DirectoryWatcher;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
 import org.mockenhaupt.fortgnox.misc.IDirectoryWatcherHandler;
+import org.mockenhaupt.fortgnox.tags.TagsFile;
+import org.mockenhaupt.fortgnox.tags.TagsStore;
 
 import javax.swing.SwingUtilities;
 import java.awt.Toolkit;
@@ -998,7 +1000,6 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
             File f = new File(secDir);
             File[] fList = f.listFiles(new FilenameFilter()
             {
-
                 public boolean accept (File dir, String name)
                 {
                     if (!(name.toLowerCase().endsWith(".asc") || name.toLowerCase().endsWith(".gpg")))
@@ -1038,6 +1039,21 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
                 fileMap.put(fList[i].getAbsolutePath(), displayDir);
                 folderToPathKeysMap.computeIfAbsent(dir, d -> new ArrayList<>()).add(fList[i].getAbsolutePath());
             }
+
+
+            String tagsFileName = secDir + File.separator + "fgtags.yml";
+            File tagsFile = new File(tagsFileName);
+            if (tagsFile.exists() && !tagsFile.isDirectory()) {
+                try
+                {
+                    TagsStore.registerTags(new TagsFile(tagsFileName));
+                }
+                catch (Exception ex)
+                {
+                    notifyResultListeners("", ex.toString(), tagsFileName, null);
+                }
+            }
+
         }
 
         int secretsSize = folderToPathKeysMap.entrySet().stream().mapToInt(stringListEntry -> stringListEntry.getValue().size()).sum();
@@ -1064,7 +1080,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
 
         final String sepChar = Pattern.quote(File.separator);
         final Pattern bnPattern = Pattern.compile("([^" + sepChar + "]+)" + sepChar + "([^" + sepChar + "]+)$");
-        completeFileMap.entrySet().stream().forEach(stringStringEntry ->
+        completeFileMap.entrySet().forEach(stringStringEntry ->
         {
             Matcher m = bnPattern.matcher(stringStringEntry.getKey());
 
@@ -1144,7 +1160,10 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
     @Override
     public void handleDirContentChanged (String directory, String entry, WatchEvent.Kind<?> kind)
     {
-        SwingUtilities.invokeLater(() -> rebuildSecretList());
+        if (entry.toLowerCase().endsWith("gpg") || entry.toLowerCase().endsWith("asc") || entry.toLowerCase().endsWith("yml"))
+        {
+            SwingUtilities.invokeLater(this::rebuildSecretList);
+        }
     }
 
 

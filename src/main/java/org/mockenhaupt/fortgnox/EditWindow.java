@@ -457,14 +457,19 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         }
 
 
+        final boolean[] isFirst = {true};
         StringBuilder sb = new StringBuilder();
         br.lines().forEach(s ->
         {
+            if (!isFirst[0])
+            {
+                sb.append('\n');
+            }
             if (s.contains("$FILENAME")){
                 s = s.replaceAll("\\$FILENAME", newFileName);
             }
             sb.append(s);
-            sb.append(System.lineSeparator());
+            isFirst[0] = false;
         }
         );
         return sb.toString();

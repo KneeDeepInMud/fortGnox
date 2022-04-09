@@ -1,0 +1,69 @@
+package org.mockenhaupt.fortgnox.tags;
+
+import org.apache.commons.io.FilenameUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+public class TagsStore
+{
+    static Map<String, TagsFile> tagsForPath = new HashMap<>();
+
+    public static boolean matchesTag (String fileName, String pattern)
+    {
+        String baseName = FilenameUtils.getBaseName(fileName);
+        String dirname = FilenameUtils.getFullPathNoEndSeparator(fileName);
+        TagsFile hitFile = tagsForPath.get(dirname);
+        return hitFile != null && hitFile.tagMatchesPattern(baseName, pattern);
+    }
+
+    public static void registerTags (TagsFile tagsFile)
+    {
+        tagsForPath.put(tagsFile.getDirname(), tagsFile);
+    }
+
+    public static String getTagsOfFile (String fileName)
+    {
+        return getTagsOfFile(fileName, false);
+    }
+
+    public static String getTagsOfFile (String fileName, boolean plainList)
+    {
+        if (fileName == null || fileName.isEmpty())
+        {
+            return "";
+        }
+        String dirname = FilenameUtils.getFullPathNoEndSeparator(fileName);
+        TagsFile tagsFile = tagsForPath.get(dirname);
+        String retVal = "";
+        if (tagsFile != null)
+        {
+            String baseName = FilenameUtils.getBaseName(fileName);
+            Set<String> tagsOfFile = tagsFile.getTags(baseName);
+            if (tagsOfFile != null)
+            {
+                String tagList = String.join(" ", tagsFile.getTags(baseName));
+                if (plainList)
+                {
+                    retVal = tagList == null || tagList.isEmpty() ? "" : tagList;
+                }
+                else
+                {
+                    retVal = tagList == null || tagList.isEmpty() ? "" : " (" + tagList + ")";
+                }
+            }
+        }
+        return retVal;
+    }
+
+    public static void saveTagsForFile (String editEntry, String newTags) throws IOException
+    {
+        String tagsFileName = FilenameUtils.getFullPathNoEndSeparator(editEntry) + File.separator + "fgtags.yml";
+        TagsFile tagsFile = new TagsFile(tagsFileName, true);
+        tagsFile.saveTags(editEntry, newTags);
+    }
+}
