@@ -1,29 +1,26 @@
 package org.mockenhaupt.fortgnox.tags;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class TagsStore
 {
-
-
-
+    static Map<String, TagsFile> tagsForPath = new HashMap<>();
 
     public static boolean matchesTag (String fileName, String pattern)
     {
         String baseName = FilenameUtils.getBaseName(fileName);
-        String dirname = FilenameUtils.getPathNoEndSeparator(fileName);
-        return false;
+        String dirname = FilenameUtils.getFullPathNoEndSeparator(fileName);
+        TagsFile hitFile = tagsForPath.get(dirname);
+        return hitFile != null && hitFile.tagMatchesPattern(baseName, pattern);
     }
 
-    public static void add (TagsFile tagsFile)
+    public static void registerTags (TagsFile tagsFile)
     {
-
+        tagsForPath.put(tagsFile.getDirname(), tagsFile);
     }
 }

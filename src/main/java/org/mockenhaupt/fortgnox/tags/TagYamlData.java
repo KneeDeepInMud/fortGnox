@@ -12,8 +12,8 @@ public class TagYamlData
         return tags;
     }
 
-    public void setTags (Map<String, Set<String>> tags)
+    public void setTags (Map<String, Set<String>> _tags)
     {
-        this.tags = tags;
+        this.tags = _tags;
     }
 }

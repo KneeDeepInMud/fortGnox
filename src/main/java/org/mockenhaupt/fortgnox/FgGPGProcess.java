@@ -5,7 +5,6 @@
 package org.mockenhaupt.fortgnox;
 
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.mockenhaupt.fortgnox.misc.DirectoryWatcher;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
 import org.mockenhaupt.fortgnox.misc.IDirectoryWatcherHandler;
@@ -1047,7 +1046,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
             if (tagsFile.exists() && !tagsFile.isDirectory()) {
                 try
                 {
-                    TagsStore.add(new TagsFile(tagsFileName));
+                    TagsStore.registerTags(new TagsFile(tagsFileName));
                 }
                 catch (Exception ex)
                 {

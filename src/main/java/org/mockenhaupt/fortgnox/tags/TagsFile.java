@@ -10,9 +10,10 @@ import java.util.Set;
 
 public class TagsFile
 {
-    String fileName;
-    String baseName;
-    String dirname;
+    private final String fileName;
+    private final String baseName;
+    private final String dirname;
+    private TagYamlData yamlData;
 
     public TagsFile (String fileName) throws IOException
     {
@@ -42,13 +43,26 @@ public class TagsFile
         File tagsFile = new File(tagsFileName);
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
-
-        TagYamlData o = mapper.readValue(tagsFile, TagYamlData.class);
-        System.err.println(o);
-
+        yamlData = mapper.readValue(tagsFile, TagYamlData.class);
     }
     public Set<String> getTags (String passwordFileName)
     {
-        return null;
+        return yamlData.tags.get(passwordFileName);
+    }
+
+
+    public boolean hasTagsFor (String baseName)
+    {
+        if (yamlData != null)
+        {
+            return yamlData.tags.get(baseName) != null;
+        }
+        return false;
+    }
+
+    public boolean tagMatchesPattern (String baseName, String pattern)
+    {
+        Set<String> tagsForFile = getTags(baseName);
+        return tagsForFile != null && tagsForFile.stream().anyMatch(tag -> tag.toLowerCase().contains(pattern));
     }
 }
