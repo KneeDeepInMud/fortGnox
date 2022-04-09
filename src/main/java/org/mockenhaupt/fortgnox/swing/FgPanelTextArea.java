@@ -3,6 +3,7 @@ package org.mockenhaupt.fortgnox.swing;
 import org.mockenhaupt.fortgnox.FgPreferences;
 import org.mockenhaupt.fortgnox.MainFrame;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
+import org.mockenhaupt.fortgnox.tags.TagsStore;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -1230,11 +1231,16 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         setText(text, err, "");
     }
 
-    public void setText (String text, String err, String fileName)
+
+    public void setText (String text, String err, String shortFileName)
+    {
+        setText(text, err, shortFileName, null);
+    }
+    public void setText (String text, String err, String shortFileName, String fullFileName)
     {
         if (text != null)
         {
-            setLabelFileName(fileName);
+            setLabelFileName(shortFileName + TagsStore.getTagsOfFile(fullFileName));
             this.plainText = text;
             updateText();
         }

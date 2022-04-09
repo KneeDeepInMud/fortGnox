@@ -1209,7 +1209,7 @@ public class MainFrame extends JFrame implements
             File fName = new File(fileName);
             showFilename = fName.getName();
         }
-        fgPanelTextArea.setText(out, err, showFilename);
+        fgPanelTextArea.setText(out, err, showFilename, fileName);
 
         startTimer();
         SwingUtilities.invokeLater(() -> fgPanelTextArea.requestFocus());

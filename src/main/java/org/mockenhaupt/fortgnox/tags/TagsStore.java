@@ -23,4 +23,25 @@ public class TagsStore
     {
         tagsForPath.put(tagsFile.getDirname(), tagsFile);
     }
+
+    public static String getTagsOfFile (String fileName)
+    {
+        if (fileName == null || fileName.isEmpty())
+        {
+            return "";
+        }
+        String dirname = FilenameUtils.getFullPathNoEndSeparator(fileName);
+        TagsFile tagsFile = tagsForPath.get(dirname);
+        String retVal = "";
+        if (tagsFile != null)
+        {
+            String baseName = FilenameUtils.getBaseName(fileName);
+            String tagList = String.join(", ", tagsFile.getTags(baseName));
+            if (tagList != null && !tagList.isEmpty())
+            {
+                retVal = " (" + tagList + ")";
+            }
+        }
+        return retVal;
+    }
 }
