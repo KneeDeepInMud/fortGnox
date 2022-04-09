@@ -82,6 +82,7 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USERNAME_MASK_PATTERNS
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_FAVORITES;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_GPG_AGENT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_PASS_DIALOG;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_SEARCH_TAGS;
 
 /**
  *
@@ -109,6 +110,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
     private javax.swing.JCheckBox jCheckBoxGpgUseAsciiFormat;
     private javax.swing.JCheckBox jCheckBoxFilterFavorites;
     private JCheckBoxPersistent jCheckBoxShowFavoritesCount;
+    private JCheckBoxPersistent jCheckBoxUseSearchTags;
     private javax.swing.JCheckBox jCheckBoxShowDebugWindow;
     private javax.swing.JFormattedTextField jFormattedTextPassClearTimeout;
     private javax.swing.JFormattedTextField jFormattedTextareaClearTimeout;
@@ -272,6 +274,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         this.jCheckBoxUseFavorites.setSelected(pa.getBoolean(PREF_USE_FAVORITES));
         this.jCheckBoxFilterFavorites.setSelected(pa.getBoolean(PREF_FILTER_FAVORITES));
         this.jCheckBoxShowFavoritesCount.setSelected(pa.getBoolean(PREF_FAVORITES_SHOW_COUNT));
+        this.jCheckBoxUseSearchTags.setSelected(pa.getBoolean(PREF_USE_SEARCH_TAGS));
         this.jFormattedTextareaClearTimeout.setText(String.format("%d", pa.getInt(PREF_CLEAR_SECONDS)));
         this.jFormattedTextPassClearTimeout.setText(String.format("%d", pa.getInt(PREF_PASSWORD_SECONDS)));
         this.jFormattedTextareaClipTimeout.setText(String.format("%d", pa.getInt(PREF_CLIP_SECONDS)));
@@ -287,7 +290,6 @@ public class FgOptionsDialog extends javax.swing.JDialog
         this.jTexfFieldGpgRIDFile.setText(pa.get(PREF_GPG_RID_FILE, ".gpg-id"));
         this.jTexfFieldGpgDefaultRID.setText(pa.get(PREF_GPG_DEFAULT_RID, ""));
         this.jCheckBoxGpgUseAsciiFormat.setSelected(pa.getBoolean(PREF_GPG_USE_ASCII));
-
 
         this.lookAndFeelInfoJComboBox.setSelectedItem(pa.get(PREF_LOOK_AND_FEEL));
 
@@ -442,6 +444,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         jCheckBoxGpgUseAsciiFormat = new JCheckBoxPersistent(PREF_GPG_USE_ASCII);
         jCheckBoxFilterFavorites = new JCheckBoxPersistent(PREF_FILTER_FAVORITES);
         jCheckBoxShowFavoritesCount = new JCheckBoxPersistent(PREF_FAVORITES_SHOW_COUNT);
+        jCheckBoxUseSearchTags = new JCheckBoxPersistent(PREF_USE_SEARCH_TAGS, true);
         jButtonApply = new javax.swing.JButton();
         jButtonSave = new javax.swing.JButton();
         jButtonClose = new javax.swing.JButton();
@@ -522,6 +525,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         jCheckBoxUseFavorites.setText("Show list of favorites");
         jCheckBoxFilterFavorites.setText("Filter favorites in addition to passwords");
         jCheckBoxShowFavoritesCount.setText("Show count of individual favorite");
+        jCheckBoxUseSearchTags.setText("Use additional search tags when filtering list of passwords");
 
         // show/hide debug window
         DebugWindow.get().addPropertyChangeListener(new PropertyChangeListener()
@@ -547,7 +551,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
 
         gl.setAutoCreateGaps(true);
         gl.setAutoCreateContainerGaps(true);
-
+        JLabel dummyLabel = new JLabel("");
         gl.setHorizontalGroup(
                 gl.createParallelGroup()
                         .addGroup(
@@ -571,6 +575,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                                                 .addComponent(jCheckboxReloadAgent)
                                                 .addComponent(jCheckBoxUseFavorites)
                                                 .addComponent(jCheckBoxShowFavoritesCount)
+                                                .addComponent(jCheckBoxUseSearchTags)
                                         )
                                         .addGroup(gl.createParallelGroup()
                                                 .addComponent(jTexfFieldBrowserOpen)
@@ -591,6 +596,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                                                 .addComponent(jCheckboxMastFirstLine)
                                                 .addComponent(jCheckBoxFilterFavorites)
                                                 .addComponent(jCheckBoxShowTbButtonText)
+                                                .addComponent(dummyLabel)
                                         )
                         )
         );
@@ -615,6 +621,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                         .addGroup(gl.createParallelGroup().addComponent(jCheckboxReloadAgent).addComponent(jCheckboxMastFirstLine))
                         .addGroup(gl.createParallelGroup().addComponent(jCheckBoxUseFavorites).addComponent(jCheckBoxFilterFavorites))
                         .addGroup(gl.createParallelGroup().addComponent(jCheckBoxShowFavoritesCount).addComponent(jCheckBoxShowTbButtonText))
+                        .addGroup(gl.createParallelGroup().addComponent(jCheckBoxUseSearchTags).addComponent(dummyLabel))
         );
 
 
@@ -789,6 +796,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         FgPreferences.get().put(PREF_USE_FAVORITES, jCheckBoxUseFavorites.isSelected());
         FgPreferences.get().put(PREF_FILTER_FAVORITES, jCheckBoxFilterFavorites.isSelected());
         FgPreferences.get().put(PREF_FAVORITES_SHOW_COUNT, jCheckBoxShowFavoritesCount.isSelected());
+        FgPreferences.get().put(PREF_USE_SEARCH_TAGS, jCheckBoxUseSearchTags.isSelected());
         FgPreferences.get().put(PREF_CHARSET, comboBoxCharset.getSelectedItem());
         FgPreferences.get().put(PREF_GPG_RID_FILE, jTexfFieldGpgRIDFile.getText());
         FgPreferences.get().put(PREF_GPG_DEFAULT_RID, jTexfFieldGpgDefaultRID.getText());
