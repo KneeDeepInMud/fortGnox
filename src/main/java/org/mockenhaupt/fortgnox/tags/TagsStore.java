@@ -2,6 +2,8 @@ package org.mockenhaupt.fortgnox.tags;
 
 import org.apache.commons.io.FilenameUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -26,6 +28,11 @@ public class TagsStore
 
     public static String getTagsOfFile (String fileName)
     {
+        return getTagsOfFile(fileName, false);
+    }
+
+    public static String getTagsOfFile (String fileName, boolean plainList)
+    {
         if (fileName == null || fileName.isEmpty())
         {
             return "";
@@ -36,12 +43,27 @@ public class TagsStore
         if (tagsFile != null)
         {
             String baseName = FilenameUtils.getBaseName(fileName);
-            String tagList = String.join(", ", tagsFile.getTags(baseName));
-            if (tagList != null && !tagList.isEmpty())
+            Set<String> tagsOfFile = tagsFile.getTags(baseName);
+            if (tagsOfFile != null)
             {
-                retVal = " (" + tagList + ")";
+                String tagList = String.join(" ", tagsFile.getTags(baseName));
+                if (plainList)
+                {
+                    retVal = tagList == null || tagList.isEmpty() ? "" : tagList;
+                }
+                else
+                {
+                    retVal = tagList == null || tagList.isEmpty() ? "" : " (" + tagList + ")";
+                }
             }
         }
         return retVal;
+    }
+
+    public static void saveTagsForFile (String editEntry, String newTags) throws IOException
+    {
+        String tagsFileName = FilenameUtils.getFullPathNoEndSeparator(editEntry) + File.separator + "fgtags.yml";
+        TagsFile tagsFile = new TagsFile(tagsFileName, true);
+        tagsFile.saveTags(editEntry, newTags);
     }
 }

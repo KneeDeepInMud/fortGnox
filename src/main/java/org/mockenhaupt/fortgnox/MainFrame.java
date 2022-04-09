@@ -11,6 +11,7 @@
 package org.mockenhaupt.fortgnox;
 
 
+import org.apache.commons.io.FilenameUtils;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
 import org.mockenhaupt.fortgnox.misc.History;
 import org.mockenhaupt.fortgnox.swing.FgOptionsDialog;
@@ -837,13 +838,45 @@ public class MainFrame extends JFrame implements
         String editEntry = launchedFromEditor ? toDecode : jList.getSelectedValue().toString();
         if (editEntry != null && !editEntry.isEmpty())
         {
-            JMenuItem miEdit = new JMenuItem("Edit " + editEntry);
+            String shortName = FilenameUtils.getBaseName(editEntry);
+            JMenuItem miEdit = new JMenuItem("Edit file \"" + shortName + "\"");
             miEdit.addActionListener(actionEvent ->
             {
                 decrypt(false, editEntry, CLIENTDATA_EDIT);
             });
             popupMenu.add(miEdit);
+
+
+            // Tags menu
+            JMenuItem miTags = new JMenuItem("Tags for \"" + shortName + "\"");
+            miTags.addActionListener(e ->
+            {
+                String newTags = (String) JOptionPane.showInputDialog(
+                        this,
+                        "Add / edit alias search tags for file \"" + shortName + "\"\n"
+                        + "(white space separated list)",
+                        "Tags for " + shortName,
+                        JOptionPane.PLAIN_MESSAGE,
+                        null,
+                        null,
+                        TagsStore.getTagsOfFile(editEntry, true));
+
+                if (newTags != null)
+                {
+                    try
+                    {
+                        TagsStore.saveTagsForFile(editEntry, newTags);
+                    }
+                    catch (IOException ex)
+                    {
+                        handleGpgResult("", "Error saving tags, " + ex.getMessage());
+                    }
+                }
+            });
+            popupMenu.add(miTags);
         }
+
+
         return popupMenu;
     }
 
