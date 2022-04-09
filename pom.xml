@@ -14,35 +14,30 @@
         <dependency>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-jar-plugin</artifactId>
-            <version>3.0.2</version>
+            <version>3.2.2</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.6.0</version>
+            <version>5.8.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>2.8.5</version>
+            <version>2.13.2</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.9.8</version>
+            <version>2.13.2.2</version>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>com.fasterxml.jackson.core</groupId>-->
-        <!--            <artifactId>jackson-databind</artifactId>-->
-        <!--            <version>2.9.8</version>-->
-        <!--        </dependency>-->
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -100,53 +95,52 @@
             </plugin>
 
             <!-- ======================================================================  -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-jar-plugin</artifactId>-->
+<!--                <version>3.2.0</version>-->
 
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addDefaultImplementationEntries>false</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>false</addDefaultSpecificationEntries>
-                            <addClasspath>false</addClasspath>
-                            <mainClass>org.mockenhaupt.fortgnox.MainFrame</mainClass>
-                        </manifest>
-                        <manifestEntries>
-                            <implementation-version>${project.version}</implementation-version>
-                            <implementation-build>${buildNumber}</implementation-build>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
+<!--                <configuration>-->
+<!--                    <archive>-->
+<!--                        <manifest>-->
+<!--                            <addDefaultImplementationEntries>false</addDefaultImplementationEntries>-->
+<!--                            <addDefaultSpecificationEntries>false</addDefaultSpecificationEntries>-->
+<!--                            <addClasspath>false</addClasspath>-->
+<!--                            <mainClass>org.mockenhaupt.fortgnox.MainFrame</mainClass>-->
+<!--                        </manifest>-->
+<!--                        <manifestEntries>-->
+<!--                            <implementation-version>${project.version}</implementation-version>-->
+<!--                            <implementation-build>${buildNumber}</implementation-build>-->
+<!--                        </manifestEntries>-->
+<!--                    </archive>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
 
 
             <!-- ======================================================================  -->
-            <!--            <plugin>
-                            <groupId>org.apache.maven.plugins</groupId>
-                            <artifactId>maven-assembly-plugin</artifactId>
-                            <executions>
-                                <execution>
-                                    <phase>package</phase>
-                                    <goals>
-                                        <goal>single</goal>
-                                    </goals>
-                                    <configuration>
-                                        <archive>
-                                            <manifest>
-                                                <mainClass>org.mockenhaupt.fortgnoxgnox.MainFrame</mainClass>
-                                            </manifest>
-                                        </archive>
-                                        <descriptorRefs>
-                                            <descriptorRef>jar-with-dependencies</descriptorRef>
-                                        </descriptorRefs>
-                                        <appendAssemblyId>false</appendAssemblyId>
-                                    </configuration>
-                                </execution>
-                            </executions>
-                        </plugin>
-            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>org.mockenhaupt.fortgnox.MainFrame</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
 
             <!-- ======================================================================  -->
