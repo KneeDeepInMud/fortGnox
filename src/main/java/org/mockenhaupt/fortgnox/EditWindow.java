@@ -38,24 +38,27 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.MouseInfo;
 import java.awt.Point;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.OK_OPTION;
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_ADD_CHANGED_DATE_TIME;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_DEFAULT_RID;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_POST_COMMAND;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_USE_ASCII;
@@ -657,7 +660,46 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         }
 
         this.recipientId = rid;
-        fgGPGProcess.encrypt(textFieldFilename.getText(), textArea.getText(), rid, EditWindow.this);
+        String textToEncrypt = insertChangeTag( textArea.getText());
+        fgGPGProcess.encrypt(textFieldFilename.getText(), textToEncrypt, rid, EditWindow.this);
+    }
+
+
+    static Pattern changedPattern = Pattern.compile("^(.*)(\\$Changed:.*\\$)(.*)$", Pattern.DOTALL);
+    static Pattern inChangePattern = Pattern.compile("^\\$Changed:(.*)\\$$", Pattern.DOTALL);
+    protected static String insertChangeTag (String text)
+    {
+        Matcher m = changedPattern.matcher(text);
+        ZonedDateTime now = ZonedDateTime.now();
+//        String nowString = DateTimeFormatter.ofPattern("dd-MM-yyyy - hh:mm").format(now);
+        String nowString = now.toString();
+
+        if (m.matches() && m.groupCount() == 3)
+        {
+            // Found existing Changed mark in the file, update it in any case
+            String changedString = m.group(2);
+            Matcher minner = inChangePattern.matcher(changedString);
+            if (minner.matches())
+            {
+                String newText = m.group(1) + "$Changed: " + nowString + "$" +  m.group(3);
+                System.out.println("newText = " + newText);
+                return newText;
+            }
+            return text;
+        }
+        else
+        {
+            // No Changed mark yet in the file, add one on editing?
+            if (FgPreferences.get().getBoolean(PREF_ADD_CHANGED_DATE_TIME))
+            {
+                return text + "\n" + "$Changed: " + nowString + "$";
+            }
+            else
+            {
+                return text;
+            }
+        }
+
     }
 
     @Override

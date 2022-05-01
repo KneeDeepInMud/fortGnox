@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_ADD_CHANGED_DATE_TIME;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CHARSET;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CLEAR_SECONDS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CLIP_SECONDS;
@@ -111,6 +112,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
     private javax.swing.JCheckBox jCheckBoxFilterFavorites;
     private JCheckBoxPersistent jCheckBoxShowFavoritesCount;
     private JCheckBoxPersistent jCheckBoxUseSearchTags;
+    private JCheckBoxPersistent jCheckBoxAddChangedDateTime;
     private javax.swing.JCheckBox jCheckBoxShowDebugWindow;
     private javax.swing.JFormattedTextField jFormattedTextPassClearTimeout;
     private javax.swing.JFormattedTextField jFormattedTextareaClearTimeout;
@@ -275,6 +277,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         this.jCheckBoxFilterFavorites.setSelected(pa.getBoolean(PREF_FILTER_FAVORITES));
         this.jCheckBoxShowFavoritesCount.setSelected(pa.getBoolean(PREF_FAVORITES_SHOW_COUNT));
         this.jCheckBoxUseSearchTags.setSelected(pa.getBoolean(PREF_USE_SEARCH_TAGS));
+        this.jCheckBoxAddChangedDateTime.setSelected(pa.getBoolean(PREF_ADD_CHANGED_DATE_TIME));
         this.jFormattedTextareaClearTimeout.setText(String.format("%d", pa.getInt(PREF_CLEAR_SECONDS)));
         this.jFormattedTextPassClearTimeout.setText(String.format("%d", pa.getInt(PREF_PASSWORD_SECONDS)));
         this.jFormattedTextareaClipTimeout.setText(String.format("%d", pa.getInt(PREF_CLIP_SECONDS)));
@@ -445,6 +448,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         jCheckBoxFilterFavorites = new JCheckBoxPersistent(PREF_FILTER_FAVORITES);
         jCheckBoxShowFavoritesCount = new JCheckBoxPersistent(PREF_FAVORITES_SHOW_COUNT);
         jCheckBoxUseSearchTags = new JCheckBoxPersistent(PREF_USE_SEARCH_TAGS, true);
+        jCheckBoxAddChangedDateTime = new JCheckBoxPersistent(PREF_ADD_CHANGED_DATE_TIME, false);
         jButtonApply = new javax.swing.JButton();
         jButtonSave = new javax.swing.JButton();
         jButtonClose = new javax.swing.JButton();
@@ -526,6 +530,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         jCheckBoxFilterFavorites.setText("Filter favorites in addition to passwords");
         jCheckBoxShowFavoritesCount.setText("Show count of individual favorite");
         jCheckBoxUseSearchTags.setText("Use additional search tags when filtering list of passwords");
+        jCheckBoxAddChangedDateTime.setText("Add changed mark to each edited file");
 
         // show/hide debug window
         DebugWindow.get().addPropertyChangeListener(new PropertyChangeListener()
@@ -596,7 +601,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                                                 .addComponent(jCheckboxMastFirstLine)
                                                 .addComponent(jCheckBoxFilterFavorites)
                                                 .addComponent(jCheckBoxShowTbButtonText)
-                                                .addComponent(dummyLabel)
+                                                .addComponent(jCheckBoxAddChangedDateTime)
                                         )
                         )
         );
@@ -621,7 +626,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                         .addGroup(gl.createParallelGroup().addComponent(jCheckboxReloadAgent).addComponent(jCheckboxMastFirstLine))
                         .addGroup(gl.createParallelGroup().addComponent(jCheckBoxUseFavorites).addComponent(jCheckBoxFilterFavorites))
                         .addGroup(gl.createParallelGroup().addComponent(jCheckBoxShowFavoritesCount).addComponent(jCheckBoxShowTbButtonText))
-                        .addGroup(gl.createParallelGroup().addComponent(jCheckBoxUseSearchTags).addComponent(dummyLabel))
+                        .addGroup(gl.createParallelGroup().addComponent(jCheckBoxUseSearchTags).addComponent(jCheckBoxAddChangedDateTime))
         );
 
 
@@ -791,6 +796,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         FgPreferences.get().put(FgPreferences.PREF_USE_PASS_DIALOG, jCheckBoxUsePassDialog.isSelected());
         FgPreferences.get().put(PREF_SHOW_PASSWORD_SHORTCUT_BAR, jCheckBoxPasswordShortcuts.isSelected());
         FgPreferences.get().put(PREF_SHOW_TB_BUTTON_TEXT, jCheckBoxShowTbButtonText.isSelected());
+        FgPreferences.get().put(PREF_ADD_CHANGED_DATE_TIME, jCheckBoxAddChangedDateTime.isSelected());
         FgPreferences.get().put(FgPreferences.PREF_USE_GPG_AGENT, jCheckboxReloadAgent.isSelected());
         FgPreferences.get().put(PREF_MASK_FIRST_LINE, jCheckboxMastFirstLine.isSelected());
         FgPreferences.get().put(PREF_USE_FAVORITES, jCheckBoxUseFavorites.isSelected());
