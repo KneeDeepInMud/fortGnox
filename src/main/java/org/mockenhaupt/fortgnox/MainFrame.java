@@ -922,7 +922,14 @@ public class MainFrame extends JFrame implements
                     }
                     else
                     {
-                        setText(gpgProcess.getShortFileName((String) value, false));
+                        String tags =  TagsStore.getTagsOfFile((String)value);
+                        if (tags != null && !tags.isEmpty()) {
+                            tags  = " " + tags ;
+                        } else
+                        {
+                            tags = new String();
+                        }
+                        setText(gpgProcess.getShortFileName((String) value, false) + tags);
                     }
                 }
                 else if (value instanceof JSeparator)
