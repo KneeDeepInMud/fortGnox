@@ -46,14 +46,15 @@ public class TagsStore
             Set<String> tagsOfFile = tagsFile.getTags(baseName);
             if (tagsOfFile != null)
             {
-                String tagList = String.join(" ", tagsFile.getTags(baseName));
                 if (plainList)
                 {
-                    retVal = tagList == null || tagList.isEmpty() ? "" : tagList;
+                    String tagList = String.join(" ", tagsFile.getTags(baseName));
+                    retVal = tagList.isEmpty() ? "" : tagList;
                 }
                 else
                 {
-                    retVal = tagList == null || tagList.isEmpty() ? "" : " (" + tagList + ")";
+                    String tagList = String.join(", ", tagsFile.getTags(baseName));
+                    retVal = tagList.isEmpty() ? "" : " (" + tagList + ")";
                 }
             }
         }

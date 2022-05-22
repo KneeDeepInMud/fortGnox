@@ -102,6 +102,7 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_PASSWORD_SECONDS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIRS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIR_SORTING;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETLIST_FONT_SIZE;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SHOW_SEARCH_TAGS;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SHOW_TB_BUTTON_TEXT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_FAVORITES;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_SEARCH_TAGS;
@@ -137,6 +138,8 @@ public class MainFrame extends JFrame implements
     private int prefFavoritesMinHitCount = 2;
     private boolean prefShowFavoritesCount = false;
     private boolean prefUseSearchTags = true;
+
+    private boolean prefShowSearchTags = true;
 
     private String[] allSecretFiles = new String[]{""};
     private final List<String> secretListModel = new ArrayList<>();
@@ -292,6 +295,7 @@ public class MainFrame extends JFrame implements
         prefFavoritesMinHitCount = preferences.get(PREF_FAVORITES_MIN_HIT_COUNT, prefFavoritesMinHitCount);
         prefShowFavoritesCount = preferences.get(PREF_FAVORITES_SHOW_COUNT, prefShowFavoritesCount);
         prefUseSearchTags = preferences.get(PREF_USE_SEARCH_TAGS, prefUseSearchTags);
+        prefShowSearchTags = preferences.get(PREF_SHOW_SEARCH_TAGS, prefShowSearchTags);
         prefFilterFavoriteList = preferences.get(PREF_FILTER_FAVORITES, prefFilterFavoriteList);
         prefShowToobarTexts = preferences.get(PREF_SHOW_TB_BUTTON_TEXT, prefShowToobarTexts);
         prefSecretListFontSize = preferences.get(PREF_SECRETLIST_FONT_SIZE, prefSecretListFontSize);
@@ -851,7 +855,7 @@ public class MainFrame extends JFrame implements
 
 
             // Tags menu
-            JMenuItem miTags = new JMenuItem("Tags for \"" + shortName + "\"");
+            JMenuItem miTags = new JMenuItem("Edit tags for \"" + shortName + "\"");
             miTags.addActionListener(e ->
             {
                 String newTags = (String) JOptionPane.showInputDialog(
@@ -922,12 +926,14 @@ public class MainFrame extends JFrame implements
                     }
                     else
                     {
-                        String tags =  TagsStore.getTagsOfFile((String)value);
-                        if (tags != null && !tags.isEmpty()) {
-                            tags  = " " + tags ;
-                        } else
+                        String tags = "";
+                        if (prefShowSearchTags)
                         {
-                            tags = new String();
+                            tags = TagsStore.getTagsOfFile((String) value);
+                            if (!tags.isEmpty())
+                            {
+                                tags = " " + tags;
+                            }
                         }
                         setText(gpgProcess.getShortFileName((String) value, false) + tags);
                     }
@@ -1466,7 +1472,7 @@ public class MainFrame extends JFrame implements
         jSplitPaneLR.setPreferredSize(new java.awt.Dimension(400, 400));
 
         panelList.setMinimumSize(new java.awt.Dimension(200, 20));
-        panelList.setPreferredSize(new java.awt.Dimension(250, 246));
+        panelList.setPreferredSize(new java.awt.Dimension(300, 246));
         panelList.setLayout(new java.awt.BorderLayout());
 
 
@@ -1924,6 +1930,10 @@ public class MainFrame extends JFrame implements
                 break;
             case PREF_USE_SEARCH_TAGS:
                 prefUseSearchTags = (Boolean) propertyChangeEvent.getNewValue();
+                refreshSecretList();
+                break;
+            case PREF_SHOW_SEARCH_TAGS:
+                prefShowSearchTags = (Boolean) propertyChangeEvent.getNewValue();
                 refreshSecretList();
                 break;
             case PREF_LOOK_AND_FEEL:

@@ -97,7 +97,7 @@ public class TagsFile
         Set<String> stringSet = new HashSet<>();
         if (newTags != null && !newTags.isEmpty())
         {
-            stringSet.addAll(Arrays.asList(newTags.split(" ")));
+            stringSet.addAll(Arrays.asList(newTags.split("\\s+")));
             yamlData.getTags().put(baseName, stringSet);
         }
         else
