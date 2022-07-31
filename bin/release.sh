@@ -7,7 +7,7 @@ sed=sed
   sed=gsed
 }
 
-lasttag=$(git log  --decorate | grep tag: | $sed 's/^.*tag: \([^,(]\+\).*/\1/' | head -1)
+lasttag=$(git log  --decorate | grep tag: | $sed 's/^.*tag: \([^,(]\+\)).*/\1/' | head -1)
 
 # lasttag=$(git tag | tail -1)
 
@@ -28,3 +28,4 @@ bjar=$(basename $jar)
 njar=$(echo $bjar | $sed "s,\(fortgnox-\)\([a-z0-9]\+\)\(.jar\),\1${lasttag}\3,")
 
 cp -v $here/target/$bjar $here/target/$njar
+
