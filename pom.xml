@@ -182,8 +182,9 @@
             <plugin>
                 <groupId>de.perdian.maven.plugins</groupId>
                 <artifactId>macosappbundler-maven-plugin</artifactId>
-                <version>1.18.0</version>
+                <version>1.18.0</version>                
                 <configuration>
+                    <!-- <autoFallback>true</autoFallback> -->
                     <plist>
                         <CFBundleIconFile>resources/fortGnox.icns</CFBundleIconFile>
                         <CFBundleDisplayName>fortGnox</CFBundleDisplayName>
@@ -194,14 +195,16 @@
                         <JVMMainClassName>org.mockenhaupt.fortgnox.MainFrame</JVMMainClassName>
                         <JVMVersion>8+</JVMVersion>
                     </plist>
-                    <dmg>
+                    <!-- Currently, creating a DMG file is causing the mvn build to fail if it was called a second time w/out mvn clean -->
+                    <!-- <dmg>
                         <generate>true</generate>
+                        <useGenIsoImage>true</useGenIsoImage>
                         <additionalResources>
                             <additionalResource>
                                 <directory>src/bundle/macos/distribution</directory>
                             </additionalResource>
                         </additionalResources>
-                    </dmg>
+                    </dmg> -->
                 </configuration>
                 <executions>
                     <execution>
