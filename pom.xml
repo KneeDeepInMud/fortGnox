@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.mockenhaupt</groupId>
     <artifactId>fortgnox</artifactId>
@@ -43,6 +42,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <id>fortgnox</id>
     </properties>
 
     <build>
@@ -95,26 +95,26 @@
             </plugin>
 
             <!-- ======================================================================  -->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-jar-plugin</artifactId>-->
-<!--                <version>3.2.0</version>-->
+            <!--            <plugin>-->
+            <!--                <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                <artifactId>maven-jar-plugin</artifactId>-->
+            <!--                <version>3.2.0</version>-->
 
-<!--                <configuration>-->
-<!--                    <archive>-->
-<!--                        <manifest>-->
-<!--                            <addDefaultImplementationEntries>false</addDefaultImplementationEntries>-->
-<!--                            <addDefaultSpecificationEntries>false</addDefaultSpecificationEntries>-->
-<!--                            <addClasspath>false</addClasspath>-->
-<!--                            <mainClass>org.mockenhaupt.fortgnox.MainFrame</mainClass>-->
-<!--                        </manifest>-->
-<!--                        <manifestEntries>-->
-<!--                            <implementation-version>${project.version}</implementation-version>-->
-<!--                            <implementation-build>${buildNumber}</implementation-build>-->
-<!--                        </manifestEntries>-->
-<!--                    </archive>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
+            <!--                <configuration>-->
+            <!--                    <archive>-->
+            <!--                        <manifest>-->
+            <!--                            <addDefaultImplementationEntries>false</addDefaultImplementationEntries>-->
+            <!--                            <addDefaultSpecificationEntries>false</addDefaultSpecificationEntries>-->
+            <!--                            <addClasspath>false</addClasspath>-->
+            <!--                            <mainClass>org.mockenhaupt.fortgnox.MainFrame</mainClass>-->
+            <!--                        </manifest>-->
+            <!--                        <manifestEntries>-->
+            <!--                            <implementation-version>${project.version}</implementation-version>-->
+            <!--                            <implementation-build>${buildNumber}</implementation-build>-->
+            <!--                        </manifestEntries>-->
+            <!--                    </archive>-->
+            <!--                </configuration>-->
+            <!--            </plugin>-->
 
 
             <!-- ======================================================================  -->
@@ -179,8 +179,42 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.22.2</version>
             </plugin>
-
+            <plugin>
+                <groupId>de.perdian.maven.plugins</groupId>
+                <artifactId>macosappbundler-maven-plugin</artifactId>
+                <version>1.18.0</version>                
+                <configuration>
+                    <!-- <autoFallback>true</autoFallback> -->
+                    <plist>
+                        <CFBundleIconFile>resources/fortGnox.icns</CFBundleIconFile>
+                        <CFBundleDisplayName>fortGnox</CFBundleDisplayName>
+                        <CFBundleDevelopmentRegion>Germany</CFBundleDevelopmentRegion>
+                        <CFBundleURLTypes>
+                            <string>msa</string>
+                        </CFBundleURLTypes>
+                        <JVMMainClassName>org.mockenhaupt.fortgnox.MainFrame</JVMMainClassName>
+                        <JVMVersion>8+</JVMVersion>
+                    </plist>
+                    <!-- Currently, creating a DMG file is causing the mvn build to fail if it was called a second time w/out mvn clean -->
+                    <!-- <dmg>
+                        <generate>true</generate>
+                        <useGenIsoImage>true</useGenIsoImage>
+                        <additionalResources>
+                            <additionalResource>
+                                <directory>src/bundle/macos/distribution</directory>
+                            </additionalResource>
+                        </additionalResources>
+                    </dmg> -->
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>bundle</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-
 </project>
