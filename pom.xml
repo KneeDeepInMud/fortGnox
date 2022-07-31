@@ -180,25 +180,36 @@
                 <version>2.22.2</version>
             </plugin>
             <plugin>
-                <groupId>sh.tak.appbundler</groupId>
-                <artifactId>appbundle-maven-plugin</artifactId>
-                <version>1.2.0</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.codehaus.plexus</groupId>
-                        <artifactId>plexus-archiver</artifactId>
-                        <version>RELEASE</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.apache.velocity</groupId>
-                        <artifactId>velocity-tools</artifactId>
-                        <version>2.0</version>
-                    </dependency>
-                </dependencies>
+                <groupId>de.perdian.maven.plugins</groupId>
+                <artifactId>macosappbundler-maven-plugin</artifactId>
+                <version>1.18.0</version>
                 <configuration>
-                    <mainClass>org.mockenhaupt.fortgnox.MainFrame</mainClass>
-                    <bundleName>FortGnox</bundleName>
-                    <iconFile>resources/fortGnox.icns</iconFile>
+                    <plist>
+                        <CFBundleIconFile>resources/fortGnox.icns</CFBundleIconFile>
+                        <CFBundleDisplayName>fortGnox</CFBundleDisplayName>
+                        <CFBundleDevelopmentRegion>Germany</CFBundleDevelopmentRegion>
+                        <CFBundleURLTypes>
+                            <string>msa</string>
+                        </CFBundleURLTypes>
+                        <JVMMainClassName>org.mockenhaupt.fortgnox.MainFrame</JVMMainClassName>
+                        <JVMVersion>8+</JVMVersion>
+                        <!-- <JVMOptions>
+                            <string>-Dfoo=bar</string>
+                            <string>-Dx=y</string>
+                        </JVMOptions>
+                        <JVMArguments>
+                            <string>-example</string>
+                            <string>${someProperty}</string>
+                        </JVMArguments> -->
+                    </plist>
+                    <dmg>
+                        <generate>true</generate>
+                        <additionalResources>
+                            <additionalResource>
+                                <directory>src/bundle/macos/distribution</directory>
+                            </additionalResource>
+                        </additionalResources>
+                    </dmg>
                 </configuration>
                 <executions>
                     <execution>
@@ -208,8 +219,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>  
+            </plugin>
         </plugins>
     </build>
-
 </project>
