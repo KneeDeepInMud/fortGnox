@@ -193,14 +193,6 @@
                         </CFBundleURLTypes>
                         <JVMMainClassName>org.mockenhaupt.fortgnox.MainFrame</JVMMainClassName>
                         <JVMVersion>8+</JVMVersion>
-                        <!-- <JVMOptions>
-                            <string>-Dfoo=bar</string>
-                            <string>-Dx=y</string>
-                        </JVMOptions>
-                        <JVMArguments>
-                            <string>-example</string>
-                            <string>${someProperty}</string>
-                        </JVMArguments> -->
                     </plist>
                     <dmg>
                         <generate>true</generate>
