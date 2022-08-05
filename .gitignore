@@ -3,3 +3,4 @@ fortgnox.iml
 passwords
 target/
 .vscode/
+.DS_Store
