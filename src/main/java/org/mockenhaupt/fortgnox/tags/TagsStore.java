@@ -23,6 +23,7 @@ public class TagsStore
 
     public static void registerTags (TagsFile tagsFile)
     {
+        System.err.println("XXX registerTags " +  tagsFile.getDirname());
         tagsForPath.put(tagsFile.getDirname(), tagsFile);
     }
 
@@ -33,6 +34,7 @@ public class TagsStore
 
     public static String getTagsOfFile (String fileName, boolean plainList)
     {
+        System.err.println("XXX getTagsOfFile " + fileName);
         if (fileName == null || fileName.isEmpty())
         {
             return "";
@@ -58,12 +60,16 @@ public class TagsStore
                 }
             }
         }
+
+        System.err.println("XXX2 getTagsOfFile " + retVal);
+
         return retVal;
     }
 
     public static void saveTagsForFile (String editEntry, String newTags) throws IOException
     {
         String tagsFileName = FilenameUtils.getFullPathNoEndSeparator(editEntry) + File.separator + "fgtags.yml";
+        System.err.println("XXX saveTagsForFile " + tagsFileName + " - " + newTags);
         TagsFile tagsFile = new TagsFile(tagsFileName, true);
         tagsFile.saveTags(editEntry, newTags);
     }

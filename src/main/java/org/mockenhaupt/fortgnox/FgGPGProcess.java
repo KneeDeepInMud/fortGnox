@@ -1042,10 +1042,12 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
 
 
             String tagsFileName = secDir + File.separator + "fgtags.yml";
+            System.err.println("XXX" + tagsFileName);
             File tagsFile = new File(tagsFileName);
             if (tagsFile.exists() && !tagsFile.isDirectory()) {
                 try
                 {
+                    System.err.println("XXX register " + tagsFileName);
                     TagsStore.registerTags(new TagsFile(tagsFileName));
                 }
                 catch (Exception ex)
@@ -1162,6 +1164,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
     {
         if (entry.toLowerCase().endsWith("gpg") || entry.toLowerCase().endsWith("asc") || entry.toLowerCase().endsWith("yml"))
         {
+            DebugWindow.dbg(DebugWindow.Category.DIR, entry);
             SwingUtilities.invokeLater(this::rebuildSecretList);
         }
     }

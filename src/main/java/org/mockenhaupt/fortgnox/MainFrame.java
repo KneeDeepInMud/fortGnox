@@ -194,7 +194,6 @@ public class MainFrame extends JFrame implements
         {
             public void run ()
             {
-
                 boolean showDebug = false;
                 for (int i = 0; i < args.length; ++i)
                 {
