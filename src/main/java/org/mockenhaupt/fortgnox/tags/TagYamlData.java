@@ -16,4 +16,24 @@ public class TagYamlData
     {
         this.tags = _tags;
     }
+
+
+    @Override
+    public String toString ()
+    {
+        StringBuilder sb = new StringBuilder();
+        if (tags != null)
+        {
+            tags.forEach((key, value) ->
+            {
+                sb.append(key);
+                sb.append('=');
+                sb.append(value);
+                sb.append("; ");
+            });
+        }
+        return "TagYamlData{" +
+                "tags=" +  sb.toString() +
+                '}';
+    }
 }

@@ -5,6 +5,7 @@
 package org.mockenhaupt.fortgnox;
 
 
+import org.apache.commons.io.FilenameUtils;
 import org.mockenhaupt.fortgnox.misc.DirectoryWatcher;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
 import org.mockenhaupt.fortgnox.misc.IDirectoryWatcherHandler;
@@ -1041,8 +1042,8 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
             }
 
 
-            String tagsFileName = secDir + File.separator + "fgtags.yml";
-            System.err.println("XXX" + tagsFileName);
+            String tagsFileName = TagsStore.getFullPathNoSeparator(secDir) + File.separator + "fgtags.yml";
+            System.err.println("XXX" + tagsFileName + " OS:" + System.getProperty("os.name"));
             File tagsFile = new File(tagsFileName);
             if (tagsFile.exists() && !tagsFile.isDirectory()) {
                 try

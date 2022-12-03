@@ -28,7 +28,7 @@ public class TagsFile
     {
         this.fileName = fileName;
         this.baseName = FilenameUtils.getBaseName(fileName);
-        this.dirname = FilenameUtils.getFullPathNoEndSeparator(fileName);
+        this.dirname = TagsStore.getFullPathNoSeparator(fileName);
         tagsFile = new File(fileName);
         if (!tagsFile.exists() && create)
         {
@@ -60,6 +60,7 @@ public class TagsFile
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
         yamlData = mapper.readValue(tagsFile, TagYamlData.class);
+        System.err.println("XXX parse " + fileName +  " " + yamlData);
     }
 
     public Set<String> getTags (String passwordFileName)
@@ -107,5 +108,19 @@ public class TagsFile
 
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         mapper.writeValue(tagsFile, yamlData);
+        System.err.println("XXX saveTags " + editEntry + " " + newTags + " " + tagsFile + " " + yamlData);
+    }
+
+
+    @Override
+    public String toString ()
+    {
+        return "TagsFile{" +
+                "fileName='" + fileName + '\'' +
+                ", baseName='" + baseName + '\'' +
+                ", dirname='" + dirname + '\'' +
+                ", yamlData=" + yamlData +
+                ", tagsFile=" + tagsFile +
+                '}';
     }
 }
