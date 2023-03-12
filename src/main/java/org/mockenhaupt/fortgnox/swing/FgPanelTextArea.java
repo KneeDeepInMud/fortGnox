@@ -134,10 +134,14 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     private static final String  PASSWORD_MASK = "xxxxxxxxxxxxxxx-";
 
     private static final String TXT_MASK_FIRST = "Mask 1st";
+    private static final String TXT_MASK_FIRST_TT = "First line in password file will be shown as 'xxxxxx-1' instead of clear text";
     private static final String TXT_MASK_ALL_PASSWORDS =  "Mask in text";
+    private static final String TXT_MASK_ALL_PASSWORDS_TT =  "Show 'xxxxxx-1' instead of clear passwords";
     private static final String TXT_COMPRESS_BLANK_LINES =  "Squeeze text";
+    private static final String TXT_COMPRESS_BLANK_LINES_TT =  "Multiple empty lines in password file will be shown as singe line";
     private static final String TXT_OPEN_URL =  "Open URLs";
     private static final String TXT_DETECT_URLS =  "URLs";
+    private static final String TXT_DETECT_URLS_TT =  "Display URLs and email addresses as selectable hyperlinks";
 
     class SearchKeyAdapter extends KeyAdapter
     {
@@ -471,6 +475,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
         // ---------------------------------------------------------------------
         maskToggleButton = new JToggleButton(TXT_MASK_ALL_PASSWORDS);
+        maskToggleButton.setToolTipText(TXT_MASK_ALL_PASSWORDS_TT);
         maskToggleButton.addActionListener(new ActionListener()
         {
             @Override
@@ -487,6 +492,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
 
         detectUrlsToggleButton = new JToggleButton(TXT_DETECT_URLS);
+        detectUrlsToggleButton.setToolTipText(TXT_DETECT_URLS_TT);
         detectUrlsToggleButton.addActionListener(new ActionListener()
         {
             @Override
@@ -521,6 +527,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
         // ---------------------------------------------------------------------
         compressBlankLinesButton = new JToggleButton(TXT_COMPRESS_BLANK_LINES);
+        compressBlankLinesButton.setToolTipText(TXT_COMPRESS_BLANK_LINES_TT);
         compressBlankLinesButton.addActionListener(new ActionListener()
         {
             @Override
@@ -549,6 +556,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
         // ---------------------------------------------------------------------
         maskFirstLineToggleButton = new JToggleButton(TXT_MASK_FIRST);
+        maskFirstLineToggleButton.setToolTipText(TXT_MASK_FIRST_TT);
         maskFirstLineToggleButton.addActionListener(new ActionListener()
         {
             @Override
@@ -601,7 +609,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                 jToggleButtonSet.add(b);
                 int w = b.getFontMetrics(b.getFont()).stringWidth(b.getText());
 
-                maxWidth = Math.max(w + 5, maxWidth);
+                maxWidth = Math.max(w + 25, maxWidth);
             }
         }
 
