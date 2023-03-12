@@ -1,6 +1,9 @@
-.idea/
-fortgnox.iml
-passwords
-target/
-.vscode/
 .DS_Store
+.idea/
+.vscode/
+fortgnox.iml
+mac.txt
+passwords
+src/main/resources/org/mockenhaupt/fortgnox/fortGnox.icns
+src/main/resources/org/mockenhaupt/fortgnox/fortGnox.iconset/
+target/
