@@ -249,9 +249,9 @@ public class PasswordGenerator implements PropertyChangeListener
             generatorWindow = new JDialog(parent, true);
             generatorWindow.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-            JPanel generatorPanel = getGeneratorPanel();
+            JPanel generatorPanelRef = getGeneratorPanel();
 
-            generatorWindow.add(generatorPanel);
+            generatorWindow.add(generatorPanelRef);
             generatorWindow.pack();
             generatorWindow.setVisible(true);
         }

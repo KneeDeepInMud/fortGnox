@@ -20,45 +20,12 @@ import org.mockenhaupt.fortgnox.swing.FgTextFilter;
 import org.mockenhaupt.fortgnox.swing.LAFChooser;
 import org.mockenhaupt.fortgnox.tags.TagsStore;
 
-import javax.swing.AbstractListModel;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JSplitPane;
-import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.ToolTipManager;
+import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Toolkit;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.*;
+import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
@@ -66,14 +33,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -83,29 +44,8 @@ import java.util.stream.Stream;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.OK_OPTION;
-import static org.mockenhaupt.fortgnox.DebugWindow.Category.ANY;
-import static org.mockenhaupt.fortgnox.DebugWindow.Category.DIR;
-import static org.mockenhaupt.fortgnox.DebugWindow.Category.FAV;
-import static org.mockenhaupt.fortgnox.DebugWindow.Category.FILTER;
-import static org.mockenhaupt.fortgnox.DebugWindow.Category.GPG;
-import static org.mockenhaupt.fortgnox.DebugWindow.Category.LIST;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CLEAR_SECONDS;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_CLIP_SECONDS;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES_MIN_HIT_COUNT;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FAVORITES_SHOW_COUNT;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_FILTER_FAVORITES;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_HISTORY_SIZE;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_LOOK_AND_FEEL;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_NUMBER_FAVORITES;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_PASSWORD_SECONDS;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIRS;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIR_SORTING;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETLIST_FONT_SIZE;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SHOW_SEARCH_TAGS;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SHOW_TB_BUTTON_TEXT;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_FAVORITES;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_USE_SEARCH_TAGS;
+import static org.mockenhaupt.fortgnox.DebugWindow.Category.*;
+import static org.mockenhaupt.fortgnox.FgPreferences.*;
 
 /**
  * @author fmoc
@@ -508,12 +448,12 @@ public class MainFrame extends JFrame implements
         this.decrypt(jListSecrets.getSelectedValue());
     }
 
-    private void decrypt (JList jList)
-    {
-        FgGPGProcess.clearClipboardIfNotChanged();
-        this.decrypt(false, jList.getSelectedValue(), null);
-        fgPanelTextArea.requestFocus();
-    }
+//    private void decrypt (JList jList)
+//    {
+//        FgGPGProcess.clearClipboardIfNotChanged();
+//        this.decrypt(false, jList.getSelectedValue(), null);
+//        fgPanelTextArea.requestFocus();
+//    }
 
     private void decrypt (boolean toClipboard)
     {
@@ -577,13 +517,12 @@ public class MainFrame extends JFrame implements
         Pattern fieldPattern = Pattern.compile("^\\s*([^:]*)\\s*:\\s*(.*)\\s*$", Pattern.CASE_INSENSITIVE);
         try
         {
-            BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
-            while (br.ready())
-            {
-                Matcher matcher = fieldPattern.matcher(br.readLine());
-                if (matcher.matches() && matcher.groupCount() == 2)
-                {
-                    result.put(matcher.group(1).trim(), matcher.group(2).trim());
+            try(BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()))) {
+                while (br.ready()) {
+                    Matcher matcher = fieldPattern.matcher(br.readLine());
+                    if (matcher.matches() && matcher.groupCount() == 2) {
+                        result.put(matcher.group(1).trim(), matcher.group(2).trim());
+                    }
                 }
             }
         }
@@ -1312,7 +1251,7 @@ public class MainFrame extends JFrame implements
             editWindow.reset();
         }
 
-        if (editMode)
+        if (editMode && editWindow != null)
         {
             jSplitPaneLR.setRightComponent(editWindow.getTextArea());
         }
@@ -1850,7 +1789,6 @@ public class MainFrame extends JFrame implements
 
     private void jButtonSettingsActionPerformed (java.awt.event.ActionEvent evt)
     {
-
         fgOptionsDialog.setVisible(true);
     }
 
@@ -1915,14 +1853,14 @@ public class MainFrame extends JFrame implements
                 break;
             case PREF_FAVORITES_MIN_HIT_COUNT:
                 prefFavoritesMinHitCount = (Integer) propertyChangeEvent.getNewValue();
-                SwingUtilities.invokeLater(() -> refreshFavorites());
+                SwingUtilities.invokeLater(this::refreshFavorites);
                 break;
             case PREF_NUMBER_FAVORITES:
                 prefNumberFavorites = (Integer) propertyChangeEvent.getNewValue();
-                SwingUtilities.invokeLater(() -> refreshFavorites());
+                SwingUtilities.invokeLater(this::refreshFavorites);
                 break;
             case PREF_SECRETDIRS:
-                SwingUtilities.invokeLater(() -> refreshFavorites());
+                SwingUtilities.invokeLater(this::refreshFavorites);
                 break;
             case PREF_FAVORITES_SHOW_COUNT:
                 prefShowFavoritesCount = (Boolean) propertyChangeEvent.getNewValue();
@@ -1942,10 +1880,10 @@ public class MainFrame extends JFrame implements
                 break;
             case PREF_SHOW_TB_BUTTON_TEXT:
                 prefShowToobarTexts = (boolean) propertyChangeEvent.getNewValue();
-                SwingUtilities.invokeLater(() -> updateTbButtonTexts());
+                SwingUtilities.invokeLater(this::updateTbButtonTexts);
                 break;
             case PREF_HISTORY_SIZE:
-                SwingUtilities.invokeLater(() -> updateHistoryButtonVisibility());
+                SwingUtilities.invokeLater(this::updateHistoryButtonVisibility);
                 break;
             case PREF_SECRETLIST_FONT_SIZE:
                 if (jListSecrets != null)
@@ -1954,8 +1892,10 @@ public class MainFrame extends JFrame implements
                     initSecretListFont();
                 }
                 break;
+            default:
+                // nothing to do
         }
-        SwingUtilities.invokeLater(() -> updateClearPassVisibility());
+        SwingUtilities.invokeLater(this::updateClearPassVisibility);
     }
 
     private void updateHistoryButtonVisibility ()

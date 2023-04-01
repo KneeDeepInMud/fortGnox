@@ -60,14 +60,9 @@ public class DebugWindow
         {
             super(category.name());
             this.category = category;
-            this.addActionListener(new ActionListener()
-            {
-                @Override
-                public void actionPerformed (ActionEvent e)
-                {
-                    CategoryCheckbox me = CategoryCheckbox.this;
-                    me.handleSelection();
-                }
+            this.addActionListener(e -> {
+                CategoryCheckbox me = CategoryCheckbox.this;
+                me.handleSelection();
             });
         }
 
@@ -162,8 +157,8 @@ public class DebugWindow
 
             for (Category cat : Category.values() )
             {
-                CategoryCheckbox categoryCheckbox;
-                categoryPanel.add(categoryCheckbox = new CategoryCheckbox(cat));
+                CategoryCheckbox categoryCheckbox = new CategoryCheckbox(cat);
+                categoryPanel.add(categoryCheckbox);
                 categoryCheckbox.setSelected(isEnabled(cat.getValue()));
             }
             debugToolbar.add(categoryPanel);

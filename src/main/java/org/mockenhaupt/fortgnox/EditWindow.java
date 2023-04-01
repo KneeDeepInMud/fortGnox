@@ -448,15 +448,22 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
     {
         String fname = FgPreferences.get().get(PREF_NEW_TEMPLATE);
 
-        BufferedReader br;
-        if (fname == null || fname.isEmpty())
-        {
-            URL url = this.getClass().getResource("/org/mockenhaupt/fortgnox/template.txt");
-            br = new BufferedReader(new InputStreamReader(url.openStream()));
+        BufferedReader br = null;
+        try {
+            if (fname == null || fname.isEmpty()) {
+                URL url = this.getClass().getResource("/org/mockenhaupt/fortgnox/template.txt");
+                br = new BufferedReader(new InputStreamReader(url.openStream()));
+            } else {
+                br = new BufferedReader(new FileReader(fname));
+            }
         }
-        else
+        catch (IOException ex)
         {
-            br = new BufferedReader(new FileReader(fname));
+            throw(ex);
+        }
+        finally {
+            if (br != null)
+                br.close();
         }
 
 

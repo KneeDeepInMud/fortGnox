@@ -72,22 +72,10 @@ public class PassphraseDialog extends javax.swing.JDialog
         setTitle("Enter passphrase");
 
         okButton.setText("Ok");
-        okButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                okButtonActionPerformed(evt);
-            }
-        });
+        okButton.addActionListener(evt -> okButtonActionPerformed(evt));
 
         cancelButton.setText("Cancel");
-        cancelButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cancelButtonActionPerformed(evt);
-            }
-        });
+        cancelButton.addActionListener(evt -> cancelButtonActionPerformed(evt));
 
         passwordField.setFont(new java.awt.Font("Arial", 1, 18)); // NOI18N
 
