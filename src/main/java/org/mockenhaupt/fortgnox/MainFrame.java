@@ -1692,7 +1692,7 @@ public class MainFrame extends JFrame implements
     private void buttonExitActionPerformed (java.awt.event.ActionEvent evt)
     {
 
-        boolean doTerminate = !editWindow.isModified() || JOptionPane.showConfirmDialog(this,
+        boolean doTerminate = !editWindow.isSecretTextModified() || JOptionPane.showConfirmDialog(this,
                 "Unsaved text in edit window, really exit fortGnox?",
                 "Confirm exit", OK_CANCEL_OPTION) == OK_OPTION;
 

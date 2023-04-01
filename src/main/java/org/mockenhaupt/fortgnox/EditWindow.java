@@ -1,7 +1,9 @@
 package org.mockenhaupt.fortgnox;
 
 import org.mockenhaupt.fortgnox.misc.FileUtils;
+import org.mockenhaupt.fortgnox.swing.FgTextFilter;
 import org.mockenhaupt.fortgnox.swing.LAFChooser;
+import org.mockenhaupt.fortgnox.tags.TagsStore;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -49,7 +51,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -70,7 +71,8 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_TEXTAREA_FONT_SIZE;
 public class EditWindow implements FgGPGProcess.EncrypionListener,
         PropertyChangeListener,
         FgGPGProcess.CommandListener,
-        PasswordGenerator.PasswordInsertListener
+        PasswordGenerator.PasswordInsertListener,
+        FgTextFilter.TextFilterHandler
 {
     private JPanel editPanel;
     private JTextArea textArea;
@@ -80,7 +82,9 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
     private final JLabel labelRID = new JLabel("RID");
     private JTextField textFieldRID;
     final private FgGPGProcess fgGPGProcess;
-    private boolean modified = false;
+    private boolean secretTextModified = false;
+    private boolean tagsModified = false;
+    private String tagsText = "";
     private JButton saveButton;
     private JCheckBox cbSkipPost;
     final private JFrame parentWindow;
@@ -89,13 +93,18 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
     private final UndoManager undo = new UndoManager();
     private final PasswordGenerator passwordGenerator;
 
+    private final FgTextFilter tagsEditPanel;
+
     EditHandler editHandler;
+
     public EditWindow (JFrame parent, FgGPGProcess fgGPGProcess, EditHandler editHandler)
     {
         this.fgGPGProcess = fgGPGProcess;
         this.parentWindow = parent;
         this.editHandler = editHandler;
         passwordGenerator = new PasswordGenerator(this);
+        this.tagsEditPanel = new FgTextFilter("Tags:", this);
+
         init(parent);
         fgGPGProcess.addEncryptionListener(this);
         fgGPGProcess.addCommandListener(this);
@@ -107,9 +116,20 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         passwordGenerator.resetPasswords();
     }
 
+    @Override
+    public void handleTextFilterChanged (String tags)
+    {
+        if (!textFieldFilename.getText().isEmpty())
+        {
+            tagsText = tags;
+            setTagsModified(true);
+        }
+    }
+
     interface EditHandler
     {
         void handleFinished ();
+
         void handleNewFile (String fname);
     }
 
@@ -142,27 +162,50 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
             return;
         }
 
+        this.tagsEditPanel.setText(TagsStore.getTagsOfFile(filename, true));
+
         textArea.setText(text);
-        setModified(false);
+        setSecretTextModified(false);
+        setTagsModified(false);
         textFieldFilename.setText(filename);
         textFieldRID.setText(getRecipient(new File(filename)));
+        setStatusText(status);
+    }
+
+    private void setStatusText (String status)
+    {
         textAreaStatus.setText(status);
     }
 
-    public boolean isModified ()
+    public boolean isSecretTextModified ()
     {
-        return modified;
+        return secretTextModified;
     }
 
-    public void setModified (boolean modified)
+    public void setSecretTextModified (boolean secretTextModified)
     {
-        this.saveButton.setEnabled(modified);
-        this.modified = modified;
+        this.saveButton.setEnabled(secretTextModified);
+        this.secretTextModified = secretTextModified;
+    }
+
+    public boolean isTagsModified ()
+    {
+        return tagsModified;
+    }
+
+    public void setTagsModified (boolean tagsModified)
+    {
+        this.tagsModified = tagsModified;
+        if (!tagsModified)
+        {
+            tagsText = "";
+        }
+        this.saveButton.setEnabled(tagsModified);
     }
 
     public Container getTextArea ()
     {
-        SwingUtilities.invokeLater(()->textArea.requestFocus());
+        SwingUtilities.invokeLater(() -> textArea.requestFocus());
         editPanel.setVisible(true);
         return editPanel;
     }
@@ -407,19 +450,19 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
                         @Override
                         public void insertUpdate (DocumentEvent documentEvent)
                         {
-                            setModified(true);
+                            setSecretTextModified(true);
                         }
 
                         @Override
                         public void removeUpdate (DocumentEvent documentEvent)
                         {
-                            setModified(true);
+                            setSecretTextModified(true);
                         }
 
                         @Override
                         public void changedUpdate (DocumentEvent documentEvent)
                         {
-                            setModified(true);
+                            setSecretTextModified(true);
                         }
                     });
 
@@ -436,7 +479,8 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
             editPanel.add(textAreaStatus, BorderLayout.SOUTH);
 
             editPanel.setVisible(false);
-            setModified(false);
+            setSecretTextModified(false);
+            setTagsModified(false);
             setDirectories(fgGPGProcess.getSecretdirs());
             LAFChooser.setPreferenceLaf(textArea);
 
@@ -449,40 +493,47 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         String fname = FgPreferences.get().get(PREF_NEW_TEMPLATE);
 
         BufferedReader br = null;
-        try {
-            if (fname == null || fname.isEmpty()) {
+        try
+        {
+            if (fname == null || fname.isEmpty())
+            {
                 URL url = this.getClass().getResource("/org/mockenhaupt/fortgnox/template.txt");
                 br = new BufferedReader(new InputStreamReader(url.openStream()));
-            } else {
+            }
+            else
+            {
                 br = new BufferedReader(new FileReader(fname));
             }
+
+
+            final boolean[] isFirst = {true};
+            StringBuilder sb = new StringBuilder();
+            br.lines().forEach(s ->
+                    {
+                        if (!isFirst[0])
+                        {
+                            sb.append('\n');
+                        }
+                        if (s.contains("$FILENAME"))
+                        {
+                            s = s.replaceAll("\\$FILENAME", newFileName);
+                        }
+                        sb.append(s);
+                        isFirst[0] = false;
+                    }
+            );
+            return sb.toString();
         }
         catch (IOException ex)
         {
-            throw(ex);
+            throw (ex);
         }
-        finally {
+        finally
+        {
             if (br != null)
                 br.close();
         }
 
-
-        final boolean[] isFirst = {true};
-        StringBuilder sb = new StringBuilder();
-        br.lines().forEach(s ->
-        {
-            if (!isFirst[0])
-            {
-                sb.append('\n');
-            }
-            if (s.contains("$FILENAME")){
-                s = s.replaceAll("\\$FILENAME", newFileName);
-            }
-            sb.append(s);
-            isFirst[0] = false;
-        }
-        );
-        return sb.toString();
     }
 
     private void handleButtonNewFileSelected (JDialog directoryChooser, JComboBox<String> comboBoxDirectories, JTextField fileNameText)
@@ -538,10 +589,12 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
 
     private Container commandToolbar ()
     {
-        JPanel jToolBar = new JPanel();
-        GroupLayout gl = new GroupLayout(jToolBar);
-        jToolBar.setLayout(gl);
+        JPanel jWrapperPanel = new JPanel(new BorderLayout());
 
+        JPanel jButtonsPanel = new JPanel();
+
+        GroupLayout gl = new GroupLayout(jButtonsPanel);
+        jButtonsPanel.setLayout(gl);
 
         gl.setAutoCreateGaps(true);
         gl.setAutoCreateContainerGaps(true);
@@ -551,20 +604,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         cancelButton.setMnemonic(KeyEvent.VK_C);
         cancelButton.addActionListener(actionEvent ->
         {
-            if (!modified || OK_OPTION == JOptionPane.showConfirmDialog(parentWindow,
-                    "File is modified, close discarding changes?",
-                    "fortGnox Close Confirmation", OK_CANCEL_OPTION))
-            {
-                if (editPanel.isVisible())
-                {
-                    editPanel.setVisible(false);
-                }
-                setModified(false);
-                if (editHandler != null)
-                {
-                    editHandler.handleFinished();
-                }
-            }
+            cancelEditing();
         });
 
 
@@ -615,7 +655,27 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
                 .addComponent(passwordGeneratorPanel)
         );
 
-        return jToolBar;
+        jWrapperPanel.add(jButtonsPanel, BorderLayout.CENTER);
+        jWrapperPanel.add(this.tagsEditPanel, BorderLayout.SOUTH);
+        return jWrapperPanel;
+    }
+
+    private void cancelEditing ()
+    {
+        if (!secretTextModified || OK_OPTION == JOptionPane.showConfirmDialog(parentWindow,
+                "File is modified, close discarding changes?",
+                "fortGnox Close Confirmation", OK_CANCEL_OPTION))
+        {
+            if (editPanel.isVisible())
+            {
+                editPanel.setVisible(false);
+            }
+            setSecretTextModified(false);
+            if (editHandler != null)
+            {
+                editHandler.handleFinished();
+            }
+        }
     }
 
     private String getRecipient (File gpgFile)
@@ -657,6 +717,24 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
 //            JOptionPane.showMessageDialog(editWindow, "file does not exist", "fortgnox WARNING", WARNING_MESSAGE);
 //            return;
 //        }
+
+        if (isTagsModified() && textFieldFilename.getText() != null)
+        {
+            try
+            {
+                TagsStore.saveTagsForFile(textFieldFilename.getText(), tagsText);
+                executePostCommand();
+            }
+            catch (IOException e)
+            {
+                setStatusText("Failed to save tags");
+            }
+        }
+
+        if (!isSecretTextModified()) {
+//            cancelEditing();
+            return;
+        }
 
         String rid = textFieldRID.getText();
 
@@ -709,6 +787,18 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
 
     }
 
+    public void executePostCommand ()
+    {
+        String postCommand = FgPreferences.get().get(PREF_GPG_POST_COMMAND);
+        boolean doPostCommand = postCommand != null && !postCommand.isEmpty() && !cbSkipPost.isSelected();
+
+        if (doPostCommand)
+        {
+            fgGPGProcess.command(postCommand, "", this);
+            setText("", "Executing " + postCommand, "");
+        }
+    }
+
     @Override
     public void handleGpgEncryptResult (String out, String err, String filename, Object clientData)
     {
@@ -723,7 +813,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
             {
                 String postCommand = FgPreferences.get().get(PREF_GPG_POST_COMMAND);
                 boolean doPostCommand = postCommand != null && !postCommand.isEmpty() && !cbSkipPost.isSelected();
-                setModified(false);
+                setSecretTextModified(false);
                 String status = "Successfully encrypted " + filename + rid;
                 if (doPostCommand)
                 {
@@ -745,7 +835,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
             }
             else
             {
-                textAreaStatus.setText("Failure encrypting " + filename + rid + ", " + err);
+                setStatusText("Failure encrypting " + filename + rid + ", " + err);
                 JOptionPane.showMessageDialog(parentWindow, err, "fortGnox WARNING", JOptionPane.ERROR_MESSAGE);
                 if (editHandler != null)
                 {
@@ -806,7 +896,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         }
         catch (BadLocationException e)
         {
-            textAreaStatus.setText("Failure inserting password, " + e.toString());
+            setStatusText("Failure inserting password, " + e.toString());
         }
     }
 }
