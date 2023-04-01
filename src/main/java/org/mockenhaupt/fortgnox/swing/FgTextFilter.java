@@ -4,6 +4,7 @@ import org.mockenhaupt.fortgnox.misc.FileUtils;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
@@ -19,14 +20,26 @@ public class FgTextFilter extends JPanel
     private JTextField textFilter;
     private TextFilterHandler handler;
 
-    public FgTextFilter (TextFilterHandler handler)
+    private final JLabel label;
+
+    public FgTextFilter (String label, TextFilterHandler handler)
     {
+        if (label != null)
+            this.label = new JLabel(label);
+        else
+            this.label = null;
+
         if (handler == null)
         {
             throw new NullPointerException("TextFilterHandler must not be null");
         }
         this.handler = handler;
         initialize();
+    }
+
+    public FgTextFilter (TextFilterHandler handler)
+    {
+        this(null, handler);
     }
 
     public interface TextFilterHandler
@@ -82,6 +95,11 @@ public class FgTextFilter extends JPanel
         cleanButton.setIcon(cleanButtonIcon);
         cleanButton.addActionListener(this::cleanButtonActionPerformed);
 
+
+        if (label != null)
+        {
+            add(label, BorderLayout.WEST);
+        }
 
         add(textFilter, BorderLayout.CENTER);
         add(cleanButton, BorderLayout.EAST);
