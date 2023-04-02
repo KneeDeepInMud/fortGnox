@@ -44,6 +44,7 @@ import java.util.stream.Stream;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.OK_OPTION;
+import static javax.swing.JOptionPane.YES_OPTION;
 import static org.mockenhaupt.fortgnox.DebugWindow.Category.*;
 import static org.mockenhaupt.fortgnox.FgPreferences.*;
 
@@ -740,9 +741,13 @@ public class MainFrame extends JFrame implements
 
         if (doPostCommand)
         {
-            if (JOptionPane.showConfirmDialog(MainFrame.this,
+            if (JOptionPane.showConfirmDialog(
+                    MainFrame.this,
                     "Execute post command '" + postCommand +"'?",
-                    "Confirm edit", OK_CANCEL_OPTION) == OK_OPTION)
+                    "Confirm post command execution",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null) == YES_OPTION)
             {
                 gpgProcess.command(postCommand, "", this, (out, err, filename, clientData, exitCode) ->
                 {
