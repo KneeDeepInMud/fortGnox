@@ -733,6 +733,33 @@ public class MainFrame extends JFrame implements
         return getSecretsPopupMenu(false);
     }
 
+    public void executePostCommand ()
+    {
+        String postCommand = FgPreferences.get().get(PREF_GPG_POST_COMMAND);
+        boolean doPostCommand = postCommand != null && !postCommand.isEmpty();
+
+        if (doPostCommand)
+        {
+            if (JOptionPane.showConfirmDialog(MainFrame.this,
+                    "Execute post command '" + postCommand +"'?",
+                    "Confirm edit", OK_CANCEL_OPTION) == OK_OPTION)
+            {
+                gpgProcess.command(postCommand, "", this, (out, err, filename, clientData, exitCode) ->
+                {
+                    if (exitCode != 0)
+                    {
+                        JOptionPane.showMessageDialog(MainFrame.this, "Output:" + out + " Error:" + err, "fortGnox POST", JOptionPane.ERROR_MESSAGE);
+                    }
+                    else
+                    {
+                        JOptionPane.showMessageDialog(MainFrame.this, out + err, "fortGnox POST", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                });
+            }
+        }
+    }
+
+
     public JPopupMenu getSecretsPopupMenu (boolean launchedFromEditor)
     {
         if (editMode)
@@ -812,6 +839,7 @@ public class MainFrame extends JFrame implements
                     try
                     {
                         TagsStore.saveTagsForFile(editEntry, newTags);
+                        executePostCommand();
                     }
                     catch (IOException ex)
                     {
