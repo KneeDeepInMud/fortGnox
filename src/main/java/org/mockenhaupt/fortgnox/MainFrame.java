@@ -749,14 +749,17 @@ public class MainFrame extends JFrame implements
                     JOptionPane.QUESTION_MESSAGE,
                     null) == YES_OPTION)
             {
+                fgPanelTextArea.setStatusText("Executing post command '" + postCommand + "' after tags change");
                 gpgProcess.command(postCommand, "", this, (out, err, filename, clientData, exitCode) ->
                 {
                     if (exitCode != 0)
                     {
+                        fgPanelTextArea.setStatusText("Post command failure '" + out + "" + err + "'");
                         JOptionPane.showMessageDialog(MainFrame.this, "Output:" + out + " Error:" + err, "fortGnox POST", JOptionPane.ERROR_MESSAGE);
                     }
                     else
                     {
+                        fgPanelTextArea.setStatusText("Post command success '" + out + " " + err + "'");
                         JOptionPane.showMessageDialog(MainFrame.this, out + err, "fortGnox POST", JOptionPane.INFORMATION_MESSAGE);
                     }
                 });
