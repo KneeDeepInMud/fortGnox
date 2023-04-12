@@ -14,6 +14,7 @@ package org.mockenhaupt.fortgnox;
 import org.apache.commons.io.FilenameUtils;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
 import org.mockenhaupt.fortgnox.misc.History;
+import org.mockenhaupt.fortgnox.misc.StringUtils;
 import org.mockenhaupt.fortgnox.swing.FgOptionsDialog;
 import org.mockenhaupt.fortgnox.swing.FgPanelTextArea;
 import org.mockenhaupt.fortgnox.swing.FgTextFilter;
@@ -1099,7 +1100,8 @@ public class MainFrame extends JFrame implements
             String filter = fgTextFilter.getText();
             String name2 = baseName.toLowerCase().replace(".asc", "");
             name2 = name2.toLowerCase().replace(".gpg", "");
-            boolean ret = name2.contains(filter.toLowerCase());
+//            boolean ret = name2.contains(filter.toLowerCase());
+            boolean ret = StringUtils.andMatcher(name2, filter);
             dbg(FILTER, fgTextFilter.getText() + (ret ? " match   " : " nomatch ") + fileName);
             return ret;
         }
