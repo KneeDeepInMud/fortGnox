@@ -14,6 +14,7 @@ package org.mockenhaupt.fortgnox;
 import org.apache.commons.io.FilenameUtils;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
 import org.mockenhaupt.fortgnox.misc.History;
+import org.mockenhaupt.fortgnox.misc.StringUtils;
 import org.mockenhaupt.fortgnox.swing.FgOptionsDialog;
 import org.mockenhaupt.fortgnox.swing.FgPanelTextArea;
 import org.mockenhaupt.fortgnox.swing.FgTextFilter;
@@ -1091,17 +1092,22 @@ public class MainFrame extends JFrame implements
         Matcher m = pattern.matcher(fileName);
         if (m.matches())
         {
-            if (prefUseSearchTags && TagsStore.matchesTag(fileName, fgTextFilter.getText()))
-            {
-                return true;
-            }
+            String needle = fgTextFilter.getText().trim();
+
+            // all tags concatenated w/o blanks
+            String tags = TagsStore.getTagsOfFile(fileName, true);
+            tags = tags.replaceAll("\\s", "");
+
             String baseName = m.group(1);
-            String filter = fgTextFilter.getText();
             String name2 = baseName.toLowerCase().replace(".asc", "");
+
+            // simply concat tags and filename and look in all
             name2 = name2.toLowerCase().replace(".gpg", "");
-            boolean ret = name2.contains(filter.toLowerCase());
-            dbg(FILTER, fgTextFilter.getText() + (ret ? " match   " : " nomatch ") + fileName);
+            name2 += tags;
+            boolean ret = StringUtils.andMatcher(name2, needle);
+            dbg(FILTER, needle + (ret ? " match   " : " nomatch ") + fileName);
             return ret;
+
         }
         else
         {
