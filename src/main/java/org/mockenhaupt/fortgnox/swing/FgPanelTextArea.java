@@ -587,7 +587,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
         scrollPaneTextAreaError.setMaximumSize(new Dimension(Integer.MAX_VALUE, h * 4));
         scrollPaneTextAreaError.setPreferredSize(scrollPaneTextAreaError.getMaximumSize());
-        scrollPaneTextAreaError.setVisible(false);
+//        scrollPaneTextAreaError.setVisible(false);
         textAreaError.setBackground(BACKGROUND);
         textAreaError.setForeground(new Color(232, 228, 160));
 
@@ -1258,7 +1258,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         errText = errText.replaceAll("\\n$", "");
         errText = errText.replaceAll("\\r\\n$", "");
         textAreaError.setText(errText);
-        scrollPaneTextAreaError.setVisible(err != null && !err.isEmpty());
+//        scrollPaneTextAreaError.setVisible(err != null && !err.isEmpty());
     }
 
 
