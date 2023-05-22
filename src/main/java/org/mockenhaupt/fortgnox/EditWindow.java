@@ -162,7 +162,8 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
             return;
         }
 
-        this.tagsEditPanel.setText(TagsStore.getTagsOfFile(filename, true));
+        this.tagsText = TagsStore.getTagsOfFile(filename, true);
+        this.tagsEditPanel.setText(tagsText);
 
         textArea.setText(text);
         setSecretTextModified(false);
@@ -184,8 +185,13 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
 
     public void setSecretTextModified (boolean secretTextModified)
     {
-        this.saveButton.setEnabled(secretTextModified);
         this.secretTextModified = secretTextModified;
+        this.saveButton.setEnabled(isModified());
+    }
+
+    public boolean isModified ()
+    {
+        return this.tagsModified || this.secretTextModified;
     }
 
     public boolean isTagsModified ()
@@ -196,11 +202,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
     public void setTagsModified (boolean tagsModified)
     {
         this.tagsModified = tagsModified;
-        if (!tagsModified)
-        {
-            tagsText = "";
-        }
-        this.saveButton.setEnabled(tagsModified);
+        this.saveButton.setEnabled(isModified());
     }
 
     public Container getTextArea ()
@@ -662,7 +664,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
 
     private void cancelEditing ()
     {
-        if (!secretTextModified || OK_OPTION == JOptionPane.showConfirmDialog(parentWindow,
+        if (!isModified() || OK_OPTION == JOptionPane.showConfirmDialog(parentWindow,
                 "File is modified, close discarding changes?",
                 "fortGnox Close Confirmation", OK_CANCEL_OPTION))
         {
@@ -711,19 +713,13 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
 
     private void doEncrypt ()
     {
-//        File file = new File(textFieldFilename.getText());
-//        if (!file.exists())
-//        {
-//            JOptionPane.showMessageDialog(editWindow, "file does not exist", "fortgnox WARNING", WARNING_MESSAGE);
-//            return;
-//        }
-
+        boolean needTriggerPost = false;
         if (isTagsModified() && textFieldFilename.getText() != null)
         {
             try
             {
                 TagsStore.saveTagsForFile(textFieldFilename.getText(), tagsText);
-                executePostCommand();
+                needTriggerPost = true;
             }
             catch (IOException e)
             {
@@ -731,22 +727,25 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
             }
         }
 
-        if (!isSecretTextModified()) {
-//            cancelEditing();
-            return;
+        if (isSecretTextModified()) {
+            String rid = textFieldRID.getText();
+
+            if (rid == null || rid.isEmpty())
+            {
+                JOptionPane.showMessageDialog(parentWindow, "Cannot determine recipient", "fortGnox WARNING", WARNING_MESSAGE);
+                return;
+            }
+
+            this.recipientId = rid;
+            String textToEncrypt = insertChangeTag(textArea.getText());
+            fgGPGProcess.encrypt(textFieldFilename.getText(), textToEncrypt, rid, EditWindow.this);
+            needTriggerPost = false;
         }
 
-        String rid = textFieldRID.getText();
-
-        if (rid == null || rid.isEmpty())
+        if (needTriggerPost)
         {
-            JOptionPane.showMessageDialog(parentWindow, "Cannot determine recipient", "fortGnox WARNING", WARNING_MESSAGE);
-            return;
+            executePostCommand();
         }
-
-        this.recipientId = rid;
-        String textToEncrypt = insertChangeTag( textArea.getText());
-        fgGPGProcess.encrypt(textFieldFilename.getText(), textToEncrypt, rid, EditWindow.this);
     }
 
 
