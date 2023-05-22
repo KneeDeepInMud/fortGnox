@@ -767,7 +767,6 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
             if (minner.matches())
             {
                 String newText = m.group(1) + "$Changed: " + nowString + "$" +  m.group(3);
-                System.out.println("newText = " + newText);
                 return newText;
             }
             return text;
