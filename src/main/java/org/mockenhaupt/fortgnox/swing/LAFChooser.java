@@ -1,12 +1,18 @@
 package org.mockenhaupt.fortgnox.swing;
 
+import com.formdev.flatlaf.FlatDarculaLaf;
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatIntelliJLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 import org.mockenhaupt.fortgnox.FgPreferences;
 import org.mockenhaupt.fortgnox.MainFrame;
+import org.yaml.snakeyaml.util.ArrayUtils;
 
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import java.awt.Component;
+import javax.swing.*;
+import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,7 +49,7 @@ public class LAFChooser
     public boolean set (String laf, Component c)
     {
         UIManager.LookAndFeelInfo o = Arrays.stream(lafs)
-                .filter(lookAndFeelInfo -> lookAndFeelInfo.getClassName().toLowerCase().contains(laf.toLowerCase()))
+                .filter(lookAndFeelInfo -> lookAndFeelInfo.getName().toLowerCase().contains(laf.toLowerCase()))
                 .findFirst()
                 .orElse(null);
         if (o != null) return set(o, c);
@@ -90,9 +96,32 @@ public class LAFChooser
         return lafs;
     }
 
-    private void init ()
-    {
-        lafs = UIManager.getInstalledLookAndFeels();
+    private void init() {
+
+        ArrayList<UIManager.LookAndFeelInfo> ail = new ArrayList();
+        ail.addAll(ArrayUtils.toUnmodifiableList(UIManager.getInstalledLookAndFeels()));
+
+        Class clazzes[] = {FlatDarkLaf.class, FlatDarculaLaf.class, FlatLightLaf.class, FlatIntelliJLaf.class};
+        for (Class clazz : clazzes) {
+            Method method = null;
+            try {
+                method = clazz.getMethod("setup");
+                if (method == null) continue;
+
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+            try {
+                Object o = method.invoke(null);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+            UIManager.LookAndFeelInfo lafi = new UIManager.LookAndFeelInfo(clazz.getSimpleName(), clazz.getName());
+            ail.add(lafi);
+        }
+        lafs = ail.toArray(new UIManager.LookAndFeelInfo[]{});
     }
 
 

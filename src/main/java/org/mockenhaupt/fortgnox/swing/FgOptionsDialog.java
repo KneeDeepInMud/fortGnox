@@ -407,7 +407,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
             @Override
             public String getElementAt (int index)
             {
-                return lookAndFeelInfos[index].getClassName();
+                return lookAndFeelInfos[index].getName();
             }
         });
 
