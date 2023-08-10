@@ -22,11 +22,9 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
+import java.util.function.Consumer;
 
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_DIGIT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_LOWER;
@@ -258,25 +256,25 @@ public class PasswordGenerator implements PropertyChangeListener
     }
 
 
-    private void generatePassword ()
+    public void generatePassword (long len,
+                                  boolean digit,
+                                  boolean upper,
+                                  boolean lower,
+                                  boolean useSpecial,
+                                  Consumer<String> handleError,
+                                  Consumer<String> handlePass)
     {
-        Long len = Long.parseLong(textFieldLength.getText());
 
-        len = Math.abs(len);
-        len = Math.min(len, 256);
-        len = Math.max(len, 4);
-
-        textFieldLength.setValue(len);
-
+        assert(len >= 4);
         StringBuilder sb = new StringBuilder();
 
         Random rnd = new SecureRandom();
 
         List<List<Character>> pool = new ArrayList<>();
-        if (cbDigit.isSelected()) pool.add(digits);
-        if (cbUpper.isSelected()) pool.add(uppercase);
-        if (cbLower.isSelected()) pool.add(lowercase);
-        if (cbSpecial.isSelected()) pool.add(special);
+        if (digit) pool.add(digits);
+        if (upper) pool.add(uppercase);
+        if (lower) pool.add(lowercase);
+        if (useSpecial) pool.add(special);
 
         if (pool.size() == 0)
         {
@@ -289,7 +287,7 @@ public class PasswordGenerator implements PropertyChangeListener
             List<Character> cSet = pool.get(poolIx);
             if (cSet.size() <= 0)
             {
-                JOptionPane.showMessageDialog(parent, "Empty character set in preferences", "fortGnox WARNING", JOptionPane.ERROR_MESSAGE);
+                handleError.accept("Empty character set in preferences");
                 break;
             }
             else
@@ -299,7 +297,26 @@ public class PasswordGenerator implements PropertyChangeListener
             }
         }
 
-        addPassword(sb.toString());
+        handlePass.accept(sb.toString());
+    }
+
+    private void generatePassword ()
+    {
+        Long len = Long.parseLong(textFieldLength.getText());
+
+        len = Math.abs(len);
+        len = Math.min(len, 256);
+        len = Math.max(len, 4);
+
+        textFieldLength.setValue(len);
+
+        generatePassword(len,
+                cbDigit.isSelected(),
+                cbUpper.isSelected(),
+                cbLower.isSelected(),
+                cbSpecial.isSelected(),
+                errorMsg -> JOptionPane.showMessageDialog(parent, errorMsg, "fortGnox WARNING", JOptionPane.ERROR_MESSAGE),
+                password -> addPassword(password));
     }
 
     private void addPassword (String pass)
