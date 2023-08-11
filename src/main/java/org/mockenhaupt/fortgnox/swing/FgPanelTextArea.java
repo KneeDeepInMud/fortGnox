@@ -1248,7 +1248,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     {
         if (text != null)
         {
-            setLabelFileName(shortFileName + TagsStore.getTagsOfFile(fullFileName));
+            setLabelFileName(shortFileName == null ? "" : shortFileName  + TagsStore.getTagsOfFile(fullFileName));
             this.plainText = text;
             updateText();
         }
