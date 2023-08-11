@@ -22,11 +22,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
+import java.util.function.Consumer;
 
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_DIGIT;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_LOWER;
@@ -258,9 +258,63 @@ public class PasswordGenerator implements PropertyChangeListener
     }
 
 
+    public void generatePassword (int len,
+                                  boolean digit,
+                                  boolean upper,
+                                  boolean lower,
+                                  boolean useSpecial,
+                                  Consumer<String> handleError,
+                                  Consumer<String> handlePass)
+    {
+
+        if (len < 4 || len > 256) {
+            handleError.accept("Password length not supported");
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+
+        Random rnd = new SecureRandom();
+
+        List<List<Character>> pool = new ArrayList<>();
+        if (digit) pool.add(digits);
+        if (upper) pool.add(uppercase);
+        if (lower) pool.add(lowercase);
+        if (useSpecial) pool.add(special);
+
+        if (pool.size() == 0)
+        {
+            return;
+        }
+
+        int poolIx = 0;
+        int poolMod = pool.size();
+        HashMap<Integer, Character> passMap = new HashMap<>();
+        while (passMap.size() < len)
+        {
+            List<Character> curPool = pool.get(poolIx);
+
+            int curPoolIx = Math.abs(rnd.nextInt()) % curPool.size();
+            Character passChar = curPool.get(curPoolIx);
+            int insertPos = Math.abs(rnd.nextInt()) % len;
+
+            while (passMap.get(insertPos) != null)
+            {
+                insertPos++;
+                insertPos %= len;
+            }
+            passMap.put(insertPos, passChar);
+
+            poolIx++;
+            poolIx %= poolMod;
+        }
+
+        passMap.keySet().stream().sorted().forEach(pos -> sb.append(passMap.get(pos)));
+        handlePass.accept(sb.toString());
+    }
+
     private void generatePassword ()
     {
-        Long len = Long.parseLong(textFieldLength.getText());
+        Integer len = Integer.parseInt(textFieldLength.getText());
 
         len = Math.abs(len);
         len = Math.min(len, 256);
@@ -268,38 +322,13 @@ public class PasswordGenerator implements PropertyChangeListener
 
         textFieldLength.setValue(len);
 
-        StringBuilder sb = new StringBuilder();
-
-        Random rnd = new SecureRandom();
-
-        List<List<Character>> pool = new ArrayList<>();
-        if (cbDigit.isSelected()) pool.add(digits);
-        if (cbUpper.isSelected()) pool.add(uppercase);
-        if (cbLower.isSelected()) pool.add(lowercase);
-        if (cbSpecial.isSelected()) pool.add(special);
-
-        if (pool.size() == 0)
-        {
-            return;
-        }
-
-        while (sb.length() < len)
-        {
-            int poolIx = Math.abs(rnd.nextInt()) % pool.size();
-            List<Character> cSet = pool.get(poolIx);
-            if (cSet.size() <= 0)
-            {
-                JOptionPane.showMessageDialog(parent, "Empty character set in preferences", "fortGnox WARNING", JOptionPane.ERROR_MESSAGE);
-                break;
-            }
-            else
-            {
-                int cSetIx = Math.abs(rnd.nextInt()) % cSet.size();
-                sb.append(cSet.get(cSetIx));
-            }
-        }
-
-        addPassword(sb.toString());
+        generatePassword(len,
+                cbDigit.isSelected(),
+                cbUpper.isSelected(),
+                cbLower.isSelected(),
+                cbSpecial.isSelected(),
+                errorMsg -> JOptionPane.showMessageDialog(parent, errorMsg, "fortGnox WARNING", JOptionPane.ERROR_MESSAGE),
+                password -> addPassword(password));
     }
 
     private void addPassword (String pass)
@@ -363,4 +392,23 @@ public class PasswordGenerator implements PropertyChangeListener
     }
 
 
+    public List<Character> getDigits ()
+    {
+        return digits;
+    }
+
+    public List<Character> getUppercase ()
+    {
+        return uppercase;
+    }
+
+    public List<Character> getLowercase ()
+    {
+        return lowercase;
+    }
+
+    public List<Character> getSpecial ()
+    {
+        return special;
+    }
 }
