@@ -800,6 +800,10 @@ public class MainFrame extends JFrame implements
                     if (!editMode) compressFavorites();
                 });
                 popupMenu.add(miCompressFavs);
+                // --------
+                JMenuItem miRemoveFavs = new JMenuItem("Remove all favorites");
+                miRemoveFavs.addActionListener(getFortGnoxDeleteFavorites());
+                popupMenu.add(miRemoveFavs);
             }
 
 
@@ -1613,19 +1617,8 @@ public class MainFrame extends JFrame implements
         buttonClearFavorites.setFocusable(false);
         buttonClearFavorites.setHorizontalTextPosition(SwingConstants.CENTER);
         buttonClearFavorites.setVerticalTextPosition(SwingConstants.BOTTOM);
-        buttonClearFavorites.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed (java.awt.event.ActionEvent evt)
-            {
-                if (OK_OPTION == JOptionPane.showConfirmDialog(MainFrame.this, "Really delete all favorites?", "fortGnox Delete Favorites", OK_CANCEL_OPTION))
-                {
-                    favorites.clear();
-                    FgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
-                    refreshFavorites();
-                }
-            }
-        });
-        jToolBarMainFunctions.add(buttonClearFavorites);
+        buttonClearFavorites.addActionListener(getFortGnoxDeleteFavorites());
+//  XXXXX #30      jToolBarMainFunctions.add(buttonClearFavorites);
 
         // ---------------------------------
 
@@ -1729,6 +1722,21 @@ public class MainFrame extends JFrame implements
         pack();
     }
 
+    private ActionListener getFortGnoxDeleteFavorites ()
+    {
+        return new ActionListener()
+        {
+            public void actionPerformed (ActionEvent evt)
+            {
+                if (OK_OPTION == JOptionPane.showConfirmDialog(MainFrame.this, "Really delete all favorites?", "fortGnox Delete Favorites", OK_CANCEL_OPTION))
+                {
+                    favorites.clear();
+                    FgPreferences.get().put(PREF_FAVORITES, favoritesAsJson());
+                    refreshFavorites();
+                }
+            }
+        };
+    }
 
 
     private void buttonExitActionPerformed (java.awt.event.ActionEvent evt)
