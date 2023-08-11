@@ -22,6 +22,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
@@ -256,7 +258,7 @@ public class PasswordGenerator implements PropertyChangeListener
     }
 
 
-    public void generatePassword (long len,
+    public void generatePassword (int len,
                                   boolean digit,
                                   boolean upper,
                                   boolean lower,
@@ -265,7 +267,10 @@ public class PasswordGenerator implements PropertyChangeListener
                                   Consumer<String> handlePass)
     {
 
-        assert(len >= 4);
+        if (len < 4 || len > 256) {
+            handleError.accept("Password length not supported");
+            return;
+        }
         StringBuilder sb = new StringBuilder();
 
         Random rnd = new SecureRandom();
@@ -281,28 +286,35 @@ public class PasswordGenerator implements PropertyChangeListener
             return;
         }
 
-        while (sb.length() < len)
+        int poolIx = 0;
+        int poolMod = pool.size();
+        HashMap<Integer, Character> passMap = new HashMap<>();
+        while (passMap.size() < len)
         {
-            int poolIx = Math.abs(rnd.nextInt()) % pool.size();
-            List<Character> cSet = pool.get(poolIx);
-            if (cSet.size() <= 0)
+            List<Character> curPool = pool.get(poolIx);
+
+            int curPoolIx = Math.abs(rnd.nextInt()) % curPool.size();
+            Character passChar = curPool.get(curPoolIx);
+            int insertPos = Math.abs(rnd.nextInt()) % len;
+
+            while (passMap.get(insertPos) != null)
             {
-                handleError.accept("Empty character set in preferences");
-                break;
+                insertPos++;
+                insertPos %= len;
             }
-            else
-            {
-                int cSetIx = Math.abs(rnd.nextInt()) % cSet.size();
-                sb.append(cSet.get(cSetIx));
-            }
+            passMap.put(insertPos, passChar);
+
+            poolIx++;
+            poolIx %= poolMod;
         }
 
+        passMap.keySet().stream().sorted().forEach(pos -> sb.append(passMap.get(pos)));
         handlePass.accept(sb.toString());
     }
 
     private void generatePassword ()
     {
-        Long len = Long.parseLong(textFieldLength.getText());
+        Integer len = Integer.parseInt(textFieldLength.getText());
 
         len = Math.abs(len);
         len = Math.min(len, 256);
@@ -380,4 +392,23 @@ public class PasswordGenerator implements PropertyChangeListener
     }
 
 
+    public List<Character> getDigits ()
+    {
+        return digits;
+    }
+
+    public List<Character> getUppercase ()
+    {
+        return uppercase;
+    }
+
+    public List<Character> getLowercase ()
+    {
+        return lowercase;
+    }
+
+    public List<Character> getSpecial ()
+    {
+        return special;
+    }
 }
