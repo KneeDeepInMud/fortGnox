@@ -4,7 +4,6 @@ import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,7 +33,7 @@ class PasswordGeneratorTest
 
     PasswordGenerator passwordGenerator;
 
-//    @BeforeEach
+    @BeforeEach
     void setUp ()
     {
         passwordGenerator = new PasswordGenerator(password ->
@@ -43,7 +42,7 @@ class PasswordGeneratorTest
 
     }
 
-//    @Test
+    @Test
     void generatePassword ()
     {
         int charClass = 0;

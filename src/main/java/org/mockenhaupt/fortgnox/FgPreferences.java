@@ -3,6 +3,7 @@ package org.mockenhaupt.fortgnox;
 public class FgPreferences
 {
     public static final String PREFERENCE_NODE = "org.mockenhaupt.fortgnox";
+    public static final String PREFERENCE_NODE_TEST = "org.mockenhaupt.fortgnoxJUNIT";
     protected static final String[] PREFERENCE_NODES_OLD = {"org.fmoc.fortgnox", "org.fmoc.jgpg"};
 
 
@@ -64,7 +65,23 @@ public class FgPreferences
 
     public static PreferencesAccess get ()
     {
+        if (isJUnitTest())
+        {
+            return PreferencesAccess.getInstance(PREFERENCE_NODE_TEST);
+        }
         return PreferencesAccess.getInstance(PREFERENCE_NODE);
+    }
+
+    public static boolean isJUnitTest ()
+    {
+        for (StackTraceElement element : Thread.currentThread().getStackTrace())
+        {
+            if (element.getClassName().startsWith("org.junit."))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private FgPreferences() {

@@ -2,15 +2,19 @@ package org.mockenhaupt.fortgnox;
 
 import org.junit.jupiter.api.BeforeEach;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.function.Consumer;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PreferencesAccessTest
 {
 
-    static final String NODE = PreferencesAccessTest.class.getPackage().getName() + "JUNIT";
+    static final String NODE = FgPreferences.PREFERENCE_NODE_TEST;
 
     @BeforeEach
-    void setUp ()
+    public void setUp ()
     {
         PreferencesAccess.UNIT_TEST = true;
         PreferencesAccess.getInstance(NODE).clear();
@@ -24,9 +28,9 @@ class PreferencesAccessTest
     {
         PreferencesAccess pa = PreferencesAccess.getInstance(NODE);
 
-        pa.addPropertyChangeListener(
-                propertyChangeEvent -> assertEquals(expectedEvent, propertyChangeEvent.getNewValue())
-        );
+        PropertyChangeListener p = propertyChangeEvent -> assertEquals(expectedEvent, propertyChangeEvent.getNewValue());
+
+        pa.addPropertyChangeListener(p);
 
         String expected = "default_string";
         expectedEvent = expected;
@@ -54,5 +58,6 @@ class PreferencesAccessTest
         assertEquals(pa, pa.putPreference("int", 6));
         assertEquals(6, pa.getPreference("int", 666));
 
+        pa.removePropertyChangeListener(p);
     }
 }

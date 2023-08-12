@@ -76,6 +76,11 @@ public class PreferencesAccess
         propertyChangeSupport.addPropertyChangeListener(listener);
     }
 
+    public void removePropertyChangeListener (PropertyChangeListener listener)
+    {
+        propertyChangeSupport.removePropertyChangeListener(listener);
+    }
+
     private PropertyChangeEvent getEvent (String name, Object oldVal, Object newVal)
     {
         return new PropertyChangeEvent(INSTANCE, name, oldVal, newVal);
