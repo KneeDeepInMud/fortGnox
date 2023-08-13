@@ -41,6 +41,7 @@ public class PasswordGenerator implements PropertyChangeListener
     private List<Character> uppercase = new ArrayList<>();
     private List<Character> lowercase = new ArrayList<>();
     private List<Character> special = new ArrayList<>();
+    private List<Character> vocals = new ArrayList<>();
 
     private final JComboBox<String> comboBoxPasswords = new JComboBox<>();
     private final JFormattedTextField textFieldLength = new JFormattedTextField();
@@ -55,6 +56,7 @@ public class PasswordGenerator implements PropertyChangeListener
     private final List<String> passwordList = new ArrayList<>();
     private final PasswordInsertListener passwordInsertListener;
     private JPanel generatorPanel;
+    private boolean speakablePasswords = true;
 
     @Override
     public void propertyChange (PropertyChangeEvent propertyChangeEvent)
@@ -230,6 +232,8 @@ public class PasswordGenerator implements PropertyChangeListener
         addCharacters(lowercase, FgPreferences.get().get(PREF_GPG_PASS_CHARPOOL_LOWER, PasswordCharacterPool.getLowercase()));
         addCharacters(digits, FgPreferences.get().get(PREF_GPG_PASS_CHARPOOL_DIGIT, PasswordCharacterPool.getDigits()));
         addCharacters(special, FgPreferences.get().get(PREF_GPG_PASS_CHARPOOL_SPECIAL, PasswordCharacterPool.getSpecial()));
+        addCharacters(vocals, "aeiou");
+
     }
 
     private void addCharacters (List<Character> characters, String s)
@@ -297,12 +301,21 @@ public class PasswordGenerator implements PropertyChangeListener
             Character passChar = curPool.get(curPoolIx);
             int insertPos = Math.abs(rnd.nextInt()) % len;
 
+
             while (passMap.get(insertPos) != null)
             {
                 insertPos++;
                 insertPos %= len;
             }
             passMap.put(insertPos, passChar);
+            if (speakablePasswords)
+            {
+                curPoolIx = Math.abs(rnd.nextInt()) % vocals.size();
+                passChar = vocals.get(curPoolIx);
+                insertPos++;
+                insertPos %= len;
+                passMap.put(insertPos, passChar);
+            }
 
             poolIx++;
             poolIx %= poolMod;

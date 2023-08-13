@@ -59,11 +59,11 @@ class PasswordGeneratorTest
                 {
                 }, p -> pass.set(p));
 
-//            System.out.print("charClass = " + charClass);
-//            System.out.print(", digit: " + (digit ? "T" : "F"));
-//            System.out.print(", lower: " + (upper ? "T" : "F"));
-//            System.out.print(", upper: " + (lower ? "T" : "F"));
-//            System.out.println(", special: " + (special ? "T" : "F") + " password: " + pass);
+                System.out.print("charClass = " + charClass);
+                System.out.print(", digit: " + (digit ? "T" : "F"));
+                System.out.print(", lower: " + (upper ? "T" : "F"));
+                System.out.print(", upper: " + (lower ? "T" : "F"));
+                System.out.println(", special: " + (special ? "T" : "F") + " password: " + pass);
 
                 checkPassWordComplete(pass.get(), len, digit, upper, lower, special);
 
