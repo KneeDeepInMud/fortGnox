@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -1046,9 +1047,28 @@ public class MainFrame extends JFrame implements
 
     private void handleForFavoritesList (String entry)
     {
+        final LinkedHashMap<String, Integer> oldFavorites = new LinkedHashMap<>(favorites);
+
+
         Integer i = favorites.computeIfAbsent(entry, s -> 0);
 
         favorites.put(entry, ++i);
+        if (favoritesAsJson().length() >= Preferences.MAX_VALUE_LENGTH)
+        {
+//            if (JOptionPane.showConfirmDialog(MainFrame.this,
+//                    "Favorites exceeded max storable size, compress favorites?\n" +
+//                            "Chosing cancel will ignore current selection for favorites",
+//                    "Compact Favorites", OK_CANCEL_OPTION) == OK_OPTION)
+//            {
+                compressFavorites();
+//            }
+//            else
+//            {
+//                favorites.clear();
+//                favorites.putAll(oldFavorites);
+//                return;
+//            }
+        }
 
         dbg(FAV, entry + " weight:" + i);
 
