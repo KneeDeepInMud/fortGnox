@@ -1942,6 +1942,18 @@ public class MainFrame extends JFrame implements
                     initSecretListFont();
                 }
                 break;
+            case PREF_EXCEPTION:
+                String msg = propertyChangeEvent.getNewValue().toString();
+                int len = msg.length();
+                if (msg.length() > 100) {
+                    msg = msg.substring(0, 100);
+                    msg = String.format("Failed to store propery of length '%d', %s ....", len, msg);
+                }
+
+                JOptionPane.showMessageDialog(MainFrame.this,
+                        msg, propertyChangeEvent.getOldValue().toString(),
+                        JOptionPane.ERROR_MESSAGE);
+
             default:
                 // nothing to do
         }
