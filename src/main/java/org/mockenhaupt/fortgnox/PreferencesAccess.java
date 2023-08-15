@@ -9,6 +9,7 @@ import java.util.prefs.Preferences;
 
 import static javax.swing.JOptionPane.YES_OPTION;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREFERENCE_NODES_OLD;
+import static org.mockenhaupt.fortgnox.FgPreferences.PREF_EXCEPTION;
 
 public class PreferencesAccess
 {
@@ -161,56 +162,62 @@ public class PreferencesAccess
 
     public <T> PreferencesAccess putPreference (String name, T value)
     {
+        try {
 
-        if (value instanceof String)
-        {
-            String invalid = null;
-            String oldVal = INSTANCE.preferences.get(name, invalid);
-
-            String svalue = ((String) value).trim();
-            INSTANCE.preferences.put(name, svalue);
-            if (oldVal == null || !oldVal.equals(svalue))
+            if (value instanceof String)
             {
-                fireEvent(name, null, svalue);
-            }
-        }
-        else if (value instanceof Integer)
-        {
-            Integer invalid = Integer.MIN_VALUE;
-            Integer oldVal = INSTANCE.preferences.getInt(name, invalid);
+                String invalid = null;
+                String oldVal = INSTANCE.preferences.get(name, invalid);
 
-            INSTANCE.preferences.putInt(name, (Integer) value);
-            if (!oldVal.equals(value))
-            {
-                fireEvent(name, null, value);
+                String svalue = ((String) value).trim();
+                INSTANCE.preferences.put(name, svalue);
+                if (oldVal == null || !oldVal.equals(svalue))
+                {
+                    fireEvent(name, null, svalue);
+                }
             }
-        }
-        else if (value instanceof Float)
-        {
-            Float invalid = Float.MIN_VALUE;
-            Float oldVal = INSTANCE.preferences.getFloat(name, invalid);
+            else if (value instanceof Integer)
+            {
+                Integer invalid = Integer.MIN_VALUE;
+                Integer oldVal = INSTANCE.preferences.getInt(name, invalid);
 
-            INSTANCE.preferences.putFloat(name, (Float) value);
-            if (!oldVal.equals(value))
-            {
-                fireEvent(name, null, value);
+                INSTANCE.preferences.putInt(name, (Integer) value);
+                if (!oldVal.equals(value))
+                {
+                    fireEvent(name, null, value);
+                }
             }
-        }
-        else if (value instanceof Boolean)
-        {
-            Boolean invalid = false;
-            Boolean oldVal = INSTANCE.preferences.getBoolean(name, invalid);
+            else if (value instanceof Float)
+            {
+                Float invalid = Float.MIN_VALUE;
+                Float oldVal = INSTANCE.preferences.getFloat(name, invalid);
 
-            INSTANCE.preferences.putBoolean(name, (Boolean) value);
-            if (!oldVal.equals(value))
-            {
-                fireEvent(name, null, value);
+                INSTANCE.preferences.putFloat(name, (Float) value);
+                if (!oldVal.equals(value))
+                {
+                    fireEvent(name, null, value);
+                }
             }
+            else if (value instanceof Boolean)
+            {
+                Boolean invalid = false;
+                Boolean oldVal = INSTANCE.preferences.getBoolean(name, invalid);
+
+                INSTANCE.preferences.putBoolean(name, (Boolean) value);
+                if (!oldVal.equals(value))
+                {
+                    fireEvent(name, null, value);
+                }
+            }
+            else
+            {
+                throw new IllegalArgumentException("unsupported preference type " + value.getClass());
+            }
+        } catch (Exception ex) {
+            String err = ex.getLocalizedMessage();
+            fireEvent(PREF_EXCEPTION, "Storing '" + name + "' failed", err);
         }
-        else
-        {
-            throw new IllegalArgumentException("unsupported preference type " + value.getClass());
-        }
+
         return INSTANCE;
     }
 

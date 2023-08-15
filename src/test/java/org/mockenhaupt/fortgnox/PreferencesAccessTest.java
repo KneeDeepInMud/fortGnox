@@ -1,9 +1,12 @@
 package org.mockenhaupt.fortgnox;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -59,5 +62,38 @@ class PreferencesAccessTest
         assertEquals(6, pa.getPreference("int", 666));
 
         pa.removePropertyChangeListener(p);
+    }
+
+    @Test
+    void putLongProperty() {
+        PreferencesAccess pa = PreferencesAccess.getInstance(NODE);
+
+        PropertyChangeListener p = propertyChangeEvent ->
+                assertEquals(FgPreferences.PREF_EXCEPTION, propertyChangeEvent.getPropertyName()
+                );
+
+        pa.addPropertyChangeListener(p);
+
+        StringBuilder jsonBuilder = new StringBuilder();
+        jsonBuilder.append("{");
+        int max = 1024 * 3;
+        for (int i = 0 ; i < max; ++i)
+        {
+            String key = String.format("key_%05d", i);
+            String val = String.format("val_%05d", i);
+            jsonBuilder.append('"');
+            jsonBuilder.append(key);
+            jsonBuilder.append('"');
+            jsonBuilder.append(':');
+            jsonBuilder.append(val);
+            if (i < max - 1)
+            {
+                jsonBuilder.append(',');
+            }
+        }
+        jsonBuilder.append("}");
+        pa.put("BIGJSON", jsonBuilder.toString());
+        pa.removePropertyChangeListener(p);
+
     }
 }
