@@ -4,16 +4,7 @@ import org.mockenhaupt.fortgnox.misc.PasswordCharacterPool;
 import org.mockenhaupt.fortgnox.swing.JCheckBoxPersistent;
 import org.mockenhaupt.fortgnox.swing.LAFChooser;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.GroupLayout;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFormattedTextField;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.Dimension;
@@ -23,7 +14,6 @@ import java.beans.PropertyChangeListener;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
@@ -33,8 +23,12 @@ import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_LOWE
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_SPECIAL;
 import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_PASS_CHARPOOL_UPPER;
 
+
 public class PasswordGenerator implements PropertyChangeListener
 {
+    public static int MAX_PASSWORD_LENGTH = 999;
+    public static int MIN_PASSWORD_LENGTH = 4;
+
     private JDialog generatorWindow;
     private final JFrame parent;
     private List<Character> digits = new ArrayList<>();
@@ -43,7 +37,7 @@ public class PasswordGenerator implements PropertyChangeListener
     private List<Character> special = new ArrayList<>();
 
     private final JComboBox<String> comboBoxPasswords = new JComboBox<>();
-    private final JFormattedTextField textFieldLength = new JFormattedTextField();
+    JSpinner jSpinnerPasswordLength = new JSpinner(new SpinnerNumberModel(12, MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH, 1));
     private final JCheckBoxPersistent cbUpper = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_UPPER, "Uppercase", () -> handleEnabled());
     private final JCheckBoxPersistent cbLower = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_LOWER, "Lowercase", () -> handleEnabled());
     private final JCheckBoxPersistent cbDigit = new JCheckBoxPersistent(FgPreferences.PREF_GPG_PASS_DIGITS, "Digits", () -> handleEnabled());
@@ -119,34 +113,28 @@ public class PasswordGenerator implements PropertyChangeListener
             cbSpecial.setMnemonic('e');
             buttonCopy.setMnemonic('l');
 
-            textFieldLength.setMinimumSize(new Dimension(40, 10));
-            textFieldLength.setValue(FgPreferences.get().getPreference(FgPreferences.PREF_GPG_PASS_LENGTH, 18));
-            textFieldLength.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
-            textFieldLength.getDocument().addDocumentListener(new DocumentListener()
-            {
-                void updatePreference ()
-                {
-                    FgPreferences.get().putPreference(FgPreferences.PREF_GPG_PASS_LENGTH, textFieldLength.getText());
-                }
+            jSpinnerPasswordLength.getModel().setValue(FgPreferences.get().getPreference(FgPreferences.PREF_GPG_PASS_LENGTH, 18));
+            jSpinnerPasswordLength.setEditor(new JSpinner.NumberEditor(jSpinnerPasswordLength,"#"));
 
-                @Override
-                public void insertUpdate (DocumentEvent documentEvent)
+            jSpinnerPasswordLength.addMouseWheelListener(e -> {
+                int sign = e.getWheelRotation();
+                Integer val = (Integer) jSpinnerPasswordLength.getValue();
+                int newVal = normalizePasswordLength(val - sign);
+                if (newVal != val)
                 {
-                    updatePreference();
-                }
-
-                @Override
-                public void removeUpdate (DocumentEvent documentEvent)
-                {
-                    updatePreference();
-                }
-
-                @Override
-                public void changedUpdate (DocumentEvent documentEvent)
-                {
-                    updatePreference();
+                    jSpinnerPasswordLength.setValue(newVal);
                 }
             });
+            jSpinnerPasswordLength.getModel().addChangeListener(e -> {
+                Integer val = (Integer) jSpinnerPasswordLength.getValue();
+                int newVal = normalizePasswordLength(val);
+                if (newVal != val)
+                {
+                    jSpinnerPasswordLength.setValue(newVal);
+                }
+                FgPreferences.get().putPreference(FgPreferences.PREF_GPG_PASS_LENGTH, newVal);
+            });
+
 
             handleEnabled();
             gl.setHorizontalGroup(
@@ -157,7 +145,7 @@ public class PasswordGenerator implements PropertyChangeListener
                                     .addComponent(cbDigit)
                                     .addComponent(cbSpecial)
                                     .addGap(10)
-                                    .addComponent(textFieldLength, 20, 40, 60)
+                                    .addComponent(jSpinnerPasswordLength, 60, 70, 80)
                                     .addComponent(buttonGenerate)
                             )
                             .addGroup(gl.createSequentialGroup()
@@ -176,7 +164,7 @@ public class PasswordGenerator implements PropertyChangeListener
                                     .addComponent(cbLower)
                                     .addComponent(cbDigit)
                                     .addComponent(cbSpecial)
-                                    .addComponent(textFieldLength)
+                                    .addComponent(jSpinnerPasswordLength)
                                     .addComponent(buttonGenerate)
                             )
                             .addGroup(gl.createParallelGroup()
@@ -267,7 +255,7 @@ public class PasswordGenerator implements PropertyChangeListener
                                   Consumer<String> handlePass)
     {
 
-        if (len < 4 || len > 256) {
+        if (len < MIN_PASSWORD_LENGTH || len > MAX_PASSWORD_LENGTH) {
             handleError.accept("Password length not supported");
             return;
         }
@@ -314,13 +302,11 @@ public class PasswordGenerator implements PropertyChangeListener
 
     private void generatePassword ()
     {
-        Integer len = Integer.parseInt(textFieldLength.getText());
+        Integer len = (Integer)jSpinnerPasswordLength.getValue();
 
-        len = Math.abs(len);
-        len = Math.min(len, 256);
-        len = Math.max(len, 4);
+        len = normalizePasswordLength(len);
 
-        textFieldLength.setValue(len);
+        jSpinnerPasswordLength.setValue(len);
 
         generatePassword(len,
                 cbDigit.isSelected(),
@@ -329,6 +315,14 @@ public class PasswordGenerator implements PropertyChangeListener
                 cbSpecial.isSelected(),
                 errorMsg -> JOptionPane.showMessageDialog(parent, errorMsg, "fortGnox WARNING", JOptionPane.ERROR_MESSAGE),
                 password -> addPassword(password));
+    }
+
+    private static Integer normalizePasswordLength (int len)
+    {
+        len = Math.abs(len);
+        len = Math.min(len, MAX_PASSWORD_LENGTH);
+        len = Math.max(len, MIN_PASSWORD_LENGTH);
+        return len;
     }
 
     private void addPassword (String pass)
