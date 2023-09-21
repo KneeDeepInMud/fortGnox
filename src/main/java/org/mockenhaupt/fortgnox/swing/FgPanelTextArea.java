@@ -5,34 +5,11 @@ import org.mockenhaupt.fortgnox.MainFrame;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
 import org.mockenhaupt.fortgnox.tags.TagsStore;
 
-import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextPane;
-import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.Document;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Desktop;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.MouseInfo;
-import java.awt.Point;
+import javax.swing.text.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -47,15 +24,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -96,7 +66,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
             "account", "user", ".*id[:=]", "login", "Auftra", "benutzer", "Kunde", "telefon", ".*nummer", ".*kennung"
     ));
 
-
+    private static final String TOC_HEADER_PREFIX = "file://tocheader_";
 
     enum LineMaskingOrder
     {
@@ -119,6 +89,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     private final AtomicReference<String> oldStatusText = new AtomicReference<>("");
     // stores the text position of search hits
     final private List<Integer> hitList = new ArrayList<>();
+
     private int caretPointer = -1;
 
     public static Color BACKGROUND = new java.awt.Color(62, 62, 62);
@@ -231,6 +202,28 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     }
 
 
+    public static void centerLineInScrollPane(JTextComponent component, int pos)
+    {
+        component.setCaretPosition(pos);
+        Container container = SwingUtilities.getAncestorOfClass(JViewport.class, component);
+
+        if (container == null) return;
+
+        try
+        {
+            Rectangle r = component.modelToView(component.getCaretPosition());
+            JViewport viewport = (JViewport)container;
+            int extentHeight = viewport.getExtentSize().height;
+            int viewHeight = viewport.getViewSize().height;
+
+            int y = Math.max(0, r.y - ((extentHeight - r.height) / 2));
+            y = Math.min(y, viewHeight - extentHeight);
+
+            viewport.setViewPosition(new Point(0, y));
+        }
+        catch(BadLocationException ble) {}
+    }
+
     private void initTextArea (MainFrame mainFrame)
     {
         this.mainFrame = mainFrame;
@@ -305,7 +298,21 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                     {
                         if (isOpenUrls())
                         {
-                            openUrlLink(e);
+                            String needle = e.getURL().getHost();
+                            textPane.getStyledDocument();
+                            if (getDocumentText().indexOf(needle) >= 0)
+                            {
+                                System.err.println(getDocumentText());
+                                System.err.println(e.getURL().toString().toLowerCase());
+                                int pos = getDocumentText().indexOf(needle);
+                                centerLineInScrollPane(textPane, pos);
+//                                SwingUtilities.invokeLater(() -> );
+                                System.err.println("XXX " + e.getURL().toString());
+                            }
+                            else
+                            {
+                                openUrlLink(e);
+                            }
                         }
                         else
                         {
@@ -897,7 +904,12 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         return getLink(url, url, COLOR_LINK);
     }
 
-    private String getLink (String href, String showRef,  String color)
+    private String getLink (String url, String text)
+    {
+        return getLink(url, text, COLOR_LINK);
+    }
+
+    private String getLink (String href, String showRef, String color)
     {
         if (isDetectUrls())
         {
@@ -974,13 +986,17 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         int passwordCount = 1;
         int lineNr = 0;
         int blankCount = 0;
+        final SortedMap<String, String> tocMap = new TreeMap<>();
 
         resetClipboardCommands();
+        int headerLine = -1;
+        int lastHeaderLine = -1;
 
         while (scanner.hasNextLine())
         {
             String line = scanner.nextLine();
 
+            // BLANK LINE COMPRESSION ==================================
             boolean isBlankLine = line.matches("^\\s*$");
             if (isBlankLine)
             {
@@ -994,6 +1010,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
             {
                 blankCount = 0;
             }
+
 
             lineNr++;
 
@@ -1155,6 +1172,39 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                 }
             }
 
+
+            // TOC GENERATION ==================================
+            if (!lineHandled)
+            {
+                {
+                    String regexp = "^=+$";
+                    Pattern pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+                    Matcher matcher = pattern.matcher(line);
+                    if (matcher.matches())// && matcher.groupCount() >= 2)
+                    {
+                        headerLine = lineNr;
+                    }
+                }
+
+                {
+                    String regexp = "^=*\\s*(.+)$";
+                    Pattern pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+                    Matcher matcher = pattern.matcher(line);
+                    if (matcher.matches() && matcher.groupCount() >= 1)
+                    {
+                        String headerText = matcher.group(1);
+                        boolean neverHit = lastHeaderLine <= 0;
+                        if (lineNr == headerLine + 1 && (neverHit || lineNr > lastHeaderLine + 2))
+                        {
+                            line = getIdTaggedText(TOC_HEADER_PREFIX + lineNr,  headerText);
+                            tocMap.put(headerText, "" + lineNr);
+                            lastHeaderLine = lineNr;
+                        }
+                    }
+                }
+            }
+
+            // line feed
             maskedText += "<pre style='margin: 0px;'>" + line +"</pre>";
         }
 
@@ -1166,8 +1216,53 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
         setClipToolbarVisibility(clipToolbar.getComponentCount() > 0);
 
-        return maskedText;
+        return getToc(tocMap) + maskedText;
     }
+
+
+    private String getToc (SortedMap<String, String> tocMap)
+    {
+        if (tocMap == null || tocMap.isEmpty())
+        {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        Iterator<Map.Entry<String, String>> tocIter = tocMap.entrySet().iterator();
+
+        sb.append("<ol>");
+        while (tocIter.hasNext())
+        {
+            Map.Entry<String, String> tocEntry = tocIter.next();
+            String text = tocEntry.getKey();
+            if (text != null && !text.trim().isEmpty())
+            {
+                sb.append("<li>");
+                sb.append(getLink("file://" + text, text));
+//                sb.append(getLink(TOC_HEADER_PREFIX + tocEntry.getValue(), text));
+                sb.append("</li>");
+            }
+        }
+        sb.append("</ol>");
+        return sb.toString();
+    }
+
+    private String getIdTaggedText (String id, String text)
+    {
+        StringBuilder sb = new StringBuilder();
+//        sb.append("<span visible=false>" + id + "</span>");
+        sb.append("<span ");
+        sb.append("style='font-weight:bold; font-style: italic;' ");
+        sb.append("id='");
+        sb.append(id);
+        sb.append("' ");
+        sb.append(">");
+        sb.append(text);
+        sb.append("</span>");
+        return sb.toString();
+    }
+
 
 
     private boolean isPasswordMatch (String line)
@@ -1316,15 +1411,9 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     {
         mainFrame.startTimer();
 
-        String documentText;
-        Document document = textPane.getDocument();
-        try
+        String documentText = getDocumentText();
+        if (documentText == null)
         {
-            documentText = document.getText(0, document.getLength());
-        }
-        catch (BadLocationException e)
-        {
-            e.printStackTrace();
             return;
         }
 
@@ -1344,6 +1433,22 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
             caretPointer = 0;
             setCaretPosition(hitList.get(caretPointer));
         }
+    }
+
+    private String getDocumentText()
+    {
+        String documentText;
+        Document document = textPane.getDocument();
+        try
+        {
+            documentText = document.getText(0, document.getLength());
+        }
+        catch (BadLocationException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+        return documentText;
     }
 
     @Override
