@@ -3,6 +3,7 @@ package org.mockenhaupt.fortgnox.swing;
 import org.mockenhaupt.fortgnox.FgPreferences;
 import org.mockenhaupt.fortgnox.MainFrame;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
+import org.mockenhaupt.fortgnox.misc.StringUtils;
 import org.mockenhaupt.fortgnox.tags.TagsStore;
 
 import javax.swing.*;
@@ -228,7 +229,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
             //            int y = Math.max(0, r.y - ((extentHeight - r.height) / 2));
             //            y = Math.min(y, viewHeight - extentHeight);
 
-            viewport.setViewPosition(new Point(1, r.y));
+            viewport.setViewPosition(new Point(0, r.y));
         }
         catch(BadLocationException ble)
         {
@@ -997,7 +998,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
         while (scanner.hasNextLine())
         {
-            String line = scanner.nextLine();
+            String line = StringUtils.trimEnd(scanner.nextLine());
             String plainLine = line;
 
             // BLANK LINE COMPRESSION ==================================
@@ -1346,6 +1347,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     {
         resetClipboardCommands();
         resetSearch();
+        tocMap.clear();
 
         Point p = scrollPaneTextArea.getViewport().getViewPosition();
 
@@ -1385,7 +1387,6 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         if (text != null)
         {
             setLabelFileName(shortFileName == null ? "" : shortFileName  + TagsStore.getTagsOfFile(fullFileName));
-            tocMap.clear();
             this.plainText = text;
             updateText();
         }
