@@ -9,9 +9,6 @@ import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.text.*;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.StyleSheet;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -99,7 +96,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     private final AtomicReference<String> oldStatusText = new AtomicReference<>("");
     // stores the text position of search hits
     final private List<Integer> hitList = new ArrayList<>();
-
+    SortedMap<String, String> tocMap = new TreeMap<>();
     private int caretPointer = -1;
 
     public static Color BACKGROUND = new java.awt.Color(62, 62, 62);
@@ -387,8 +384,8 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
                         if (needle.startsWith(TOC_HEADER_SUFFIX))
                         {
-                            if (needle.endsWith("0")) setStatusText("Jump to top");
-                            else  setStatusText("Jump to password section");
+                            if (needle.endsWith("_0")) setStatusText("Jump to top");
+                            else  setStatusText("Jump to section '" + tocMap.get(e.getURL().toString()) + "'");
                         }
                         else setStatusText("Open \"" + desc + "\" in browser");
                     }
@@ -989,11 +986,10 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     {
         Scanner scanner = new Scanner(this.plainText);
         String maskedText = "";
-        String plainText = "";
+        String plainMaskedText = "";
         int passwordCount = 1;
         int lineNr = 0;
         int blankCount = 0;
-        final SortedMap<String, String> tocMap = new TreeMap<>();
 
         resetClipboardCommands();
         int headerLine = -1;
@@ -1185,37 +1181,17 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
             // TOC GENERATION ==================================
             if (!lineHandled && prefTocGeneration)
             {
-                {
-                    String regexp = "^=+$";
-                    Pattern pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
-                    Matcher matcher = pattern.matcher(line);
-                    if (matcher.matches())// && matcher.groupCount() >= 2)
-                    {
-                        headerLine = lineNr;
-                    }
-                }
-
-                {
-                    String regexp = "^(=*\\s*)(.+)$";
-                    Pattern pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
-                    Matcher matcher = pattern.matcher(line);
-                    if (matcher.matches() && matcher.groupCount() >= 2)
-                    {
-                        String headerText = matcher.group(2);
-                        boolean neverHit = lastHeaderLine <= 0;
-                        if (lineNr == headerLine + 1 && (neverHit || lineNr > lastHeaderLine + 2))
-                        {
-                            String key = TOC_HEADER_PREFIX + String.format("%05d", plainText.length());
-                            line = matcher.group(1) + getJumpToHeader(key,  headerText);
-                            tocMap.put(key, headerText);
-                            lastHeaderLine = lineNr;
-                        }
-                    }
-                }
+                AtomicReference<String> lineRef = new AtomicReference<>(line);
+                AtomicReference<Integer> headerLineRef = new AtomicReference<>(headerLine);
+                AtomicReference<Integer> lastHeaderLineRef = new AtomicReference<>(lastHeaderLine);
+                handleTocGenerationInText(lineRef, headerLineRef, lastHeaderLineRef, plainMaskedText, lineNr);
+                line = lineRef.get();
+                headerLine = headerLineRef.get();
+                lastHeaderLine = lastHeaderLineRef.get();
             }
 
             // line feed
-            plainText += plainLine;
+            plainMaskedText += plainLine;
             maskedText += "<pre style='margin: 0px;'>" + line +"</pre>";
         }
 
@@ -1227,11 +1203,70 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
         setClipToolbarVisibility(clipToolbar.getComponentCount() > 0);
 
-        return getToc(tocMap) + maskedText;
+        return getToc() + maskedText;
     }
 
 
-    private String getToc (SortedMap<String, String> tocMap)
+    private void handleTocGenerationInText(AtomicReference<String> lineRef,
+                                           AtomicReference<Integer> headerLineRef,
+                                           AtomicReference<Integer> lastHeaderLineRef,
+                                           String plainMaskedText,
+                                           int lineNr)
+    {
+        String line = lineRef.get();
+        int headerLine = headerLineRef.get();
+        int lastHeaderLine = lastHeaderLineRef.get();
+
+        if (prefTocPrefix == null || prefTocPrefix.isEmpty())
+        {
+            String regexp = "^=+$";
+            Pattern pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(line);
+            if (matcher.matches())// && matcher.groupCount() >= 2)
+            {
+                headerLine = lineNr;
+            }
+
+            String headerRegexp = "^(=*\\s*)(.+)$";
+            Pattern headerPattern = Pattern.compile(headerRegexp, Pattern.CASE_INSENSITIVE);
+            Matcher headerMatcher = headerPattern.matcher(line);
+            if (headerMatcher.matches() && headerMatcher.groupCount() >= 2)
+            {
+                String headerText = headerMatcher.group(2);
+                boolean neverHit = lastHeaderLine <= 0;
+                if (lineNr == headerLine + 1 && (neverHit || lineNr > lastHeaderLine + 2))
+                {
+                    String key = TOC_HEADER_PREFIX + String.format("%05d", plainMaskedText.length());
+                    line = headerMatcher.group(1) + getJumpToHeader(key, headerText);
+                    tocMap.put(key, headerText);
+                    lastHeaderLine = lineNr;
+                }
+            }
+        }
+        else
+        {
+            String headerRegexp = "^" + prefTocPrefix + "\\s*(.+)$";
+            Pattern headerPattern = Pattern.compile(headerRegexp);
+            Matcher headerMatcher = headerPattern.matcher(line);
+            if (headerMatcher.matches() && headerMatcher.groupCount() >= 1)
+            {
+                String headerText = headerMatcher.group(1);
+                String key = TOC_HEADER_PREFIX + String.format("%05d", plainMaskedText.length());
+                line = getJumpToHeader(key, headerText);
+                tocMap.put(key, headerText);
+            }
+        }
+
+        headerLineRef.set(headerLine);
+        lineRef.set(line);
+        lastHeaderLineRef.set(lastHeaderLine);
+    }
+
+
+
+
+
+    private String getToc ()
     {
         if (!prefTocGeneration || tocMap == null || tocMap.isEmpty())
         {
@@ -1350,6 +1385,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         if (text != null)
         {
             setLabelFileName(shortFileName == null ? "" : shortFileName  + TagsStore.getTagsOfFile(fullFileName));
+            tocMap.clear();
             this.plainText = text;
             updateText();
         }
@@ -1415,6 +1451,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                 break;
             case FgPreferences.PREF_TOC_PREFIX:
                 prefTocPrefix = FgPreferences.get().get(FgPreferences.PREF_TOC_PREFIX, prefTocPrefix);
+                if (prefTocPrefix != null) prefTocPrefix = prefTocPrefix.trim();
                 SwingUtilities.invokeLater(() -> updateText());
                 break;
         }
