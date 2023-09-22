@@ -73,8 +73,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     private static final String TOC_HEADER_SUFFIX =  "tocheader_";
     private static final String TOC_HEADER_PREFIX = TOC_HEADER_PREFIX_FILE + TOC_HEADER_SUFFIX;
     private static final String TOC_START = "";
-    private static final String TOC_END = "-------- end of generated content table --------";
-
+    private static final String TOC_END = "-- ";
 
 
     enum LineMaskingOrder
