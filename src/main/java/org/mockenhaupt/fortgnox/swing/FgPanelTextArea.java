@@ -9,6 +9,9 @@ import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.text.*;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -63,10 +66,16 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     ));
 
     private static final List<String> DEFAULT_USERNAME_PATTERNS = new ArrayList(Arrays.asList(
-            "account", "user", ".*id[:=]", "login", "Auftra", "benutzer", "Kunde", "telefon", ".*nummer", ".*kennung"
+            "account", "user", ".*id[:=]", "login", "Auftrag", "benutzer", "Kunde", "telefon", ".*nummer", ".*kennung"
     ));
 
-    private static final String TOC_HEADER_PREFIX = "file://tocheader_";
+    private static final String TOC_HEADER_PREFIX_FILE = "file://";
+    private static final String TOC_HEADER_SUFFIX =  "tocheader_";
+    private static final String TOC_HEADER_PREFIX = TOC_HEADER_PREFIX_FILE + TOC_HEADER_SUFFIX;
+    private static final String TOC_START = "";
+    private static final String TOC_END = "-------- end of generated content table --------";
+
+
 
     enum LineMaskingOrder
     {
@@ -97,7 +106,10 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     public static final String PASSWORD_PREFIX = "oghogoo3eaTheephe7:";
     public static final String GPG_FILE_PASSWORD_PREFIX = "oghogoo3eaTheephe8:";
     public static final String COLOR_LINK = "#9fbfff";
-    public static final String COLOR_GPG_FILE = "#8DDE7EFF";
+    private static final String COLOR_END_OF_TOC = "#999999";
+
+    public static final String COLOR_JUMP_TOP = "#8DDE7EFF";
+    public static final String COLOR_GPG_FILE = COLOR_JUMP_TOP;
     public static final String COLOR_CLIPBOARD = "#fff8ac";
     public static final String COLOR_EMAIL = COLOR_CLIPBOARD;
     public static final String COLOR_PASSWORD = "#ed8cc5";
@@ -202,7 +214,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     }
 
 
-    public static void centerLineInScrollPane(JTextComponent component, int pos)
+    public static void scrollToLineOfCaretPosition(JTextComponent component, int pos) throws BadLocationException
     {
         component.setCaretPosition(pos);
         Container container = SwingUtilities.getAncestorOfClass(JViewport.class, component);
@@ -213,21 +225,33 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         {
             Rectangle r = component.modelToView(component.getCaretPosition());
             JViewport viewport = (JViewport)container;
-            int extentHeight = viewport.getExtentSize().height;
-            int viewHeight = viewport.getViewSize().height;
+            //            int extentHeight = viewport.getExtentSize().height;
+            //            int viewHeight = viewport.getViewSize().height;
+            //            int y = Math.max(0, r.y - ((extentHeight - r.height) / 2));
+            //            y = Math.min(y, viewHeight - extentHeight);
 
-            int y = Math.max(0, r.y - ((extentHeight - r.height) / 2));
-            y = Math.min(y, viewHeight - extentHeight);
-
-            viewport.setViewPosition(new Point(0, y));
+            viewport.setViewPosition(new Point(1, r.y));
         }
-        catch(BadLocationException ble) {}
+        catch(BadLocationException ble)
+        {
+            throw ble;
+        }
     }
 
     private void initTextArea (MainFrame mainFrame)
     {
         this.mainFrame = mainFrame;
         this.textPane = new JTextPane();
+
+//        StyleSheet styleSheet = new StyleSheet();
+////        styleSheet.addRule("ol {padding: 0px;}");
+//        HTMLEditorKit htmlEditorKit = new HTMLEditorKit();
+//        htmlEditorKit.setStyleSheet(styleSheet);
+//
+//        HTMLDocument htmlDocument = (HTMLDocument) htmlEditorKit.createDefaultDocument();
+//        textPane.setDocument(htmlDocument);
+
+
         textPane.setBorder(BorderFactory.createLineBorder(BACKGROUND, 1));
         textPane.setEditable(false);
         textPane.setContentType("text/html");
@@ -299,15 +323,14 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                         if (isOpenUrls())
                         {
                             String needle = e.getURL().getHost();
-                            textPane.getStyledDocument();
-                            if (getDocumentText().indexOf(needle) >= 0)
+
+                            if (needle.startsWith(TOC_HEADER_SUFFIX))
                             {
-                                System.err.println(getDocumentText());
-                                System.err.println(e.getURL().toString().toLowerCase());
-                                int pos = getDocumentText().indexOf(needle);
-                                centerLineInScrollPane(textPane, pos);
-//                                SwingUtilities.invokeLater(() -> );
-                                System.err.println("XXX " + e.getURL().toString());
+                                int offset = getDocumentText().indexOf(TOC_END);
+                                needle = needle.replaceAll(TOC_HEADER_SUFFIX, "");
+
+                                int pos = Integer.parseInt(needle);
+                                scrollToLineOfCaretPosition(textPane, pos == 0 ? 0 : pos + offset);
                             }
                             else
                             {
@@ -317,33 +340,6 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                         else
                         {
                             copyToClipboard(e);
-//                            String text = e.getDescription().trim();
-//                            MainFrame.toClipboard(text, "\"" + text + "\"", false);
-//
-//                            JPopupMenu popupMenu = new JPopupMenu();
-//                            JMenuItem miCopy = new JMenuItem("Copy URL to Clipboard");
-//                            miCopy.addActionListener(a -> copyToClipboard(e));
-//                            JMenuItem miOpen = new JMenuItem("Open URL in Browser");
-//                            miOpen.addActionListener(a ->
-//                            {
-//                                try
-//                                {
-//                                    openUrlLink(e);
-//                                }
-//                                catch (URISyntaxException uriSyntaxException)
-//                                {
-//                                    uriSyntaxException.printStackTrace();
-//                                }
-//                                catch (IOException ioException)
-//                                {
-//                                    ioException.printStackTrace();
-//                                }
-//                            });
-//                            popupMenu.add(miOpen);
-//                            popupMenu.add(miCopy);
-//                            Point pointer = MouseInfo.getPointerInfo().getLocation();
-//                            SwingUtilities.convertPointFromScreen(pointer, textPane);
-//                            popupMenu.show(textPane, pointer.x, pointer.y);
                         }
                     }
                     else
@@ -386,7 +382,14 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
                     if (e.getURL() != null && isOpenUrls())
                     {
-                        setStatusText("Open \"" + desc + "\" in browser");
+                        String needle = e.getURL().getHost();
+
+                        if (needle.startsWith(TOC_HEADER_SUFFIX))
+                        {
+                            if (needle.endsWith("0")) setStatusText("Jump to top");
+                            else  setStatusText("Jump to password section");
+                        }
+                        else setStatusText("Open \"" + desc + "\" in browser");
                     }
                     else if (desc.startsWith(PASSWORD_PREFIX))
                     {
@@ -909,7 +912,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         return getLink(url, text, COLOR_LINK);
     }
 
-    private String getLink (String href, String showRef, String color)
+    private String getLink (String href, String text, String color)
     {
         if (isDetectUrls())
         {
@@ -919,13 +922,13 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                     ";' href='");
             sb.append(href);
             sb.append("'>");
-            sb.append(showRef);
+            sb.append(text);
             sb.append("</a>");
             return sb.toString();
         }
         else
         {
-            return showRef;
+            return text;
         }
     }
 
@@ -983,6 +986,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     {
         Scanner scanner = new Scanner(this.plainText);
         String maskedText = "";
+        String plainText = "";
         int passwordCount = 1;
         int lineNr = 0;
         int blankCount = 0;
@@ -995,6 +999,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         while (scanner.hasNextLine())
         {
             String line = scanner.nextLine();
+            String plainLine = line;
 
             // BLANK LINE COMPRESSION ==================================
             boolean isBlankLine = line.matches("^\\s*$");
@@ -1142,6 +1147,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                                         String password = matcher.group(2).trim();
                                         String mask = PASSWORD_MASK + passwordCount;
                                         line = matcher.replaceAll("$1" + getPasswordLink(password, mask));
+                                        plainLine = matcher.replaceAll("$1" + mask);
                                         addClipboardCommand(passwordCount, password);
                                         passwordCount++;
                                         lineHandled = true;
@@ -1196,8 +1202,9 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                         boolean neverHit = lastHeaderLine <= 0;
                         if (lineNr == headerLine + 1 && (neverHit || lineNr > lastHeaderLine + 2))
                         {
-                            line = getIdTaggedText(TOC_HEADER_PREFIX + lineNr,  headerText);
-                            tocMap.put(headerText, "" + lineNr);
+                            String key = TOC_HEADER_PREFIX + String.format("%05d", plainText.length());
+                            line = getJumpToHeader(key,  headerText);
+                            tocMap.put(key, headerText);
                             lastHeaderLine = lineNr;
                         }
                     }
@@ -1205,6 +1212,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
             }
 
             // line feed
+            plainText += plainLine;
             maskedText += "<pre style='margin: 0px;'>" + line +"</pre>";
         }
 
@@ -1231,35 +1239,30 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
         Iterator<Map.Entry<String, String>> tocIter = tocMap.entrySet().iterator();
 
+        sb.append(TOC_START);
         sb.append("<ol>");
         while (tocIter.hasNext())
         {
             Map.Entry<String, String> tocEntry = tocIter.next();
-            String text = tocEntry.getKey();
+            String text = tocEntry.getValue();
             if (text != null && !text.trim().isEmpty())
             {
                 sb.append("<li>");
-                sb.append(getLink("file://" + text, text));
-//                sb.append(getLink(TOC_HEADER_PREFIX + tocEntry.getValue(), text));
+                sb.append(getLink(tocEntry.getKey(), text, COLOR_JUMP_TOP));
                 sb.append("</li>");
             }
         }
         sb.append("</ol>");
+        sb.append("<span style='color: " + COLOR_END_OF_TOC + ";'>");
+        sb.append(TOC_END);
+        sb.append("</span>");
         return sb.toString();
     }
 
-    private String getIdTaggedText (String id, String text)
+    private String getJumpToHeader(String id, String text)
     {
         StringBuilder sb = new StringBuilder();
-//        sb.append("<span visible=false>" + id + "</span>");
-        sb.append("<span ");
-        sb.append("style='font-weight:bold; font-style: italic;' ");
-        sb.append("id='");
-        sb.append(id);
-        sb.append("' ");
-        sb.append(">");
-        sb.append(text);
-        sb.append("</span>");
+        sb.append(getLink(TOC_HEADER_PREFIX + "0", text, COLOR_JUMP_TOP));
         return sb.toString();
     }
 
