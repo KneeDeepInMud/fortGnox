@@ -95,6 +95,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     private boolean prefClipboardToolbarVisible = true;
     private boolean prefMaskFirstLine = true;
     private int prefTextAreaFontSize = 14;
+    private boolean prefTocGeneration = false;
     private final AtomicReference<String> oldStatusText = new AtomicReference<>("");
     // stores the text position of search hits
     final private List<Integer> hitList = new ArrayList<>();
@@ -768,6 +769,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         prefClipboardToolbarVisible = FgPreferences.get().get(FgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR, prefClipboardToolbarVisible);
         prefMaskFirstLine = FgPreferences.get().get(FgPreferences.PREF_MASK_FIRST_LINE, prefMaskFirstLine);
         prefTextAreaFontSize = FgPreferences.get().get(FgPreferences.PREF_TEXTAREA_FONT_SIZE, prefTextAreaFontSize);
+        prefTocGeneration = FgPreferences.get().get(FgPreferences.PREF_TOC_GENERATION, prefTocGeneration);
         FgPreferences.get().get(PREF_RESET_MASK_BUTTON_SECONDS, 5);
 
     }
@@ -1180,7 +1182,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
 
             // TOC GENERATION ==================================
-            if (!lineHandled)
+            if (!lineHandled && prefTocGeneration)
             {
                 {
                     String regexp = "^=+$";
@@ -1193,17 +1195,17 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                 }
 
                 {
-                    String regexp = "^=*\\s*(.+)$";
+                    String regexp = "^(=*\\s*)(.+)$";
                     Pattern pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
                     Matcher matcher = pattern.matcher(line);
-                    if (matcher.matches() && matcher.groupCount() >= 1)
+                    if (matcher.matches() && matcher.groupCount() >= 2)
                     {
-                        String headerText = matcher.group(1);
+                        String headerText = matcher.group(2);
                         boolean neverHit = lastHeaderLine <= 0;
                         if (lineNr == headerLine + 1 && (neverHit || lineNr > lastHeaderLine + 2))
                         {
                             String key = TOC_HEADER_PREFIX + String.format("%05d", plainText.length());
-                            line = getJumpToHeader(key,  headerText);
+                            line = matcher.group(1) + getJumpToHeader(key,  headerText);
                             tocMap.put(key, headerText);
                             lastHeaderLine = lineNr;
                         }
@@ -1230,7 +1232,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
     private String getToc (SortedMap<String, String> tocMap)
     {
-        if (tocMap == null || tocMap.isEmpty())
+        if (!prefTocGeneration || tocMap == null || tocMap.isEmpty())
         {
             return "";
         }
@@ -1248,7 +1250,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
             if (text != null && !text.trim().isEmpty())
             {
                 sb.append("<li>");
-                sb.append(getLink(tocEntry.getKey(), text, COLOR_JUMP_TOP));
+                sb.append(getLink(tocEntry.getKey(), text.trim(), COLOR_JUMP_TOP));
                 sb.append("</li>");
             }
         }
@@ -1262,7 +1264,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     private String getJumpToHeader(String id, String text)
     {
         StringBuilder sb = new StringBuilder();
-        sb.append(getLink(TOC_HEADER_PREFIX + "0", text, COLOR_JUMP_TOP));
+        sb.append(getLink(TOC_HEADER_PREFIX + "0", text.trim(), COLOR_JUMP_TOP));
         return sb.toString();
     }
 
@@ -1404,6 +1406,10 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                 break;
             case FgPreferences.PREF_TEXTAREA_FONT_SIZE:
                 prefTextAreaFontSize = FgPreferences.get().get(FgPreferences.PREF_TEXTAREA_FONT_SIZE, prefTextAreaFontSize);
+                SwingUtilities.invokeLater(() -> updateText());
+                break;
+            case FgPreferences.PREF_TOC_GENERATION:
+                prefTocGeneration = FgPreferences.get().get(FgPreferences.PREF_TOC_GENERATION, prefTocGeneration);
                 SwingUtilities.invokeLater(() -> updateText());
                 break;
         }

@@ -34,6 +34,7 @@ public class FgPreferences
     public static final String PREF_USE_SEARCH_TAGS = "use_search_tags";
 
     public static final String PREF_SHOW_SEARCH_TAGS = "show_search_tags";
+    public static final String PREF_TOC_GENERATION = "generate_table_of_contents";
 
     public static final String PREF_FAVORITES = "favorites";
     public static final String PREF_RESET_MASK_BUTTON_SECONDS = "reset_mask_button_seconds";
