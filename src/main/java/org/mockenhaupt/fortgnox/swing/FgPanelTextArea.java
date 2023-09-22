@@ -95,6 +95,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     private boolean prefMaskFirstLine = true;
     private int prefTextAreaFontSize = 14;
     private boolean prefTocGeneration = false;
+    private String prefTocPrefix = "";
     private final AtomicReference<String> oldStatusText = new AtomicReference<>("");
     // stores the text position of search hits
     final private List<Integer> hitList = new ArrayList<>();
@@ -769,6 +770,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         prefMaskFirstLine = FgPreferences.get().get(FgPreferences.PREF_MASK_FIRST_LINE, prefMaskFirstLine);
         prefTextAreaFontSize = FgPreferences.get().get(FgPreferences.PREF_TEXTAREA_FONT_SIZE, prefTextAreaFontSize);
         prefTocGeneration = FgPreferences.get().get(FgPreferences.PREF_TOC_GENERATION, prefTocGeneration);
+        prefTocPrefix = FgPreferences.get().get(FgPreferences.PREF_TOC_PREFIX, prefTocPrefix);
         FgPreferences.get().get(PREF_RESET_MASK_BUTTON_SECONDS, 5);
 
     }
@@ -1409,6 +1411,10 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                 break;
             case FgPreferences.PREF_TOC_GENERATION:
                 prefTocGeneration = FgPreferences.get().get(FgPreferences.PREF_TOC_GENERATION, prefTocGeneration);
+                SwingUtilities.invokeLater(() -> updateText());
+                break;
+            case FgPreferences.PREF_TOC_PREFIX:
+                prefTocPrefix = FgPreferences.get().get(FgPreferences.PREF_TOC_PREFIX, prefTocPrefix);
                 SwingUtilities.invokeLater(() -> updateText());
                 break;
         }

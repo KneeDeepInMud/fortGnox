@@ -13,38 +13,15 @@ import org.mockenhaupt.fortgnox.MainFrame;
 import org.mockenhaupt.fortgnox.PreferencesAccess;
 import org.mockenhaupt.fortgnox.misc.PasswordCharacterPool;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.GroupLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JFormattedTextField;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.MouseInfo;
-import java.awt.Point;
+import javax.swing.*;
+import javax.swing.border.LineBorder;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.mockenhaupt.fortgnox.FgPreferences.*;
@@ -77,7 +54,9 @@ public class FgOptionsDialog extends javax.swing.JDialog
     private JCheckBoxPersistent jCheckBoxShowFavoritesCount;
     private JCheckBoxPersistent jCheckBoxUseSearchTags;
     private JCheckBoxPersistent jCheckBoxShowSearchTags;
+    private JPanel jPanelTocGeneration;
     private JCheckBoxPersistent jCheckBoxTocGeneration;
+    private JTextField jTextfieldTocPrefix;
     private JCheckBoxPersistent jCheckBoxAddChangedDateTime;
     private javax.swing.JCheckBox jCheckBoxShowDebugWindow;
     private javax.swing.JFormattedTextField jFormattedTextPassClearTimeout;
@@ -223,6 +202,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         PreferencesAccess pa = FgPreferences.get();
 
         this.textFieldCharsUpper.setText(pa.get(PREF_GPG_PASS_CHARPOOL_UPPER, PasswordCharacterPool.getUppercase()));
+        this.jTextfieldTocPrefix.setText(pa.get(PREF_TOC_PREFIX, PasswordCharacterPool.getUppercase()));
         this.textFieldCharsLower.setText(pa.get(PREF_GPG_PASS_CHARPOOL_LOWER, PasswordCharacterPool.getLowercase()));
         this.textFieldDigits.setText(pa.get(PREF_GPG_PASS_CHARPOOL_DIGIT, PasswordCharacterPool.getDigits()));
         this.textFieldSpecial.setText(pa.get(PREF_GPG_PASS_CHARPOOL_SPECIAL, PasswordCharacterPool.getSpecial()));
@@ -417,7 +397,26 @@ public class FgOptionsDialog extends javax.swing.JDialog
         jCheckBoxShowFavoritesCount = new JCheckBoxPersistent(PREF_FAVORITES_SHOW_COUNT);
         jCheckBoxUseSearchTags = new JCheckBoxPersistent(PREF_USE_SEARCH_TAGS, true);
         jCheckBoxShowSearchTags = new JCheckBoxPersistent(PREF_SHOW_SEARCH_TAGS, true);
+
+        // TOC preferences
         jCheckBoxTocGeneration = new JCheckBoxPersistent(PREF_TOC_GENERATION, false);
+        jPanelTocGeneration = new JPanel();
+        jPanelTocGeneration.setBorder(new LineBorder(Color.GRAY, 1));
+        BoxLayout boxLayoutTocGeneration = new BoxLayout(jPanelTocGeneration, BoxLayout.Y_AXIS);
+        jPanelTocGeneration.setLayout(boxLayoutTocGeneration);
+
+        JPanel panelTocCharacter = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
+        jTextfieldTocPrefix = new JTextField("");
+        jTextfieldTocPrefix.setColumns(3);
+        panelTocCharacter.add(jTextfieldTocPrefix);
+        panelTocCharacter.add(new JLabel("Prefix for TOC entries (leave empty for default template syntax)"));
+        panelTocCharacter.setAlignmentX(0f);
+
+        jCheckBoxTocGeneration.setAlignmentX(0f);
+        jPanelTocGeneration.add(jCheckBoxTocGeneration);
+        jPanelTocGeneration.add(panelTocCharacter);
+        // -
+
         jCheckBoxAddChangedDateTime = new JCheckBoxPersistent(PREF_ADD_CHANGED_DATE_TIME, false);
         jButtonApply = new javax.swing.JButton();
         jButtonSave = new javax.swing.JButton();
@@ -500,7 +499,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         jCheckBoxFilterFavorites.setText("Filter favorites in addition to passwords");
         jCheckBoxShowFavoritesCount.setText("Show count of individual favorite");
         jCheckBoxUseSearchTags.setText("Use additional search tags when filtering list of passwords");
-        jCheckBoxShowSearchTags.setText("Show search text in the password file list (behind the password file)");
+        jCheckBoxShowSearchTags.setText("Show search tags in the password file list (behind the password file)");
         jCheckBoxTocGeneration.setText("Show table of contents in decoded password file (does not change the file)");
         jCheckBoxAddChangedDateTime.setText("Add changed mark to each edited file");
 
@@ -526,8 +525,8 @@ public class FgOptionsDialog extends javax.swing.JDialog
             }
         });
 
-        gl.setAutoCreateGaps(true);
-        gl.setAutoCreateContainerGaps(true);
+        gl.setAutoCreateGaps(false);
+        gl.setAutoCreateContainerGaps(false);
         JLabel dummyLabel = new JLabel("");
         gl.setHorizontalGroup(
                 gl.createParallelGroup()
@@ -575,7 +574,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                                                 .addComponent(jCheckBoxFilterFavorites)
                                                 .addComponent(jCheckBoxShowTbButtonText)
                                                 .addComponent(jCheckBoxAddChangedDateTime)
-                                                .addComponent(jCheckBoxTocGeneration)
+                                                .addComponent(jPanelTocGeneration)
                                         )
                         )
         );
@@ -601,7 +600,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                         .addGroup(gl.createParallelGroup().addComponent(jCheckBoxUseFavorites).addComponent(jCheckBoxFilterFavorites))
                         .addGroup(gl.createParallelGroup().addComponent(jCheckBoxShowFavoritesCount).addComponent(jCheckBoxShowTbButtonText))
                         .addGroup(gl.createParallelGroup().addComponent(jCheckBoxUseSearchTags).addComponent(jCheckBoxAddChangedDateTime))
-                        .addGroup(gl.createParallelGroup().addComponent(jCheckBoxShowSearchTags).addComponent(jCheckBoxTocGeneration))
+                        .addGroup(gl.createParallelGroup().addComponent(jCheckBoxShowSearchTags).addComponent(jPanelTocGeneration))
 //                        .addGroup(gl.createParallelGroup().addComponent(jCheckBoxTocGeneration).addComponent(dummyLabel))
         );
 
@@ -789,6 +788,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         FgPreferences.get().put(PREF_NEW_TEMPLATE, jTextNewFileTemplate.getText());
 
         FgPreferences.get().put(PREF_GPG_PASS_CHARPOOL_UPPER, textFieldCharsUpper.getText().toUpperCase());
+        FgPreferences.get().put(PREF_TOC_PREFIX, jTextfieldTocPrefix.getText());
         FgPreferences.get().put(PREF_GPG_PASS_CHARPOOL_LOWER, textFieldCharsLower.getText().toLowerCase());
         FgPreferences.get().put(PREF_GPG_PASS_CHARPOOL_SPECIAL, textFieldSpecial.getText());
         FgPreferences.get().put(PREF_GPG_PASS_CHARPOOL_DIGIT, textFieldDigits.getText());
