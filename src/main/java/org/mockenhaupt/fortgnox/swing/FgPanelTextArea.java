@@ -3,36 +3,14 @@ package org.mockenhaupt.fortgnox.swing;
 import org.mockenhaupt.fortgnox.FgPreferences;
 import org.mockenhaupt.fortgnox.MainFrame;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
+import org.mockenhaupt.fortgnox.misc.StringUtils;
 import org.mockenhaupt.fortgnox.tags.TagsStore;
 
-import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextPane;
-import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.Document;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Desktop;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.MouseInfo;
-import java.awt.Point;
+import javax.swing.text.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -47,15 +25,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -93,9 +64,14 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     ));
 
     private static final List<String> DEFAULT_USERNAME_PATTERNS = new ArrayList(Arrays.asList(
-            "account", "user", ".*id[:=]", "login", "Auftra", "benutzer", "Kunde", "telefon", ".*nummer", ".*kennung"
+            "account", "user", ".*id[:=]", "login", "Auftrag", "benutzer", "Kunde", "telefon", ".*nummer", ".*kennung"
     ));
 
+    private static final String TOC_HEADER_PREFIX_FILE = "file://";
+    private static final String TOC_HEADER_SUFFIX =  "tocheader_";
+    private static final String TOC_HEADER_PREFIX = TOC_HEADER_PREFIX_FILE + TOC_HEADER_SUFFIX;
+    private static final String TOC_START = "";
+    private static final String TOC_END = "-- ";
 
 
     enum LineMaskingOrder
@@ -116,9 +92,12 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     private boolean prefClipboardToolbarVisible = true;
     private boolean prefMaskFirstLine = true;
     private int prefTextAreaFontSize = 14;
+    private boolean prefTocGeneration = false;
+    private String prefTocPrefix = "";
     private final AtomicReference<String> oldStatusText = new AtomicReference<>("");
     // stores the text position of search hits
     final private List<Integer> hitList = new ArrayList<>();
+    SortedMap<String, String> tocMap = new TreeMap<>();
     private int caretPointer = -1;
 
     public static Color BACKGROUND = new java.awt.Color(62, 62, 62);
@@ -126,7 +105,10 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     public static final String PASSWORD_PREFIX = "oghogoo3eaTheephe7:";
     public static final String GPG_FILE_PASSWORD_PREFIX = "oghogoo3eaTheephe8:";
     public static final String COLOR_LINK = "#9fbfff";
-    public static final String COLOR_GPG_FILE = "#8DDE7EFF";
+    private static final String COLOR_END_OF_TOC = "#999999";
+
+    public static final String COLOR_JUMP_TOP = "#8DDE7EFF";
+    public static final String COLOR_GPG_FILE = COLOR_JUMP_TOP;
     public static final String COLOR_CLIPBOARD = "#fff8ac";
     public static final String COLOR_EMAIL = COLOR_CLIPBOARD;
     public static final String COLOR_PASSWORD = "#ed8cc5";
@@ -231,10 +213,44 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     }
 
 
+    public static void scrollToLineOfCaretPosition(JTextComponent component, int pos) throws BadLocationException
+    {
+        component.setCaretPosition(pos);
+        Container container = SwingUtilities.getAncestorOfClass(JViewport.class, component);
+
+        if (container == null) return;
+
+        try
+        {
+            Rectangle r = component.modelToView(component.getCaretPosition());
+            JViewport viewport = (JViewport)container;
+            //            int extentHeight = viewport.getExtentSize().height;
+            //            int viewHeight = viewport.getViewSize().height;
+            //            int y = Math.max(0, r.y - ((extentHeight - r.height) / 2));
+            //            y = Math.min(y, viewHeight - extentHeight);
+
+            viewport.setViewPosition(new Point(0, r.y));
+        }
+        catch(BadLocationException ble)
+        {
+            throw ble;
+        }
+    }
+
     private void initTextArea (MainFrame mainFrame)
     {
         this.mainFrame = mainFrame;
         this.textPane = new JTextPane();
+
+//        StyleSheet styleSheet = new StyleSheet();
+////        styleSheet.addRule("ol {padding: 0px;}");
+//        HTMLEditorKit htmlEditorKit = new HTMLEditorKit();
+//        htmlEditorKit.setStyleSheet(styleSheet);
+//
+//        HTMLDocument htmlDocument = (HTMLDocument) htmlEditorKit.createDefaultDocument();
+//        textPane.setDocument(htmlDocument);
+
+
         textPane.setBorder(BorderFactory.createLineBorder(BACKGROUND, 1));
         textPane.setEditable(false);
         textPane.setContentType("text/html");
@@ -305,38 +321,24 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                     {
                         if (isOpenUrls())
                         {
-                            openUrlLink(e);
+                            String needle = e.getURL().getHost();
+
+                            if (needle.startsWith(TOC_HEADER_SUFFIX))
+                            {
+                                int offset = getDocumentText().indexOf(TOC_END);
+                                needle = needle.replaceAll(TOC_HEADER_SUFFIX, "");
+
+                                int pos = Integer.parseInt(needle);
+                                scrollToLineOfCaretPosition(textPane, pos == 0 ? 0 : pos + offset);
+                            }
+                            else
+                            {
+                                openUrlLink(e);
+                            }
                         }
                         else
                         {
                             copyToClipboard(e);
-//                            String text = e.getDescription().trim();
-//                            MainFrame.toClipboard(text, "\"" + text + "\"", false);
-//
-//                            JPopupMenu popupMenu = new JPopupMenu();
-//                            JMenuItem miCopy = new JMenuItem("Copy URL to Clipboard");
-//                            miCopy.addActionListener(a -> copyToClipboard(e));
-//                            JMenuItem miOpen = new JMenuItem("Open URL in Browser");
-//                            miOpen.addActionListener(a ->
-//                            {
-//                                try
-//                                {
-//                                    openUrlLink(e);
-//                                }
-//                                catch (URISyntaxException uriSyntaxException)
-//                                {
-//                                    uriSyntaxException.printStackTrace();
-//                                }
-//                                catch (IOException ioException)
-//                                {
-//                                    ioException.printStackTrace();
-//                                }
-//                            });
-//                            popupMenu.add(miOpen);
-//                            popupMenu.add(miCopy);
-//                            Point pointer = MouseInfo.getPointerInfo().getLocation();
-//                            SwingUtilities.convertPointFromScreen(pointer, textPane);
-//                            popupMenu.show(textPane, pointer.x, pointer.y);
                         }
                     }
                     else
@@ -379,7 +381,14 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
                     if (e.getURL() != null && isOpenUrls())
                     {
-                        setStatusText("Open \"" + desc + "\" in browser");
+                        String needle = e.getURL().getHost();
+
+                        if (needle.startsWith(TOC_HEADER_SUFFIX))
+                        {
+                            if (needle.endsWith("_0")) setStatusText("Jump to top");
+                            else  setStatusText("Jump to section '" + tocMap.get(e.getURL().toString()) + "'");
+                        }
+                        else setStatusText("Open \"" + desc + "\" in browser");
                     }
                     else if (desc.startsWith(PASSWORD_PREFIX))
                     {
@@ -758,6 +767,8 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         prefClipboardToolbarVisible = FgPreferences.get().get(FgPreferences.PREF_SHOW_PASSWORD_SHORTCUT_BAR, prefClipboardToolbarVisible);
         prefMaskFirstLine = FgPreferences.get().get(FgPreferences.PREF_MASK_FIRST_LINE, prefMaskFirstLine);
         prefTextAreaFontSize = FgPreferences.get().get(FgPreferences.PREF_TEXTAREA_FONT_SIZE, prefTextAreaFontSize);
+        prefTocGeneration = FgPreferences.get().get(FgPreferences.PREF_TOC_GENERATION, prefTocGeneration);
+        prefTocPrefix = FgPreferences.get().get(FgPreferences.PREF_TOC_PREFIX, prefTocPrefix);
         FgPreferences.get().get(PREF_RESET_MASK_BUTTON_SECONDS, 5);
 
     }
@@ -897,7 +908,12 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         return getLink(url, url, COLOR_LINK);
     }
 
-    private String getLink (String href, String showRef,  String color)
+    private String getLink (String url, String text)
+    {
+        return getLink(url, text, COLOR_LINK);
+    }
+
+    private String getLink (String href, String text, String color)
     {
         if (isDetectUrls())
         {
@@ -907,13 +923,13 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                     ";' href='");
             sb.append(href);
             sb.append("'>");
-            sb.append(showRef);
+            sb.append(text);
             sb.append("</a>");
             return sb.toString();
         }
         else
         {
-            return showRef;
+            return text;
         }
     }
 
@@ -971,16 +987,21 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     {
         Scanner scanner = new Scanner(this.plainText);
         String maskedText = "";
+        String plainMaskedText = "";
         int passwordCount = 1;
         int lineNr = 0;
         int blankCount = 0;
 
         resetClipboardCommands();
+        int headerLine = -1;
+        int lastHeaderLine = -1;
 
         while (scanner.hasNextLine())
         {
-            String line = scanner.nextLine();
+            String line = StringUtils.trimEnd(scanner.nextLine());
+            String plainLine = line;
 
+            // BLANK LINE COMPRESSION ==================================
             boolean isBlankLine = line.matches("^\\s*$");
             if (isBlankLine)
             {
@@ -994,6 +1015,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
             {
                 blankCount = 0;
             }
+
 
             lineNr++;
 
@@ -1125,6 +1147,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                                         String password = matcher.group(2).trim();
                                         String mask = PASSWORD_MASK + passwordCount;
                                         line = matcher.replaceAll("$1" + getPasswordLink(password, mask));
+                                        plainLine = matcher.replaceAll("$1" + mask);
                                         addClipboardCommand(passwordCount, password);
                                         passwordCount++;
                                         lineHandled = true;
@@ -1155,6 +1178,21 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                 }
             }
 
+
+            // TOC GENERATION ==================================
+            if (!lineHandled && prefTocGeneration)
+            {
+                AtomicReference<String> lineRef = new AtomicReference<>(line);
+                AtomicReference<Integer> headerLineRef = new AtomicReference<>(headerLine);
+                AtomicReference<Integer> lastHeaderLineRef = new AtomicReference<>(lastHeaderLine);
+                handleTocGenerationInText(lineRef, headerLineRef, lastHeaderLineRef, plainMaskedText, lineNr);
+                line = lineRef.get();
+                headerLine = headerLineRef.get();
+                lastHeaderLine = lastHeaderLineRef.get();
+            }
+
+            // line feed
+            plainMaskedText += plainLine;
             maskedText += "<pre style='margin: 0px;'>" + line +"</pre>";
         }
 
@@ -1166,8 +1204,107 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
         setClipToolbarVisibility(clipToolbar.getComponentCount() > 0);
 
-        return maskedText;
+        return getToc() + maskedText;
     }
+
+
+    private void handleTocGenerationInText(AtomicReference<String> lineRef,
+                                           AtomicReference<Integer> headerLineRef,
+                                           AtomicReference<Integer> lastHeaderLineRef,
+                                           String plainMaskedText,
+                                           int lineNr)
+    {
+        String line = lineRef.get();
+        int headerLine = headerLineRef.get();
+        int lastHeaderLine = lastHeaderLineRef.get();
+
+        if (prefTocPrefix == null || prefTocPrefix.isEmpty())
+        {
+            String regexp = "^=+$";
+            Pattern pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(line);
+            if (matcher.matches())// && matcher.groupCount() >= 2)
+            {
+                headerLine = lineNr;
+            }
+
+            String headerRegexp = "^(=*\\s*)(.+)$";
+            Pattern headerPattern = Pattern.compile(headerRegexp, Pattern.CASE_INSENSITIVE);
+            Matcher headerMatcher = headerPattern.matcher(line);
+            if (headerMatcher.matches() && headerMatcher.groupCount() >= 2)
+            {
+                String headerText = headerMatcher.group(2);
+                boolean neverHit = lastHeaderLine <= 0;
+                if (lineNr == headerLine + 1 && (neverHit || lineNr > lastHeaderLine + 2))
+                {
+                    String key = TOC_HEADER_PREFIX + String.format("%05d", plainMaskedText.length());
+                    line = headerMatcher.group(1) + getJumpToHeader(key, headerText);
+                    tocMap.put(key, headerText);
+                    lastHeaderLine = lineNr;
+                }
+            }
+        }
+        else
+        {
+            String headerRegexp = "^" + prefTocPrefix + "\\s*(.+)$";
+            Pattern headerPattern = Pattern.compile(headerRegexp);
+            Matcher headerMatcher = headerPattern.matcher(line);
+            if (headerMatcher.matches() && headerMatcher.groupCount() >= 1)
+            {
+                String headerText = headerMatcher.group(1);
+                String key = TOC_HEADER_PREFIX + String.format("%05d", plainMaskedText.length());
+                line = getJumpToHeader(key, headerText);
+                tocMap.put(key, headerText);
+            }
+        }
+
+        headerLineRef.set(headerLine);
+        lineRef.set(line);
+        lastHeaderLineRef.set(lastHeaderLine);
+    }
+
+
+
+
+
+    private String getToc ()
+    {
+        if (!prefTocGeneration || tocMap == null || tocMap.isEmpty())
+        {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        Iterator<Map.Entry<String, String>> tocIter = tocMap.entrySet().iterator();
+
+        sb.append(TOC_START);
+        sb.append("<ol>");
+        while (tocIter.hasNext())
+        {
+            Map.Entry<String, String> tocEntry = tocIter.next();
+            String text = tocEntry.getValue();
+            if (text != null && !text.trim().isEmpty())
+            {
+                sb.append("<li>");
+                sb.append(getLink(tocEntry.getKey(), text.trim(), COLOR_JUMP_TOP));
+                sb.append("</li>");
+            }
+        }
+        sb.append("</ol>");
+        sb.append("<span style='color: " + COLOR_END_OF_TOC + ";'>");
+        sb.append(TOC_END);
+        sb.append("</span>");
+        return sb.toString();
+    }
+
+    private String getJumpToHeader(String id, String text)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getLink(TOC_HEADER_PREFIX + "0", text.trim(), COLOR_JUMP_TOP));
+        return sb.toString();
+    }
+
 
 
     private boolean isPasswordMatch (String line)
@@ -1210,6 +1347,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     {
         resetClipboardCommands();
         resetSearch();
+        tocMap.clear();
 
         Point p = scrollPaneTextArea.getViewport().getViewPosition();
 
@@ -1308,6 +1446,15 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                 prefTextAreaFontSize = FgPreferences.get().get(FgPreferences.PREF_TEXTAREA_FONT_SIZE, prefTextAreaFontSize);
                 SwingUtilities.invokeLater(() -> updateText());
                 break;
+            case FgPreferences.PREF_TOC_GENERATION:
+                prefTocGeneration = FgPreferences.get().get(FgPreferences.PREF_TOC_GENERATION, prefTocGeneration);
+                SwingUtilities.invokeLater(() -> updateText());
+                break;
+            case FgPreferences.PREF_TOC_PREFIX:
+                prefTocPrefix = FgPreferences.get().get(FgPreferences.PREF_TOC_PREFIX, prefTocPrefix);
+                if (prefTocPrefix != null) prefTocPrefix = prefTocPrefix.trim();
+                SwingUtilities.invokeLater(() -> updateText());
+                break;
         }
     }
 
@@ -1316,15 +1463,9 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     {
         mainFrame.startTimer();
 
-        String documentText;
-        Document document = textPane.getDocument();
-        try
+        String documentText = getDocumentText();
+        if (documentText == null)
         {
-            documentText = document.getText(0, document.getLength());
-        }
-        catch (BadLocationException e)
-        {
-            e.printStackTrace();
             return;
         }
 
@@ -1344,6 +1485,22 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
             caretPointer = 0;
             setCaretPosition(hitList.get(caretPointer));
         }
+    }
+
+    private String getDocumentText()
+    {
+        String documentText;
+        Document document = textPane.getDocument();
+        try
+        {
+            documentText = document.getText(0, document.getLength());
+        }
+        catch (BadLocationException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+        return documentText;
     }
 
     @Override

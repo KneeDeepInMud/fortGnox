@@ -24,4 +24,13 @@ public class StringUtils {
 
         return andMatcher(haystack, Arrays.asList(needles.split("\\s+")));
     }
+
+
+    public static String trimEnd(String toTrim)
+    {
+        if (toTrim == null ) return toTrim;
+
+        String trimmed = toTrim.replaceAll("\\s+$", "");
+        return trimmed;
+    }
 }
