@@ -6,7 +6,7 @@
     <groupId>org.mockenhaupt</groupId>
     <artifactId>fortgnox</artifactId>
     <name>fortGnox</name>
-    <version>1.0.7.beta</version>
+    <version>1.0.7</version>
     <packaging>jar</packaging>
     <scm>
         <connection>scm:git:file://.</connection>
