@@ -311,6 +311,14 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
             }
         });
 
+        setupHyperLinkEvents(mainFrame);
+    }
+
+
+
+
+    private void setupHyperLinkEvents(MainFrame mainFrame)
+    {
         textPane.addHyperlinkListener(e ->
         {
             if (HyperlinkEvent.EventType.ACTIVATED.equals(e.getEventType()))
@@ -319,22 +327,19 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                 {
                     if (e.getURL() != null)
                     {
-                        if (isOpenUrls())
+                        String needle = e.getURL().getHost();
+
+                        if (needle.startsWith(TOC_HEADER_SUFFIX))
                         {
-                            String needle = e.getURL().getHost();
+                            int offset = getDocumentText().indexOf(TOC_END);
+                            needle = needle.replaceAll(TOC_HEADER_SUFFIX, "");
 
-                            if (needle.startsWith(TOC_HEADER_SUFFIX))
-                            {
-                                int offset = getDocumentText().indexOf(TOC_END);
-                                needle = needle.replaceAll(TOC_HEADER_SUFFIX, "");
-
-                                int pos = Integer.parseInt(needle);
-                                scrollToLineOfCaretPosition(textPane, pos == 0 ? 0 : pos + offset);
-                            }
-                            else
-                            {
-                                openUrlLink(e);
-                            }
+                            int pos = Integer.parseInt(needle);
+                            scrollToLineOfCaretPosition(textPane, pos == 0 ? 0 : pos + offset);
+                        }
+                        else if (isOpenUrls())
+                        {
+                            openUrlLink(e);
                         }
                         else
                         {
@@ -379,16 +384,16 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                         oldStatusText.set(getStatusText());
                     }
 
-                    if (e.getURL() != null && isOpenUrls())
+                    if (e.getURL() != null)
                     {
                         String needle = e.getURL().getHost();
-
                         if (needle.startsWith(TOC_HEADER_SUFFIX))
                         {
                             if (needle.endsWith("_0")) setStatusText("Jump to top");
                             else  setStatusText("Jump to section '" + tocMap.get(e.getURL().toString()) + "'");
                         }
-                        else setStatusText("Open \"" + desc + "\" in browser");
+                        else if (isOpenUrls()) setStatusText("Open \"" + desc + "\" in browser");
+                        else setStatusText("Copy \"" + desc + "\" to clipboard");
                     }
                     else if (desc.startsWith(PASSWORD_PREFIX))
                     {
