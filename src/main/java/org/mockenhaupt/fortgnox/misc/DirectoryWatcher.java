@@ -1,115 +1,94 @@
 package org.mockenhaupt.fortgnox.misc;
 
+import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
+import org.apache.commons.io.monitor.FileAlterationMonitor;
+import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.mockenhaupt.fortgnox.DebugWindow;
 
 import java.io.File;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
-import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 import static org.mockenhaupt.fortgnox.DebugWindow.Category.DIR;
 
 public class DirectoryWatcher
 {
-    public DirectoryWatcher (IDirectoryWatcherHandler handler)
+    IDirectoryWatcherHandler handler;
+    private String directory;
+    private FileAlterationMonitor monitor = null;
+
+    public DirectoryWatcher(IDirectoryWatcherHandler handler)
     {
         this.handler = handler;
     }
 
-    IDirectoryWatcherHandler handler;
-    AtomicBoolean active = new AtomicBoolean(true);
-    private Thread thread;
-    private String directory;
-
-    public void init (String directory)
+    public void init(String directory_)
     {
-        this.directory = directory;
+        this.directory = directory_;
+        File monitoredDirectory = new File(directory_);
+        FileAlterationObserver observer = new FileAlterationObserver(monitoredDirectory);
+        observer.addListener(getFileAlterationListener());
         try
         {
-            Path dir = new File(directory).toPath();
-
-            WatchService watcher = FileSystems.getDefault().newWatchService();
-            dir.register(watcher,
-                    ENTRY_CREATE,
-                    ENTRY_DELETE,
-                    ENTRY_MODIFY);
-            startWatcherThread(watcher);
+            monitor = new FileAlterationMonitor(500, observer);
+            monitor.start();
         }
         catch (Exception e)
         {
-            dbg("Error in init: " + e.toString());
-            Arrays.stream(e.getStackTrace()).sequential().forEach(stackTraceElement -> dbg(stackTraceElement.toString()));
-            e.printStackTrace();
+            handleListenerException(e);
         }
     }
 
-    public void stop ()
+    private void handleListenerException(Exception e) throws RuntimeException
+    {
+        dbg("Error in init: " + e.toString());
+        Arrays.stream(e.getStackTrace()).sequential().forEach(stackTraceElement -> dbg(stackTraceElement.toString()));
+        e.printStackTrace();
+        throw new RuntimeException(e);
+    }
+
+    private FileAlterationListenerAdaptor getFileAlterationListener()
+    {
+        return new FileAlterationListenerAdaptor()
+        {
+            @Override
+            public void onFileChange(File file)
+            {
+                handler.handleDirContentChanged(directory, file.getName(), IDirectoryWatcherHandler.ChangeEvent.FILE_CHANGE);
+            }
+
+            @Override
+            public void onFileCreate(File file)
+            {
+                handler.handleDirContentChanged(directory, file.getName(), IDirectoryWatcherHandler.ChangeEvent.FILE_NEW);
+            }
+
+            @Override
+            public void onFileDelete(File file)
+            {
+                handler.handleDirContentChanged(directory, file.getName(), IDirectoryWatcherHandler.ChangeEvent.FILE_DELETE);
+            }
+        };
+    }
+
+
+    public void stop()
     {
         dbg("Stopping watcher thread " + directory);
-        if (thread != null)
+        if (monitor != null)
         {
-            thread.interrupt();
-            active.set(false);
+            try
+            {
+                monitor.stop();
+            }
+            catch (Exception e)
+            {
+                handleListenerException(e);
+            }
         }
     }
 
-    private void dbg (String text)
+    private void dbg(String text)
     {
         DebugWindow.get().debug(DIR, text + " (" + directory + ")");
     }
-
-
-    private void startWatcherThread (WatchService watcher)
-    {
-
-        thread = new Thread(() ->
-        {
-            dbg("watcher thread: Starting thread loop");
-            while (active.get())
-            {
-                try
-                {
-                    WatchKey key = watcher.take();
-                    for (WatchEvent<?> event : key.pollEvents())
-                    {
-                        WatchEvent.Kind<?> kind = event.kind();
-                        dbg("watcher thread: " + kind.name() + " " + event.context());
-                        if (kind == OVERFLOW)
-                        {
-                            continue;
-                        }
-
-                        if (handler != null)
-                        {
-                            handler.handleDirContentChanged(directory, event.context().toString(), kind);
-                        }
-                        boolean valid = key.reset();
-                        if (!valid)
-                        {
-                            break;
-                        }
-                    }
-                }
-                catch (InterruptedException e)
-                {
-                    dbg("watcher thread interrupted, stopping");
-                    active.set(false);
-                }
-            }
-            dbg("regularly terminated watcher ");
-
-        }, "DIR-" + directory);
-
-        dbg("Starting watcher thread " + thread);
-        thread.start();
-    }
-
 }

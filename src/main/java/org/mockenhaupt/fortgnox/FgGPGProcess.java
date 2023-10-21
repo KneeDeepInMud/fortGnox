@@ -1158,7 +1158,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
     }
 
     @Override
-    public void handleDirContentChanged (String directory, String entry, WatchEvent.Kind<?> kind)
+    public void handleDirContentChanged (String directory, String entry, ChangeEvent kind)
     {
         if (entry.toLowerCase().endsWith("gpg") || entry.toLowerCase().endsWith("asc") || entry.toLowerCase().endsWith("yml"))
         {
