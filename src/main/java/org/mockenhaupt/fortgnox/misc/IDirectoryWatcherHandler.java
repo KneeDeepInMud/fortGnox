@@ -4,5 +4,10 @@ import java.nio.file.WatchEvent;
 
 public interface IDirectoryWatcherHandler
 {
-    void handleDirContentChanged (String directory, String entry, WatchEvent.Kind<?> kind);
+    public enum ChangeEvent {
+        FILE_NEW,
+        FILE_DELETE,
+        FILE_CHANGE
+    }
+    void handleDirContentChanged (String directory, String entry, ChangeEvent kind);
 }
