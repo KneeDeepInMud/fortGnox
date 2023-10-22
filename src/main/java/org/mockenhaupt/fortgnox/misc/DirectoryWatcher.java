@@ -4,6 +4,7 @@ import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.mockenhaupt.fortgnox.DebugWindow;
+import org.mockenhaupt.fortgnox.FgPreferences;
 
 import java.io.File;
 import java.util.Arrays;
@@ -23,13 +24,19 @@ public class DirectoryWatcher
 
     public void init(String directory_)
     {
+        int interval = FgPreferences.get().get(FgPreferences.PREF_DIRECTORY_OBSERVER_INTERVAL, -1);
+        if (interval <= 0) {
+            return;
+        }
+        interval = Math.max(5000, interval);
+
         this.directory = directory_;
         File monitoredDirectory = new File(directory_);
         FileAlterationObserver observer = new FileAlterationObserver(monitoredDirectory);
         observer.addListener(getFileAlterationListener());
         try
         {
-            monitor = new FileAlterationMonitor(500, observer);
+            monitor = new FileAlterationMonitor(interval, observer);
             monitor.start();
         }
         catch (Exception e)

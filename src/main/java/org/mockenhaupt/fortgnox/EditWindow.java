@@ -840,6 +840,9 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
                     editHandler.handleFinished();
                 }
             }
+
+            // refresh in any case, even if no new file has been added, don't hurt too much
+            fgGPGProcess.rebuildSecretList();
         });
     }
 

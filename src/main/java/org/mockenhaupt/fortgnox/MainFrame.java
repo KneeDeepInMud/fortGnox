@@ -782,9 +782,19 @@ public class MainFrame extends JFrame implements
         boolean hasEntries = false;
         if (!launchedFromEditor)
         {
+            hasEntries = true;
+
+            JMenuItem miRefreshList = new JMenuItem("Reload password list from disk (F5)");
+            miRefreshList.addActionListener(actionEvent ->
+            {
+                gpgProcess.rebuildSecretList();
+            });
+            popupMenu.add(miRefreshList);
+
+
             if (favorites.containsKey(jList.getSelectedValue()))
             {
-                hasEntries = true;
+                popupMenu.add(new JSeparator());
                 JMenuItem miRemoveFavorites = new JMenuItem("Remove selected entry from favorites");
                 miRemoveFavorites.addActionListener(actionEvent ->
                 {
@@ -814,6 +824,7 @@ public class MainFrame extends JFrame implements
                 boolean sortReverse = FgPreferences.get().getBoolean(PREF_SECRETDIR_SORTING);
                 FgPreferences.get().put(PREF_SECRETDIR_SORTING, !sortReverse);
             });
+            popupMenu.add(new JSeparator());
             popupMenu.add(miToggleSort);
         }
 
@@ -1423,6 +1434,19 @@ public class MainFrame extends JFrame implements
     private void initComponents ()
     {
         //        ToolTipManager.sharedInstance().setInitialDelay(100);
+        KeyboardFocusManager.getCurrentKeyboardFocusManager()
+                .addKeyEventDispatcher(new KeyEventDispatcher()
+                {
+                    @Override
+                    public boolean dispatchKeyEvent(KeyEvent e)
+                    {
+                        if (e.getKeyCode() == KeyEvent.VK_F5 && e.getID() == KeyEvent.KEY_RELEASED)
+                        {
+                            gpgProcess.rebuildSecretList();
+                        }
+                        return false;
+                    }
+                });
 
         jSplitPaneLR = new JSplitPane();
         JPanel panelList = new JPanel();

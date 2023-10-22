@@ -989,7 +989,7 @@ public class FgGPGProcess implements PropertyChangeListener, IDirectoryWatcherHa
     private HashMap<String, String> abbrevCompleteFileMap = new HashMap<>();
 
 
-    private void rebuildSecretList ()
+    public void rebuildSecretList ()
     {
         fileMap.clear();
 
