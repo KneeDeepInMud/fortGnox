@@ -5,26 +5,7 @@ import org.mockenhaupt.fortgnox.swing.FgTextFilter;
 import org.mockenhaupt.fortgnox.swing.LAFChooser;
 import org.mockenhaupt.fortgnox.tags.TagsStore;
 
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.GroupLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
@@ -34,21 +15,12 @@ import javax.swing.text.Document;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.MouseInfo;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -56,17 +28,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
-import static javax.swing.JOptionPane.OK_OPTION;
-import static javax.swing.JOptionPane.WARNING_MESSAGE;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_ADD_CHANGED_DATE_TIME;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_DEFAULT_RID;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_POST_COMMAND;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_GPG_USE_ASCII;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_LOOK_AND_FEEL;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_NEW_TEMPLATE;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_SECRETDIRS;
-import static org.mockenhaupt.fortgnox.FgPreferences.PREF_TEXTAREA_FONT_SIZE;
+import static javax.swing.JOptionPane.*;
+import static org.mockenhaupt.fortgnox.FgPreferences.*;
 
 public class EditWindow implements FgGPGProcess.EncrypionListener,
         PropertyChangeListener,
@@ -294,21 +257,20 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         groupLayout.setAutoCreateContainerGaps(true);
 
         // horizontal
-        GroupLayout gl = groupLayout;
-        gl.setHorizontalGroup(gl.createParallelGroup()
-                .addGroup(gl.createSequentialGroup()
-                        .addGroup(gl.createParallelGroup()
+        groupLayout.setHorizontalGroup(groupLayout.createParallelGroup()
+                .addGroup(groupLayout.createSequentialGroup()
+                        .addGroup(groupLayout.createParallelGroup()
                                 .addComponent(dirNameLabel)
                                 .addComponent(fileNameLabel))
-                        .addGroup(gl.createParallelGroup()
+                        .addGroup(groupLayout.createParallelGroup()
                                 .addComponent(comboBoxDirectories)
                                 .addComponent(fileNameText)))
                 .addComponent(fileNameResulting));
 
         // vertical
-        gl.setVerticalGroup(gl.createSequentialGroup()
-                .addGroup(gl.createParallelGroup().addComponent(dirNameLabel).addComponent(comboBoxDirectories))
-                .addGroup(gl.createParallelGroup().addComponent(fileNameLabel).addComponent(fileNameText))
+        groupLayout.setVerticalGroup(groupLayout.createSequentialGroup()
+                .addGroup(groupLayout.createParallelGroup().addComponent(dirNameLabel).addComponent(comboBoxDirectories))
+                .addGroup(groupLayout.createParallelGroup().addComponent(fileNameLabel).addComponent(fileNameText))
                 .addComponent(fileNameResulting));
 
         JButton buttonCreate;
@@ -386,7 +348,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         if (editPanel == null)
         {
             editPanel = new JPanel();
-            URL url = this.getClass().getResource("fortGnox.png");
+//            URL url = this.getClass().getResource("fortGnox.png");
 
             textArea = new JTextArea();
             Document doc = textArea.getDocument();
@@ -500,6 +462,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
             if (fname == null || fname.isEmpty())
             {
                 URL url = this.getClass().getResource("/org/mockenhaupt/fortgnox/template.txt");
+                if (url == null) return "";
                 br = new BufferedReader(new InputStreamReader(url.openStream()));
             }
             else
@@ -622,6 +585,11 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
 
         textFieldFilename = new JTextField();
         textFieldFilename.setEnabled(false);
+        textFieldFilename.setVisible(false);
+
+        JButton pbInsertTemplate = new JButton("Insert Template");
+        pbInsertTemplate.setToolTipText("Insert template for password entry at cursor position");
+        pbInsertTemplate.addActionListener((e) -> insertTemplateAtCaret());
 
         textFieldRID = new JTextField();
 //        textFieldRID.setMinimumSize(new Dimension(200, 30));
@@ -637,6 +605,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
                         .addComponent(saveButton)
                         .addComponent(comboBoxDirectories, 100, 200, 300)
                         .addComponent(textFieldFilename, 100, 100, 300)
+                        .addComponent(pbInsertTemplate, 100, 100, 300)
                         .addComponent(labelRID)
                         .addComponent(textFieldRID, 20, 100, 200)
                         .addComponent(cbSkipPost)
@@ -650,6 +619,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
                         .addComponent(saveButton)
                         .addComponent(comboBoxDirectories)
                         .addComponent(textFieldFilename)
+                        .addComponent(pbInsertTemplate)
                         .addComponent(labelRID)
                         .addComponent(textFieldRID)
                         .addComponent(cbSkipPost)
@@ -900,4 +870,22 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
             setStatusText("Failure inserting password, " + e.toString());
         }
     }
+
+
+    private void insertTemplateAtCaret ()
+    {
+        try
+        {
+            File file = new File(textFieldFilename.getText());
+            String basename = file.getName();
+            String templateText = getNewFileTemplateText(basename);
+            textArea.getDocument().insertString(textArea.getCaretPosition(), templateText, null);
+            textArea.requestFocus();
+        }
+        catch (BadLocationException | IOException e)
+        {
+            setStatusText("Failure inserting password, " + e.toString());
+        }
+    }
+
 }
