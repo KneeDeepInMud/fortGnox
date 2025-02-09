@@ -22,6 +22,7 @@ Although __fortGnox__ was mainly developed under Linux, it is already used by pe
 - Keybordless usage of passwords through the clipboard. The passwords are flushed from clipboard after a timeout.
 - Passwords are masked in the GUI. This allows usage of __fortGnox__ even if other people are around and can see your screen while using __fortGnox__.
 - Integrates smoothly with [pass](https://www.passwordstore.org/)
+- One Time Password Generation
 
 ## Requirements ##
 
@@ -61,3 +62,21 @@ Although __fortGnox__ was mainly developed under Linux, it is already used by pe
               gpg -k --keyid-format short
 
 
+# One Time Passwords
+
+Password files can contain secrets for one time password in the form:
+    
+     otpauth://totp/Fort%20Gnox%20Test%20Key?issuer=FortGnoxTest&\
+     algorithm=SHA1&digits=6&period=30&secret=ABCDABCDABCDABCD
+
+These will be parsed and an OTP token displayed. The secret will be masked.
+To add keys from Google Authenticator, the exported keys as QR code have to be
+converted/extracted because these are stored in a non published Google format.
+This can be done using:
+
+ - https://github.com/dim13/otpauth
+
+To convert OTP secrets from exported QR Image from Google Authenticator, following
+command can be used (Linux):
+
+     otpauth -link $(java -jar fortgnox-v1.1.0.jar -q QR_GoogleAuthenticatorAllTokens.jpg)
