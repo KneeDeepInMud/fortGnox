@@ -1,9 +1,13 @@
 package org.mockenhaupt.fortgnox.swing;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.mockenhaupt.fortgnox.FgPreferences;
 import org.mockenhaupt.fortgnox.MainFrame;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
 import org.mockenhaupt.fortgnox.misc.StringUtils;
+import org.mockenhaupt.fortgnox.otp.OTP;
+import org.mockenhaupt.fortgnox.otp.OtpQRUtil;
 import org.mockenhaupt.fortgnox.tags.TagsStore;
 
 import javax.swing.*;
@@ -25,6 +29,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -76,6 +81,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
     enum LineMaskingOrder
     {
+        OTP_CODES,
         PASSWORDS_FILES,
         PASSWORDS_TEXT,
         USER_NAMES,
@@ -960,6 +966,15 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     }
 
 
+    private String getBold (String text)
+    {
+        return String.format("<b>%s</b>", text);
+    }
+    private String getBold (String text, int pad)
+    {
+        return String.format("<b>%-"+ pad + "s</b>", text);
+    }
+
     private void resetClipboardCommands ()
     {
         setClipToolbarVisibility(false);
@@ -1030,6 +1045,50 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
             {
                 switch (order)
                 {
+                    case OTP_CODES:
+                        if (!lineHandled && isDetectUrls())
+                        {
+                            String regexp = "^(.*)(otpauth://totp/[^\\s]+)(.*)$";
+                            Pattern pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+                            Matcher matcher = pattern.matcher(line);
+                            if (matcher.find() && matcher.groupCount() >= 3)
+                            {
+                                String urlString =  matcher.group(2).trim();
+                                OTP otp = OtpQRUtil.getOtp(urlString);
+                                if (otp != null)
+                                {
+                                    String before = matcher.group(1);
+                                    line = before + "\n";
+
+                                    int pad = 15;
+                                    line += getBold("-------------------------------------------------") + "\n";
+                                    line += getBold("- OTP: " + otp.getIssuer() + " / " + otp.getName()) + "\n";
+                                    line += getBold("-------------------------------------------------") + "\n";
+                                    line += getBold("  Name:", pad) + otp.getName() + "\n";
+                                    line += getBold("  OTP:", pad) + getClipboardLink(OtpQRUtil.otpString(otp.getSecret())) + "\n";
+                                    line += getBold("  Valid until:", pad) + OtpQRUtil.getValidUntil(otp.getPeriod()) + "\n";
+                                    line += getBold("  Issuer:", pad) + otp.getIssuer() + "\n";
+
+                                    String mask = PASSWORD_MASK + passwordCount;
+                                    if (isMask())
+                                    {
+                                        line += getBold("  Secret:", pad) + getPasswordLink(otp.getSecret(), mask) + "\n";
+                                        addClipboardCommand(passwordCount, otp.getSecret());
+                                        passwordCount++;
+                                    }
+                                    else {
+                                        line += "Secret: " + otp.getSecret();
+                                    }
+
+                                    String after = matcher.group(3);
+                                    line += after;
+                                    lineHandled = true;
+                                }
+                            }
+
+                        }
+                        break;
+
                     case HTTP_LINKS:
                         //--------------------------------------------------------------------------------------
                         // HTTP link detection

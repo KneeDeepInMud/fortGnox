@@ -15,6 +15,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
 import org.mockenhaupt.fortgnox.misc.History;
 import org.mockenhaupt.fortgnox.misc.StringUtils;
+import org.mockenhaupt.fortgnox.otp.OtpQRUtil;
 import org.mockenhaupt.fortgnox.swing.FgOptionsDialog;
 import org.mockenhaupt.fortgnox.swing.FgPanelTextArea;
 import org.mockenhaupt.fortgnox.swing.FgTextFilter;
@@ -133,7 +134,34 @@ public class MainFrame extends JFrame implements
      */
     public static void main (String[] args)
     {
-        java.awt.EventQueue.invokeLater(new Runnable()
+        for (int i = 0; i < args.length; ++i)
+        {
+            String thisArg = args[i];
+            if (thisArg.startsWith("-q") || thisArg.startsWith("--q"))
+            {
+                 if (i + 1 < args.length)
+                 {
+                     i++;
+                     printTextFromQrCode(args[i]);
+                     System.exit(0);
+                 }
+            }
+        }
+
+        // Show fortGnox main window
+        showMainWindow(args);
+    }
+
+    // otpauth -link `java -jar target/fortgnox-v1.1.0.jar -q QR_GoogleAuthenticatorAllTokens.jpg`
+    private static void printTextFromQrCode(String args)
+    {
+        String qrImage = args;
+        System.out.println(OtpQRUtil.decodeQrCode(qrImage));
+    }
+
+    private static void showMainWindow(String[] args)
+    {
+        EventQueue.invokeLater(new Runnable()
         {
             public void run ()
             {
