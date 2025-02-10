@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -94,19 +95,16 @@ public class OtpQRUtil
 
 
 
-    public static String getValidUntil (int period)
+    public static String getValidUntil (int period, AtomicReference<Integer> remainingSecondsRef)
     {
         int now = LocalTime.now().toSecondOfDay();
         int valid = (now + period) / period * period;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
         String formattedTime = LocalTime.ofSecondOfDay(valid).format(formatter);
 
-        return String.format("%s (%d seconds remaining)", formattedTime, valid - now);
-    }
-
-    public static String getValidUntil ()
-    {
-        return getValidUntil(30);
+        int remainingSeconds = valid - now;
+        if (remainingSecondsRef != null) remainingSecondsRef.set(new Integer(remainingSeconds));
+        return String.format("%s", formattedTime);
     }
 
 

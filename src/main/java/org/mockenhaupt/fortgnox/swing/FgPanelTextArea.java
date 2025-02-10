@@ -1,7 +1,5 @@
 package org.mockenhaupt.fortgnox.swing;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.mockenhaupt.fortgnox.FgPreferences;
 import org.mockenhaupt.fortgnox.MainFrame;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
@@ -29,7 +27,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -62,6 +59,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     private JPanel buttonToolbar;
     private Timer resetMaskButtonTimer;
     private JLabel labelFileName = new JLabel();
+    private final AtomicReference<Integer> remainingOtpTime = new AtomicReference<>();
 
 
     private static final List<String> DEFAULT_MASK_PATTERNS = new ArrayList(Arrays.asList(
@@ -77,6 +75,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     private static final String TOC_HEADER_PREFIX = TOC_HEADER_PREFIX_FILE + TOC_HEADER_SUFFIX;
     private static final String TOC_START = "";
     private static final String TOC_END = "-- ";
+    private boolean otpDisplayRemaining;
 
 
     enum LineMaskingOrder
@@ -123,13 +122,16 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
     private static final String TXT_MASK_FIRST = "Mask 1st";
     private static final String TXT_MASK_FIRST_TT = "First line in password file will be shown as 'xxxxxx-1' instead of clear text";
-    private static final String TXT_MASK_ALL_PASSWORDS =  "Mask in text";
+    private static final String TXT_MASK_ALL_PASSWORDS =  "Mask passwords";
     private static final String TXT_MASK_ALL_PASSWORDS_TT =  "Show 'xxxxxx-1' instead of clear passwords";
     private static final String TXT_COMPRESS_BLANK_LINES =  "Squeeze text";
     private static final String TXT_COMPRESS_BLANK_LINES_TT =  "Multiple empty lines in password file will be shown as singe line";
     private static final String TXT_OPEN_URL =  "Open URLs";
     private static final String TXT_DETECT_URLS =  "URLs";
     private static final String TXT_DETECT_URLS_TT =  "Display URLs and email addresses as selectable hyperlinks";
+
+    private Timer otpTimer;
+
 
     class SearchKeyAdapter extends KeyAdapter
     {
@@ -494,7 +496,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 //        buttonToolbar.setRollover(true);
 
         // ---------------------------------------------------------------------
-        maskToggleButton = new JToggleButton(TXT_MASK_ALL_PASSWORDS);
+        maskToggleButton = new FgToggleButton(TXT_MASK_ALL_PASSWORDS);
         maskToggleButton.setToolTipText(TXT_MASK_ALL_PASSWORDS_TT);
         maskToggleButton.addActionListener(new ActionListener()
         {
@@ -511,7 +513,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         maskToggleButton.setSelected(true);
 
 
-        detectUrlsToggleButton = new JToggleButton(TXT_DETECT_URLS);
+        detectUrlsToggleButton = new FgToggleButton(TXT_DETECT_URLS);
         detectUrlsToggleButton.setToolTipText(TXT_DETECT_URLS_TT);
         detectUrlsToggleButton.addActionListener(new ActionListener()
         {
@@ -546,7 +548,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
 
         // ---------------------------------------------------------------------
-        compressBlankLinesButton = new JToggleButton(TXT_COMPRESS_BLANK_LINES);
+        compressBlankLinesButton = new FgToggleButton(TXT_COMPRESS_BLANK_LINES);
         compressBlankLinesButton.setToolTipText(TXT_COMPRESS_BLANK_LINES_TT);
         compressBlankLinesButton.addActionListener(new ActionListener()
         {
@@ -559,7 +561,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         compressBlankLinesButton.setSelected(prefCompressBlankLines);
 
         // ---------------------------------------------------------------------
-        openUrlButton = new JToggleButton();
+        openUrlButton = new FgToggleButton();
         openUrlButton.setPreferredSize(new Dimension(30, 30));
         openUrlButton.setBorderPainted(false);
         openUrlButton.setIcon(FileUtils.getScaledIcon(this.getClass(), "/org/mockenhaupt/fortgnox/icons8-link-64.png", 24));
@@ -575,7 +577,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         openUrlButton.setSelected(prefOpenUrls);
 
         // ---------------------------------------------------------------------
-        maskFirstLineToggleButton = new JToggleButton(TXT_MASK_FIRST);
+        maskFirstLineToggleButton = new FgToggleButton(TXT_MASK_FIRST);
         maskFirstLineToggleButton.setToolTipText(TXT_MASK_FIRST_TT);
         maskFirstLineToggleButton.addActionListener(new ActionListener()
         {
@@ -629,7 +631,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                 jToggleButtonSet.add(b);
                 int w = b.getFontMetrics(b.getFont()).stringWidth(b.getText());
 
-                maxWidth = Math.max(w + 25, maxWidth);
+                maxWidth = Math.max(w + 5, maxWidth);
             }
         }
 
@@ -666,13 +668,15 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         miniButtonPanel.add(buttonTbVisible);
         toolBarPanel.add(miniButtonPanel, BorderLayout.WEST);
         toolBarPanel.add(buttonToolbar, BorderLayout.CENTER);
+        toolBarPanel.add(new CurrentTimeLabel(), BorderLayout.LINE_END);
 //        this.add(buttonToolbar, BorderLayout.NORTH);
         this.add(toolBarPanel, BorderLayout.NORTH);
         this.add(clipToolbar, BorderLayout.EAST);
         updateCheckboxSelectAll();
 
         Dimension finalButtonSize = new Dimension(maxWidth, 30);
-        jToggleButtonSet.stream().forEach(jToggleButton -> jToggleButton.setPreferredSize(finalButtonSize));
+        int finalMaxWidth = maxWidth;
+        jToggleButtonSet.stream().forEach(jToggleButton -> jToggleButton.setPreferredSize(new Dimension(jToggleButton.getPreferredSize().width, 30)));
 
     }
 
@@ -1015,6 +1019,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         resetClipboardCommands();
         int headerLine = -1;
         int lastHeaderLine = -1;
+        boolean otpContained = false;
 
         while (scanner.hasNextLine())
         {
@@ -1053,21 +1058,30 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                             Matcher matcher = pattern.matcher(line);
                             if (matcher.find() && matcher.groupCount() >= 3)
                             {
-                                String urlString =  matcher.group(2).trim();
+                                String urlString = matcher.group(2).trim();
                                 OTP otp = OtpQRUtil.getOtp(urlString);
                                 if (otp != null)
                                 {
+                                    otpContained = true;
                                     String before = matcher.group(1);
                                     line = before + "\n";
-
                                     int pad = 15;
                                     line += getBold("-------------------------------------------------") + "\n";
                                     line += getBold("- OTP: " + otp.getIssuer() + " / " + otp.getName()) + "\n";
                                     line += getBold("-------------------------------------------------") + "\n";
                                     line += getBold("  Name:", pad) + otp.getName() + "\n";
                                     line += getBold("  OTP:", pad) + getClipboardLink(OtpQRUtil.otpString(otp.getSecret())) + "\n";
-                                    line += getBold("  Valid until:", pad) + OtpQRUtil.getValidUntil(otp.getPeriod()) + "\n";
+
+                                    String remainining = "\n";
+                                    String valUntil = OtpQRUtil.getValidUntil(otp.getPeriod(), remainingOtpTime);
+                                    if (otpDisplayRemaining)
+                                    {
+                                        remainining = String.format(" (remaining seconds %s)\n", remainingOtpTime.get());
+                                    }
+                                    line += getBold("  Valid until:", pad) + valUntil + remainining;
+
                                     line += getBold("  Issuer:", pad) + otp.getIssuer() + "\n";
+
 
                                     String mask = PASSWORD_MASK + passwordCount;
                                     if (isMask())
@@ -1076,8 +1090,9 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
                                         addClipboardCommand(passwordCount, otp.getSecret());
                                         passwordCount++;
                                     }
-                                    else {
-                                        line += "Secret: " + otp.getSecret();
+                                    else
+                                    {
+                                        line += getBold("  Secret:", pad) + otp.getSecret() + "\n";
                                     }
 
                                     String after = matcher.group(3);
@@ -1257,7 +1272,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
             // line feed
             plainMaskedText += plainLine;
-            maskedText += "<pre style='margin: 0px;'>" + line +"</pre>";
+            maskedText += "<pre style='margin: 0px;'>" + line + "</pre>";
         }
 
         // add trailing blank lines to avoid clipping of last line (for Robin)
@@ -1268,7 +1283,38 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
         setClipToolbarVisibility(clipToolbar.getComponentCount() > 0);
 
+        if (otpContained)
+        {
+            setupOtpTimer(remainingOtpTime.get() * 1000);
+            // setupOtpTimer(5000);
+        }
         return getToc() + maskedText;
+    }
+
+    private void stopOtpTimer()
+    {
+        if (otpTimer != null)
+        {
+            otpTimer.stop();
+            otpTimer = null;
+        }
+    }
+
+    private void setupOtpTimer(int remainingMillis)
+    {
+        stopOtpTimer();
+
+        otpTimer = new Timer(remainingMillis, e -> {
+            otpRefresh();
+        });
+        otpTimer.setRepeats(false);
+        otpTimer.start();
+    }
+
+    private void otpRefresh()
+    {
+        otpDisplayRemaining = false;
+        updateText();
     }
 
 
@@ -1448,6 +1494,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     }
     public void setText (String text, String err, String shortFileName, String fullFileName)
     {
+        otpDisplayRemaining = true;
         if (text != null)
         {
             setLabelFileName(shortFileName == null ? "" : shortFileName  + TagsStore.getTagsOfFile(fullFileName));
@@ -1466,9 +1513,12 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
     public void clear (String info)
     {
+        stopOtpTimer();
         setText("", info);
         fgTextFilter.setText("");
     }
+
+
 
     public boolean isClear ()
     {
