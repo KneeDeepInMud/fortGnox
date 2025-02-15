@@ -59,6 +59,8 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     private JPanel buttonToolbar;
     private Timer resetMaskButtonTimer;
     private JLabel labelFileName = new JLabel();
+    private JPanel panelHeaderLine;
+    private CurrentTimeLabel remainingOtpTimeLabel = new CurrentTimeLabel(CurrentTimeLabel.Mode.COUNTDOWN, 30, "OTP: ");
     private final AtomicReference<Integer> remainingOtpTime = new AtomicReference<>();
 
 
@@ -75,7 +77,6 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     private static final String TOC_HEADER_PREFIX = TOC_HEADER_PREFIX_FILE + TOC_HEADER_SUFFIX;
     private static final String TOC_START = "";
     private static final String TOC_END = "-- ";
-    private boolean otpDisplayRemaining;
 
 
     enum LineMaskingOrder
@@ -461,12 +462,12 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     {
         if (fileName == null || fileName.isEmpty())
         {
-            labelFileName.setVisible(false);
+            panelHeaderLine.setVisible(false);
         }
         else
         {
             labelFileName.setText(fileName);
-            labelFileName.setVisible(true);
+            panelHeaderLine.setVisible(true);
         }
 
     }
@@ -476,7 +477,12 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         loadPreferences();
 
         JPanel textAndHeaderPanel = new JPanel(new BorderLayout());
-        textAndHeaderPanel.add(labelFileName, BorderLayout.NORTH);
+
+        panelHeaderLine = new JPanel(new BorderLayout());
+        panelHeaderLine.add(labelFileName, BorderLayout.CENTER);
+        panelHeaderLine.add(remainingOtpTimeLabel, BorderLayout.EAST);
+
+        textAndHeaderPanel.add(panelHeaderLine, BorderLayout.NORTH);
 
         scrollPaneTextArea = new JScrollPane();
         scrollPaneTextArea.setViewportView(textPane);
@@ -668,7 +674,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
         miniButtonPanel.add(buttonTbVisible);
         toolBarPanel.add(miniButtonPanel, BorderLayout.WEST);
         toolBarPanel.add(buttonToolbar, BorderLayout.CENTER);
-        toolBarPanel.add(new CurrentTimeLabel(), BorderLayout.LINE_END);
+//        toolBarPanel.add(new CurrentTimeLabel(), BorderLayout.LINE_END);
 //        this.add(buttonToolbar, BorderLayout.NORTH);
         this.add(toolBarPanel, BorderLayout.NORTH);
         this.add(clipToolbar, BorderLayout.EAST);
@@ -1074,10 +1080,6 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
                                     String remainining = "\n";
                                     String valUntil = OtpQRUtil.getValidUntil(otp.getPeriod(), remainingOtpTime);
-                                    if (otpDisplayRemaining)
-                                    {
-                                        remainining = String.format(" (remaining seconds %s)\n", remainingOtpTime.get());
-                                    }
                                     line += getBold("  Valid until:", pad) + valUntil + remainining;
 
                                     line += getBold("  Issuer:", pad) + otp.getIssuer() + "\n";
@@ -1288,6 +1290,7 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
             setupOtpTimer(remainingOtpTime.get() * 1000);
             // setupOtpTimer(5000);
         }
+        remainingOtpTimeLabel.setVisible(otpContained);
         return getToc() + maskedText;
     }
 
@@ -1313,7 +1316,6 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
 
     private void otpRefresh()
     {
-        otpDisplayRemaining = false;
         updateText();
     }
 
@@ -1494,7 +1496,6 @@ public class FgPanelTextArea extends JPanel implements PropertyChangeListener, F
     }
     public void setText (String text, String err, String shortFileName, String fullFileName)
     {
-        otpDisplayRemaining = true;
         if (text != null)
         {
             setLabelFileName(shortFileName == null ? "" : shortFileName  + TagsStore.getTagsOfFile(fullFileName));
