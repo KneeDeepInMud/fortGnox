@@ -2,6 +2,7 @@ package org.mockenhaupt.fortgnox.swing;
 
 import org.mockenhaupt.fortgnox.FgPreferences;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
+import org.mockenhaupt.fortgnox.misc.StringUtils;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -23,7 +24,7 @@ public class NewPasswordDialog extends JDialog {
     }
 
     private final JComboBox<String> comboBoxDirectories = new JComboBox<>();
-    private final JTextField fileNameText = new JTextField();
+    private final JTextField fileNameText = new JTextField(StringUtils.getClipboardUrlPasswordFileName());
     private final JTextField fileNameResulting = new JTextField("");
     private final JButton buttonCreate = new JButton("Create New");
 
@@ -66,6 +67,15 @@ public class NewPasswordDialog extends JDialog {
 
         JLabel dirNameLabel = new JLabel("Directory", SwingConstants.RIGHT);
         JLabel fileNameLabel = new JLabel("New filename:", SwingConstants.RIGHT);
+        JButton buttonGuess = new JButton("Guess Name");
+        buttonGuess.setMnemonic(KeyEvent.VK_G);
+        buttonGuess.addActionListener(e -> {
+            String guess = StringUtils.getClipboardUrlPasswordFileName();
+            if (guess != null) {
+                fileNameText.setText(guess);
+                fileNameText.setCaretPosition(fileNameText.getText().length());
+            }
+        });
 
         groupLayout.setAutoCreateGaps(true);
         groupLayout.setAutoCreateContainerGaps(true);
@@ -77,12 +87,17 @@ public class NewPasswordDialog extends JDialog {
                                 .addComponent(fileNameLabel))
                         .addGroup(groupLayout.createParallelGroup()
                                 .addComponent(comboBoxDirectories)
-                                .addComponent(fileNameText)))
+                                .addGroup(groupLayout.createSequentialGroup()
+                                        .addComponent(fileNameText)
+                                        .addComponent(buttonGuess))))
                 .addComponent(fileNameResulting));
 
         groupLayout.setVerticalGroup(groupLayout.createSequentialGroup()
                 .addGroup(groupLayout.createParallelGroup().addComponent(dirNameLabel).addComponent(comboBoxDirectories))
-                .addGroup(groupLayout.createParallelGroup().addComponent(fileNameLabel).addComponent(fileNameText))
+                .addGroup(groupLayout.createParallelGroup()
+                        .addComponent(fileNameLabel)
+                        .addComponent(fileNameText)
+                        .addComponent(buttonGuess))
                 .addComponent(fileNameResulting));
 
         JPanel buttonPanel = new JPanel();
