@@ -24,7 +24,7 @@ public class NewPasswordDialog extends JDialog {
     }
 
     private final JComboBox<String> comboBoxDirectories = new JComboBox<>();
-    private final JTextField fileNameText = new JTextField(StringUtils.getClipboardUrlPasswordFileName());
+    private final JTextField fileNameText = new JTextField();
     private final JTextField fileNameResulting = new JTextField("");
     private final JButton buttonCreate = new JButton("Create New");
 
@@ -126,6 +126,7 @@ public class NewPasswordDialog extends JDialog {
             }
         });
         buttonCreate.setEnabled(false);
+        fileNameText.setText(StringUtils.getClipboardUrlPasswordFileName());
 
         getRootPane().registerKeyboardAction(e -> {
                     if (buttonCreate.isEnabled()) {

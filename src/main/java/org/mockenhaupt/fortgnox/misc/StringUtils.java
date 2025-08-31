@@ -42,34 +42,52 @@ public class StringUtils {
         return trimmed;
     }
 
-
+    /**
+     * Get a URL-like string from the clipboard, convert it to a plain string suitable for
+     * use as a password file name, or return an empty string if no URL is found or an error occurs.
+     */
     public static String getClipboardUrlPasswordFileName () {
-        try {
-            Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
-            if (cb == null) return "";
-            if (!cb.isDataFlavorAvailable(DataFlavor.stringFlavor)) return "";
-            String text = (String) cb.getData(DataFlavor.stringFlavor);
-            if (text == null) return "";
-            String s = text.trim();
-            if (s.isEmpty()) return "";
+        return urlToPlainString(getUrlFromClipboard());
+    }
 
-            // Find first URL-like substring. Support typical schemes.
-            Pattern p = Pattern.compile("(?i)(?:[a-z][a-z0-9+.-]*://)[^\n\r\t ]+|(?:www\\.[^\n\r\t ]+)");
-            Matcher m = p.matcher(s);
-            if (m.find()) {
-                String url = m.group();
-                return urlToPlainString(url);
-            }
+    public static String getUrlFromClipboard()
+    {
+        try
+        {
+            return getUrlFromClipboardP();
+        }
+        catch (UnsupportedFlavorException e)
+        {
             return "";
-        } catch (HeadlessException | IllegalStateException e) {
-            return "";
-        } catch (UnsupportedFlavorException | IOException e) {
+        }
+        catch (IOException e)
+        {
             return "";
         }
     }
-    
-    
-    
+
+    private static String getUrlFromClipboardP() throws UnsupportedFlavorException, IOException
+    {
+
+        Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+        if (cb == null) return "";
+        if (!cb.isDataFlavorAvailable(DataFlavor.stringFlavor)) return "";
+        String text = (String) cb.getData(DataFlavor.stringFlavor);
+        if (text == null) return "";
+        String s = text.trim();
+        if (s.isEmpty()) return "";
+
+        // Find first URL-like substring. Support typical schemes.
+        Pattern p = Pattern.compile("(?i)(?:[a-z][a-z0-9+.-]*://)[^\n\r\t ]+|(?:www\\.[^\n\r\t ]+)");
+        Matcher m = p.matcher(s);
+        if (m.find()) {
+            String url = m.group();
+            return url;
+        }
+        return "";
+    }
+
+
     /**
      * Convert a URL to a plain string consisting of the hostname only with non-alphanumeric
      * characters replaced by underscores. Examples:
@@ -118,6 +136,58 @@ public class StringUtils {
         s = s.replaceAll("^_+|_+$", "");
 
         return s;
+    }
+
+    
+    /**
+     * Return the base URL (scheme + host) of the given URL-like string.
+     * - Keeps the scheme if present; if missing but a host is present, assumes http.
+     * - Removes credentials, port, path, query, and fragment.
+     * - Returns null for null input; empty string for empty/whitespace input.
+     */
+    public static String baseUrl(final String url) {
+        if (url == null) return null;
+        String s = url.trim();
+        if (s.isEmpty()) return "";
+
+        String scheme = null;
+        // Extract scheme if present
+        Matcher schemeMatcher = Pattern.compile("^([a-zA-Z][a-zA-Z0-9+.-]*):\\/\\/").matcher(s);
+        if (schemeMatcher.find()) {
+            scheme = schemeMatcher.group(1).toLowerCase();
+            s = s.substring(schemeMatcher.end());
+        }
+
+        // Drop credentials if any
+        int atIdx = s.indexOf('@');
+        if (atIdx >= 0) {
+            s = s.substring(atIdx + 1);
+        }
+
+        // Cut off path/query/fragment
+        int slashIdx = s.indexOf('/');
+        if (slashIdx >= 0) s = s.substring(0, slashIdx);
+        int qIdx = s.indexOf('?');
+        if (qIdx >= 0) s = s.substring(0, qIdx);
+        int hashIdx = s.indexOf('#');
+        if (hashIdx >= 0) s = s.substring(0, hashIdx);
+
+        // Remove port
+        int colonIdx = s.indexOf(':');
+        if (colonIdx >= 0) s = s.substring(0, colonIdx);
+
+        // If starts with www., keep it (since we want valid URL) – but tests for plain string removed it.
+        // For baseUrl we generally keep the host as-is but normalize case to lower for consistency.
+        String host = s.trim();
+        if (host.isEmpty()) return "";
+        host = host.toLowerCase();
+
+        // If no scheme but looks like a host (e.g., example.com or www.example.com or 1.2.3.4), assume http
+        if (scheme == null) {
+            scheme = "http";
+        }
+
+        return scheme + "://" + host;
     }
 
 }

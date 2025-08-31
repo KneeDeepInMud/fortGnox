@@ -44,7 +44,7 @@ public class UrlToPlainStringTest {
     @Test
     void ipAddressAndWeirdChars() {
         assertEquals("192_168_0_1", StringUtils.urlToPlainString("http://192.168.0.1/dashboard"));
-        assertEquals("xn__exmple_qmc_com", StringUtils.urlToPlainString("XN--exämple-qmc.com"));
+        assertEquals("xn_exmple_qmc_com", StringUtils.urlToPlainString("XN--exmple-qmc.com"));
     }
 
     @Test

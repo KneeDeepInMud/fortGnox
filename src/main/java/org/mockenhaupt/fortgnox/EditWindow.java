@@ -1,6 +1,7 @@
 package org.mockenhaupt.fortgnox;
 
 import org.mockenhaupt.fortgnox.misc.FileUtils;
+import org.mockenhaupt.fortgnox.misc.StringUtils;
 import org.mockenhaupt.fortgnox.swing.FgTextFilter;
 import org.mockenhaupt.fortgnox.swing.LAFChooser;
 import org.mockenhaupt.fortgnox.swing.NewPasswordDialog;
@@ -331,6 +332,10 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
                         if (s.contains("$FILENAME"))
                         {
                             s = s.replaceAll("\\$FILENAME", newFileName);
+                        }
+                        if (s.contains("URL"))
+                        {
+                            s = s.replaceAll("\\$URL", StringUtils.baseUrl(StringUtils.getUrlFromClipboard()));
                         }
                         sb.append(s);
                         isFirst[0] = false;
