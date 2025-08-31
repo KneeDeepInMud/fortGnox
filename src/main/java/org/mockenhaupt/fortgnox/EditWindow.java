@@ -3,6 +3,7 @@ package org.mockenhaupt.fortgnox;
 import org.mockenhaupt.fortgnox.misc.FileUtils;
 import org.mockenhaupt.fortgnox.swing.FgTextFilter;
 import org.mockenhaupt.fortgnox.swing.LAFChooser;
+import org.mockenhaupt.fortgnox.swing.NewPasswordDialog;
 import org.mockenhaupt.fortgnox.tags.TagsStore;
 
 import javax.swing.*;
@@ -177,170 +178,18 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
 
     public void showNew ()
     {
-        JDialog directoryChooser = new JDialog(parentWindow, "fortgnox New Password", true);
-        directoryChooser.getRootPane().registerKeyboardAction(e ->
-                directoryChooser.dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
-        directoryChooser.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-
-        directoryChooser.setLayout(new BorderLayout());
-
-
-        JPanel directoryChooserPanel = new JPanel();
-        GroupLayout groupLayout = new GroupLayout(directoryChooserPanel);
-        directoryChooserPanel.setLayout(groupLayout);
-
-        directoryChooser.add(directoryChooserPanel, BorderLayout.CENTER);
-
-        directoryChooser.setPreferredSize(new Dimension(650, 200));
-        directoryChooser.setMinimumSize(directoryChooser.getPreferredSize());
-
-
-        FileUtils.ParsedDirectories parsedDirectories =
-                FileUtils.splitDirectoryString(FgPreferences.get().get(PREF_SECRETDIRS));
-        JComboBox<String> comboBoxDirectories = new JComboBox<>();
-        comboBoxDirectories.setMaximumSize(new Dimension(500, 35));
-
-        comboBoxDirectories.setModel(new DefaultComboBoxModel<String>()
-        {
-            @Override
-            public int getSize ()
-            {
-                return parsedDirectories.directoryList.size();
+        NewPasswordDialog dialog = new NewPasswordDialog(parentWindow, (fullPath, fileNameOnly) -> {
+            // mirror previous behavior of handleButtonNewFileSelected
+            try {
+                setText(getNewFileTemplateText(fileNameOnly), "Enter new file " + fullPath, fullPath);
+            } catch (IOException e) {
+                setText("", "Failed to open template file, " + e.getMessage() + "\nEnter new file " + fullPath, fullPath);
             }
-
-            @Override
-            public String getElementAt (int index)
-            {
-                return parsedDirectories.directoryList.get(index);
+            if (editHandler != null) {
+                editHandler.handleNewFile(fullPath);
             }
         });
-        JTextField fileNameResulting = new JTextField("");
-        JTextField fileNameText = new JTextField();
-        comboBoxDirectories.addActionListener(actionEvent -> updateFilenamePreview(comboBoxDirectories, fileNameResulting, fileNameText));
-        if (comboBoxDirectories.getModel().getSize() > 0)
-        {
-            comboBoxDirectories.setSelectedIndex(0);
-        }
-        fileNameText.getDocument().addDocumentListener(new DocumentListener()
-        {
-            @Override
-            public void insertUpdate (DocumentEvent documentEvent)
-            {
-                update();
-            }
-
-            @Override
-            public void removeUpdate (DocumentEvent documentEvent)
-            {
-                update();
-            }
-
-            @Override
-            public void changedUpdate (DocumentEvent documentEvent)
-            {
-                update();
-            }
-
-            private void update ()
-            {
-                updateFilenamePreview(comboBoxDirectories, fileNameResulting, fileNameText);
-            }
-        });
-        fileNameResulting.setEnabled(false);
-        fileNameText.setMaximumSize(new Dimension(500, 35));
-
-        JLabel dirNameLabel = new JLabel("Directory", SwingConstants.RIGHT);
-        JLabel fileNameLabel = new JLabel("New filename:", SwingConstants.RIGHT);
-
-
-        groupLayout.setAutoCreateGaps(true);
-        groupLayout.setAutoCreateContainerGaps(true);
-
-        // horizontal
-        groupLayout.setHorizontalGroup(groupLayout.createParallelGroup()
-                .addGroup(groupLayout.createSequentialGroup()
-                        .addGroup(groupLayout.createParallelGroup()
-                                .addComponent(dirNameLabel)
-                                .addComponent(fileNameLabel))
-                        .addGroup(groupLayout.createParallelGroup()
-                                .addComponent(comboBoxDirectories)
-                                .addComponent(fileNameText)))
-                .addComponent(fileNameResulting));
-
-        // vertical
-        groupLayout.setVerticalGroup(groupLayout.createSequentialGroup()
-                .addGroup(groupLayout.createParallelGroup().addComponent(dirNameLabel).addComponent(comboBoxDirectories))
-                .addGroup(groupLayout.createParallelGroup().addComponent(fileNameLabel).addComponent(fileNameText))
-                .addComponent(fileNameResulting));
-
-        JButton buttonCreate;
-        JButton buttonCancel;
-
-        JPanel buttonPanel = new JPanel();
-        directoryChooser.add(buttonPanel, BorderLayout.SOUTH);
-        buttonCreate = new JButton("Create New");
-        buttonCreate.setMnemonic(KeyEvent.VK_N);
-        buttonCancel = new JButton("Cancel");
-        buttonCancel.setMnemonic(KeyEvent.VK_C);
-
-        buttonPanel.add(buttonCreate);
-        buttonPanel.add(buttonCancel);
-
-        buttonCancel.addActionListener(actionEvent -> directoryChooser.dispose());
-        buttonCreate.addActionListener(actionEvent ->
-        {
-            handleButtonNewFileSelected(directoryChooser, comboBoxDirectories, fileNameText);
-        });
-
-        fileNameText.getDocument().addDocumentListener(new DocumentListener()
-        {
-            @Override
-            public void insertUpdate (DocumentEvent documentEvent)
-            {
-                handleChange();
-            }
-
-            @Override
-            public void removeUpdate (DocumentEvent documentEvent)
-            {
-                handleChange();
-            }
-
-            @Override
-            public void changedUpdate (DocumentEvent documentEvent)
-            {
-                handleChange();
-            }
-
-            void handleChange ()
-            {
-                String ftest = getNewFilename(comboBoxDirectories, fileNameText);
-                File ftestFile = new File(ftest);
-                buttonCreate.setEnabled(!ftestFile.exists() && !fileNameText.getText().isEmpty());
-            }
-
-
-
-        });
-
-        buttonCreate.setEnabled(false);
-
-
-
-        directoryChooser.getRootPane().registerKeyboardAction(e ->
-                {
-                    if (buttonCreate.isEnabled())
-                    {
-                        handleButtonNewFileSelected(directoryChooser, comboBoxDirectories, fileNameText);
-                    }
-                },
-                KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
-
-
-        Point location = MouseInfo.getPointerInfo().getLocation();
-        directoryChooser.setLocation(location);
-        SwingUtilities.invokeLater(() -> fileNameText.requestFocus());
-        directoryChooser.setVisible(true);
+        dialog.setVisible(true);
     }
 
     private void init (JFrame parent)
@@ -540,16 +389,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
 
     private String getSuffix ()
     {
-        String suffix;
-        if (FgPreferences.get().getBoolean(PREF_GPG_USE_ASCII))
-        {
-            suffix = ".asc";
-        }
-        else
-        {
-            suffix = ".gpg";
-        }
-        return suffix;
+        return org.mockenhaupt.fortgnox.misc.SuffixUtil.getGpgSuffix();
     }
 
     private Container commandToolbar ()
