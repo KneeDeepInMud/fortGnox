@@ -134,17 +134,27 @@ public class MainFrame extends JFrame implements
      */
     public static void main (String[] args)
     {
+        // Handle CLI options that require early exit in a single argv loop
         for (int i = 0; i < args.length; ++i)
         {
             String thisArg = args[i];
+
+            // Help: print and exit
+            if (thisArg.equals("-h") || thisArg.equals("--help"))
+            {
+                printHelp(System.out);
+                return;
+            }
+
+            // QR decode: consume next arg (image path), decode, and exit
             if (thisArg.startsWith("-q") || thisArg.startsWith("--q"))
             {
-                 if (i + 1 < args.length)
-                 {
-                     i++;
-                     printTextFromQrCode(args[i]);
-                     System.exit(0);
-                 }
+                if (i + 1 < args.length)
+                {
+                    i++;
+                    printTextFromQrCode(args[i]);
+                    System.exit(0);
+                }
             }
         }
 
@@ -157,6 +167,21 @@ public class MainFrame extends JFrame implements
     {
         String qrImage = args;
         System.out.println(OtpQRUtil.decodeQrCode(qrImage));
+    }
+
+    private static void printHelp(java.io.PrintStream out)
+    {
+        String nl = System.lineSeparator();
+        StringBuilder sb = new StringBuilder();
+        sb.append("fortGnox - Password manager" + nl);
+        sb.append("Usage: java -jar fortgnox.jar [options]" + nl + nl);
+        sb.append("Options:" + nl);
+        sb.append("  -h, --help                 Show this help and exit" + nl);
+        sb.append("  -q, --q <image>            Decode OTP QR from image file and print the otpauth URI, then exit" + nl);
+        sb.append("  -d, --d [ARG]              Enable debug output. ARG may be one of:" + nl);
+        sb.append("                             DIR, FAV, FIL, LI, G, or an integer mask. If omitted, enables all." + nl + nl);
+        sb.append("If no options are given, the fortGnox GUI will be launched." + nl);
+        out.print(sb.toString());
     }
 
     private static void showMainWindow(String[] args)
