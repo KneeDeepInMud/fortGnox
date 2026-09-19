@@ -108,7 +108,7 @@ public class MainFrame extends JFrame implements
     private JButton buttonClearFavorites;
     private JButton buttonNew;
     private JButton buttonEdit;
-
+    private JButton buttonPasswordSourceFetch;
 
     private JList jListSecrets;
     private JProgressBar progressClearTimer;
@@ -297,6 +297,7 @@ public class MainFrame extends JFrame implements
         prefSecretListFontSize = preferences.get(PREF_SECRETLIST_FONT_SIZE, prefSecretListFontSize);
         setPrefUseFavorites(preferences.get(PREF_USE_FAVORITES, prefUseFavoriteList));
         favoritesParseFromJson(preferences.get(PREF_FAVORITES, "{}"));
+        updatePasswordSourceFetchVisibility();
     }
 
     private int getPrefClearSeconds ()
@@ -1420,6 +1421,15 @@ public class MainFrame extends JFrame implements
         buttonClearPass.setVisible(gpgProcess.isPrefUsePasswordDialog() || gpgProcess.isPrefConnectToGpgAgent());
     }
 
+    private void updatePasswordSourceFetchVisibility ()
+    {
+        if (buttonPasswordSourceFetch != null)
+        {
+            String fetchCommand = FgPreferences.get().get(PREF_PASSWORD_SOURCE_FETCH_COMMAND, "").trim();
+            buttonPasswordSourceFetch.setVisible(!fetchCommand.isEmpty());
+        }
+    }
+
 
     private void setUsePasswordDialog (boolean mode)
     {
@@ -1460,6 +1470,7 @@ public class MainFrame extends JFrame implements
         optionalSetText(s -> buttonHistoryForward.setText(s), "Forward");
         optionalSetText(s -> buttonHistoryBackward.setText(s), "Backward");
         optionalSetText(s -> buttonClearFavorites.setText(s), "Clear Favorites");
+        optionalSetText(s -> buttonPasswordSourceFetch.setText(s), "Fetch from Cloud");
         optionalSetText(s -> jButtonSettings.setText(s), "Open Settings");
         optionalSetText(s -> buttonAbout.setText(s), "About");
         optionalSetText(s -> buttonExit.setText(s), "Exit");
@@ -1529,6 +1540,9 @@ public class MainFrame extends JFrame implements
         jButtonSettings = new JButton();
         jButtonSettings.setMnemonic(KeyEvent.VK_S);
         jButtonSettings.setToolTipText("Open fortGnox preferences");
+        buttonPasswordSourceFetch = new JButton();
+        buttonPasswordSourceFetch.setMnemonic(KeyEvent.VK_F);
+        buttonPasswordSourceFetch.setToolTipText("Fetch password sources from cloud server by executing configured remote command");
         JButton jButtonClipboard = new JButton();
         jButtonClipboard.setMnemonic(KeyEvent.VK_C);
         buttonNew = new JButton();
@@ -1750,10 +1764,23 @@ public class MainFrame extends JFrame implements
 
         fgPanelTextArea.setButtonToolbarVisible(buttonOptions.isSelected());
 
+        jToolBarMainFunctions.add(buttonPasswordSourceFetch);
         jToolBarMainFunctions.add(jButtonSettings);
 
 //        jToolBarMainFunctions.add(buttonOptions);
 //        jToolBarMainFunctions.add(buttonExit);
+
+        buttonPasswordSourceFetch.setIcon(getIcon("/org/mockenhaupt/fortgnox/download48.png"));
+        buttonPasswordSourceFetch.setFocusable(false);
+        buttonPasswordSourceFetch.setHorizontalTextPosition(SwingConstants.CENTER);
+        buttonPasswordSourceFetch.setVerticalTextPosition(SwingConstants.BOTTOM);
+        buttonPasswordSourceFetch.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed (java.awt.event.ActionEvent evt)
+            {
+                buttonPasswordSourceFetchActionPerformed(evt);
+            }
+        });
 
         jButtonSettings.setIcon(getIcon("/org/mockenhaupt/fortgnox/sprocket48.png"));
 //        jButtonSettings.setText("Settings");
@@ -1944,6 +1971,54 @@ public class MainFrame extends JFrame implements
         decrypt(true);
     }
 
+    private void buttonPasswordSourceFetchActionPerformed (java.awt.event.ActionEvent evt)
+    {
+        executePasswordSourceFetchCommand();
+    }
+
+    private void executePasswordSourceFetchCommand ()
+    {
+        String fetchCommand = FgPreferences.get().get(PREF_PASSWORD_SOURCE_FETCH_COMMAND, "").trim();
+        if (fetchCommand.isEmpty())
+        {
+            fgPanelTextArea.setStatusText("No password source FETCH command configured");
+            JOptionPane.showMessageDialog(
+                    MainFrame.this,
+                    "No FETCH command configured in Settings -> GPG",
+                    "fortGnox FETCH",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (JOptionPane.showConfirmDialog(
+                MainFrame.this,
+                "Execute FETCH command?\n\n" + fetchCommand,
+                "Confirm FETCH command execution",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null) != YES_OPTION)
+        {
+            fgPanelTextArea.setStatusText("FETCH command execution cancelled");
+            return;
+        }
+
+        fgPanelTextArea.setStatusText("Executing FETCH command '" + fetchCommand + "'");
+        gpgProcess.command(fetchCommand, "", this, (out, err, filename, clientData, exitCode) ->
+        {
+            if (exitCode != 0)
+            {
+                fgPanelTextArea.setStatusText("FETCH command failure '" + out + "" + err + "'");
+                JOptionPane.showMessageDialog(MainFrame.this, "Output:" + out + " Error:" + err, "fortGnox FETCH", JOptionPane.ERROR_MESSAGE);
+            }
+            else
+            {
+                fgPanelTextArea.setStatusText("FETCH command success '" + out + " " + err + "'");
+                JOptionPane.showMessageDialog(MainFrame.this, out + err, "fortGnox FETCH", JOptionPane.INFORMATION_MESSAGE);
+                gpgProcess.rebuildSecretList();
+            }
+        });
+    }
+
     @Override
     public void actionPerformed (ActionEvent e)
     {
@@ -2039,6 +2114,9 @@ public class MainFrame extends JFrame implements
                     initSecretListFont();
                 }
                 break;
+            case PREF_PASSWORD_SOURCE_FETCH_COMMAND:
+                SwingUtilities.invokeLater(this::updatePasswordSourceFetchVisibility);
+                break;
             case PREF_EXCEPTION:
                 String msg = propertyChangeEvent.getNewValue().toString();
                 int len = msg.length();
@@ -2055,6 +2133,7 @@ public class MainFrame extends JFrame implements
                 // nothing to do
         }
         SwingUtilities.invokeLater(this::updateClearPassVisibility);
+        SwingUtilities.invokeLater(this::updatePasswordSourceFetchVisibility);
     }
 
     private void updateHistoryButtonVisibility ()
