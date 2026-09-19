@@ -76,6 +76,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
     private javax.swing.JLabel jLabelPassClearTimeout;
     private javax.swing.JLabel jLabelTextClearTimeout;
     private javax.swing.JTextField jTextGpgExe;
+    private javax.swing.JTextField jTextPasswordSourceFetchCommand;
     private javax.swing.JTextField jTextGpgPostCommand;
     private javax.swing.JTextField jTextNewFileTemplate;
     private JTextField jTexfFieldGpgConf;
@@ -208,6 +209,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         this.textFieldSpecial.setText(pa.get(PREF_GPG_PASS_CHARPOOL_SPECIAL, PasswordCharacterPool.getSpecial()));
 
         this.jTextGpgExe.setText(pa.get(PREF_GPG_COMMAND));
+        this.jTextPasswordSourceFetchCommand.setText(pa.get(PREF_PASSWORD_SOURCE_FETCH_COMMAND, ""));
         this.jTextGpgPostCommand.setText(pa.get(PREF_GPG_POST_COMMAND));
         this.jTextNewFileTemplate.setText(pa.get(PREF_NEW_TEMPLATE));
         this.jTextGpgHome.setText(pa.get(PREF_GPG_HOMEDIR));
@@ -283,6 +285,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         jCheckBoxGpgUseAsciiFormat.setText("Encrypt in ASCII format");
         JLabel labelRID = new JLabel("Recipient ID hint file");
         JLabel labelDefaultRID = new JLabel("Default recipient ID for password encryption");
+        JLabel labelPasswordSourceFetchCommand = new JLabel("Password source FETCH command (executed manually by user)");
         JLabel labelGpgPostCommand = new JLabel("GPG Post Command (will be executed after encryption)");
         JLabel labelTextNewFileTemplate = new JLabel("Template file for new password entries (overrides default template)");
 
@@ -302,6 +305,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                                     .addComponent(labelDataDirs)
                                     .addComponent(labelRID)
                                     .addComponent(labelDefaultRID)
+                                    .addComponent(labelPasswordSourceFetchCommand)
                                     .addComponent(labelGpgPostCommand)
                                     .addComponent(labelTextNewFileTemplate)
                             )
@@ -312,6 +316,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                                     .addComponent(secretDirPanel, 10, 300, 600)
                                     .addComponent(jTexfFieldGpgRIDFile, 10, 300, 600)
                                     .addComponent(jTexfFieldGpgDefaultRID, 10, 300, 600)
+                                    .addComponent(jTextPasswordSourceFetchCommand, 10, 300, 600)
                                     .addComponent(jTextGpgPostCommand, 10, 300, 600)
                                     .addComponent(jTextNewFileTemplate, 10, 300, 600)
                             )
@@ -327,6 +332,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
                     .addGroup(gl.createParallelGroup().addComponent(labelDataDirs).addComponent(secretDirPanel))
                     .addGroup(gl.createParallelGroup().addComponent(labelRID).addComponent(jTexfFieldGpgRIDFile))
                     .addGroup(gl.createParallelGroup().addComponent(labelDefaultRID).addComponent(jTexfFieldGpgDefaultRID))
+                    .addGroup(gl.createParallelGroup().addComponent(labelPasswordSourceFetchCommand).addComponent(jTextPasswordSourceFetchCommand))
                     .addGroup(gl.createParallelGroup().addComponent(labelGpgPostCommand).addComponent(jTextGpgPostCommand))
                     .addGroup(gl.createParallelGroup().addComponent(labelTextNewFileTemplate).addComponent(jTextNewFileTemplate))
                     .addComponent(jCheckBoxGpgUseAsciiFormat)
@@ -376,6 +382,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
     private void initComponents()
     {
         jTextGpgExe = new javax.swing.JTextField();
+        jTextPasswordSourceFetchCommand = new javax.swing.JTextField();
         jTextGpgPostCommand = new javax.swing.JTextField();
         jTextNewFileTemplate = new javax.swing.JTextField();
         labelGpgHome = new javax.swing.JLabel();
@@ -784,6 +791,7 @@ public class FgOptionsDialog extends javax.swing.JDialog
         FgPreferences.get().put(PREF_GPG_RID_FILE, jTexfFieldGpgRIDFile.getText());
         FgPreferences.get().put(PREF_GPG_DEFAULT_RID, jTexfFieldGpgDefaultRID.getText());
         FgPreferences.get().put(PREF_GPG_USE_ASCII, jCheckBoxGpgUseAsciiFormat.isSelected());
+        FgPreferences.get().put(PREF_PASSWORD_SOURCE_FETCH_COMMAND, jTextPasswordSourceFetchCommand.getText());
         FgPreferences.get().put(PREF_GPG_POST_COMMAND, jTextGpgPostCommand.getText());
         FgPreferences.get().put(PREF_NEW_TEMPLATE, jTextNewFileTemplate.getText());
 

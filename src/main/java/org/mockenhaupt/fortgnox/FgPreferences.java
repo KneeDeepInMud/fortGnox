@@ -10,6 +10,7 @@ public class FgPreferences
     public static final String PREF_GPG_HOMEDIR = "homedir";
     public static final String PREF_GPG_COMMAND = "gpg";
     public static final String PREF_GPG_POST_COMMAND = "PREF_GPG_POST_COMMAND";
+    public static final String PREF_PASSWORD_SOURCE_FETCH_COMMAND = "PREF_PASSWORD_SOURCE_FETCH_COMMAND";
     public static final String PREF_NEW_TEMPLATE = "PREF_NEW_TEMPLATE";
     public static final String PREF_GPGCONF_COMMAND = "gpgconf";
     public static final String PREF_URL_OPEN_COMMAND = "browser_open_command";
