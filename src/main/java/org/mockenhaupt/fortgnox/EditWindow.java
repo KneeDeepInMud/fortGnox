@@ -39,7 +39,16 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         PasswordGenerator.PasswordInsertListener,
         FgTextFilter.TextFilterHandler
 {
-    private JPanel editPanel;
+
+    private class MiPanel extends JPanel {
+        @Override
+        public void setVisible(boolean aFlag)
+        {
+            super.setVisible(aFlag);
+        }
+    }
+
+    private MiPanel editPanel;
     private JTextArea textArea;
     private JTextArea textAreaStatus;
     private JComboBox<String> comboBoxDirectories;
@@ -75,6 +84,8 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
         fgGPGProcess.addCommandListener(this);
         FgPreferences.get().addPropertyChangeListener(this);
     }
+
+
 
     public void reset ()
     {
@@ -197,7 +208,7 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
     {
         if (editPanel == null)
         {
-            editPanel = new JPanel();
+            editPanel = new MiPanel();
 //            URL url = this.getClass().getResource("fortGnox.png");
 
             textArea = new JTextArea();
@@ -488,11 +499,12 @@ public class EditWindow implements FgGPGProcess.EncrypionListener,
                 editPanel.setVisible(false);
             }
             setSecretTextModified(false);
-            if (editHandler != null)
-            {
-                editHandler.handleFinished();
-            }
         }
+        if (editHandler != null)
+        {
+            editHandler.handleFinished();
+        }
+        reset();
     }
 
     private String getRecipient (File gpgFile)

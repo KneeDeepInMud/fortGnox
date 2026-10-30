@@ -7,6 +7,7 @@ import org.mockenhaupt.fortgnox.swing.LAFChooser;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.JTextComponent;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
@@ -372,6 +373,20 @@ public class PasswordGenerator implements PropertyChangeListener
                 return passwordList.get(passwordList.size() - index - 1);
             }
         });
+
+        comboBoxPasswords.setSelectedItem(null);
+//        if (comboBoxPasswords.isEditable())
+        {
+            Object editorComponent = comboBoxPasswords.getEditor().getEditorComponent();
+            if (editorComponent instanceof JTextComponent)
+            {
+                ((JTextComponent) editorComponent).setText("");
+            }
+            else
+            {
+                System.err.println("nope");
+            }
+        }
         buttonReset.setEnabled(false);
     }
 
