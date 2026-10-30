@@ -1990,17 +1990,17 @@ public class MainFrame extends JFrame implements
             return;
         }
 
-        if (JOptionPane.showConfirmDialog(
-                MainFrame.this,
-                "Execute FETCH command?\n\n" + fetchCommand,
-                "Confirm FETCH command execution",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null) != YES_OPTION)
-        {
-            fgPanelTextArea.setStatusText("FETCH command execution cancelled");
-            return;
-        }
+//        if (JOptionPane.showConfirmDialog(
+//                MainFrame.this,
+//                "Execute FETCH command?\n\n" + fetchCommand,
+//                "Confirm FETCH command execution",
+//                JOptionPane.YES_NO_OPTION,
+//                JOptionPane.QUESTION_MESSAGE,
+//                null) != YES_OPTION)
+//        {
+//            fgPanelTextArea.setStatusText("FETCH command execution cancelled");
+//            return;
+//        }
 
         fgPanelTextArea.setStatusText("Executing FETCH command '" + fetchCommand + "'");
         gpgProcess.command(fetchCommand, "", this, (out, err, filename, clientData, exitCode) ->
@@ -2013,7 +2013,7 @@ public class MainFrame extends JFrame implements
             else
             {
                 fgPanelTextArea.setStatusText("FETCH command success '" + out + " " + err + "'");
-                JOptionPane.showMessageDialog(MainFrame.this, out + err, "fortGnox FETCH", JOptionPane.INFORMATION_MESSAGE);
+//                JOptionPane.showMessageDialog(MainFrame.this, out + err, "fortGnox FETCH", JOptionPane.INFORMATION_MESSAGE);
                 gpgProcess.rebuildSecretList();
             }
         });
